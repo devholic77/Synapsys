@@ -7,8 +7,10 @@ import android.view.View;
 import android.view.View.OnTouchListener;
 
 /**
+ * 작업 시작!!
  * 
- * @author 
+ * @author dhuckil.kim
+ * @since 2015.03.05
  *
  */
 public class WindowsTouchListener implements OnTouchListener, OnGestureListener {
