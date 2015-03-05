@@ -19,6 +19,8 @@ public class StreamingView extends SurfaceView implements SurfaceHolder.Callback
 
 	private final Context mContextF;
 	
+	private Socket mStreamingSocket;
+	
 	public StreamingView(Context context) {
 		this(context, null, 0);
 	}
