@@ -6,36 +6,30 @@ import android.view.GestureDetector;
 import android.view.GestureDetector.OnDoubleTapListener;
 import android.view.GestureDetector.OnGestureListener;
 import android.view.MotionEvent;
-import android.view.View;
-import android.view.View.OnTouchListener;
-import android.widget.Toast;
 
 /**
  * 작업 시작!!
  * 
- * @author dhuckil.kim
+ * @author Dhuckil.Kim
  * @since 2015.03.05
  * 
  */
-public class WindowsTouchListener implements OnGestureListener,
-		OnDoubleTapListener {
+public class WindowsTouchListener implements OnGestureListener, OnDoubleTapListener {
 
 	private final Context mContextF;
 
-	private GestureDetector mgestureDetector;
+	private GestureDetector mGestureDetector;
 
 	public WindowsTouchListener(Context context) {
 		mContextF = context;
 
-		// TODO Auto-generated constructor stub
-		mgestureDetector = new GestureDetector(mContextF, this);
-		mgestureDetector.setIsLongpressEnabled(true);
-		mgestureDetector.setOnDoubleTapListener(this);
+		mGestureDetector = new GestureDetector(mContextF, this);
+		mGestureDetector.setIsLongpressEnabled(true);
+		mGestureDetector.setOnDoubleTapListener(this);
 	}
 
-	public boolean onTouch(MotionEvent e) {
-
-		return mgestureDetector.onTouchEvent(e);
+	public boolean onTouchEvent(MotionEvent e) {
+		return mGestureDetector.onTouchEvent(e);
 	}
 
 	@Override
