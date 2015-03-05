@@ -24,5 +24,16 @@ namespace Synapsys
         {
             InitializeComponent();
         }
+
+		private void Button_Click(object sender, RoutedEventArgs e)
+		{
+			Popup popup = new Popup();
+
+			popup.Title = "KakaoTaaalk";
+			popup.Text = "asdfasdf";
+
+			popup.Close();
+			popup.Activate();
+		}
     }
 }
