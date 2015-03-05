@@ -1,10 +1,7 @@
 package org.gbssm.synapsys;
 
 import android.app.Activity;
-import android.app.ActivityManager;
-import android.content.Context;
 import android.os.Bundle;
-import android.util.AttributeSet;
 import android.view.MotionEvent;
 
 /**
@@ -18,11 +15,14 @@ public class MainActivity extends Activity {
 
 	private WindowsTouchListener mTouchListener;
 
+	private StreamingView mStreamingView;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
-		setContentView(new StreamingView(this));
+		setContentView(R.layout.main_activity);
+		
+		mStreamingView = (StreamingView) findViewById(R.id.streamingView);
 		mTouchListener = new WindowsTouchListener(this);
 	}
 
@@ -46,8 +46,7 @@ public class MainActivity extends Activity {
 
 	@Override
 	protected void onStop() {
-		// TODO Auto-g
-	
+		// TODO Auto-generated method stub
 		super.onStop();
 	}
 
@@ -59,9 +58,10 @@ public class MainActivity extends Activity {
 
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
-		if (mTouchListener != null)
-			return mTouchListener.onTouch(event);
-
+		if (mTouchListener != null && mStreamingView != null)
+			if (mStreamingView.isConnected())
+				return mTouchListener.onTouchEvent(event);
+		
 		return false;
 	}
 
