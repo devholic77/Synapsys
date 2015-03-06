@@ -139,7 +139,7 @@ public class WindowsTouchListener implements OnGestureListener,
 
 		return false;
 	}
-
+	// 테스트
 	/*
 	 * MouseEvent 처리 메소드
 	 */
