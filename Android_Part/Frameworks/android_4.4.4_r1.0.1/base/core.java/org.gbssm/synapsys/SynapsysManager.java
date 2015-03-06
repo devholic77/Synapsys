@@ -8,7 +8,20 @@ package org.gbssm.synapsys;
  */
 public class SynapsysManager {
 
-	/* package */ SynapsysManager() {
-		
+	private final ISynapsysManager mService;
+	
+	/* package */ SynapsysManager(ISynapsysManager service) {
+		mService = service;
+	}
+	
+	/**
+	 * 
+	 */
+	public void requestDisplayConnection() {
+		try {
+			mService.requestDisplayConnection();
+			
+		} catch (RemoteException e) {
+		}
 	}
 }
