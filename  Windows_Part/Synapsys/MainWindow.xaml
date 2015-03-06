@@ -1,0 +1,10 @@
+﻿<Window x:Class="Synapsys.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Synapsys" Height="350" Width="525">
+    <Grid>
+        
+        <Button Height="30" Width="100" Click="Button_Click">Toggle popup!</Button>
+        
+    </Grid>
+</Window>
