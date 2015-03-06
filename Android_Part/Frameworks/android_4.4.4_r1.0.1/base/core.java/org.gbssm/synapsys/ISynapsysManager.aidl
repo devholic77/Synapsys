@@ -1,5 +1,7 @@
 package org.gbssm.synapsys;
 
+import org.gbssm.synapsys.IDisplayConnectionListener;
+
 /**
  * 
  * @author Yeonho.Kim
@@ -8,5 +10,5 @@ package org.gbssm.synapsys;
  */
 interface ISynapsysManager {
 
-	void requestDisplayConnection();
+	void requestDisplayConnection(IDisplayConnectionListener listener);
 }
