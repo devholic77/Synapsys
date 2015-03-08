@@ -17,6 +17,7 @@ namespace Synapsys
         public MainWindow()
         {
             InitializeComponent();
+			scrs = Screen.AllScreens;
         }
 
 		private void Button_Click(object sender, RoutedEventArgs e)
@@ -49,7 +50,7 @@ namespace Synapsys
 			while(true)
 			{
 				capture();
-				Thread.Sleep(100);
+				Thread.Sleep(33);
 			}
 		}
 
@@ -59,13 +60,14 @@ namespace Synapsys
 		private const int MAX_MONITOR = 3;
 		private static Bitmap bmpScreenShot;
 		private static Graphics g;
+		private static Screen []scrs;
 
 		private void capture()
 		{
 			
 			string currentMonitor;
 
-			foreach(Screen scr in Screen.AllScreens)
+			foreach(Screen scr in scrs)
 			{
 				if (scr == null)
 					continue;
@@ -123,6 +125,7 @@ namespace Synapsys
 			}
 
 			captSwitch = !captSwitch;
+			GC.Collect();
 		}
 
 		private bool compare(Bitmap bmp1, Bitmap bmp2)
@@ -133,24 +136,36 @@ namespace Synapsys
 			if (bmp1 == null || bmp2 == null)
 				return false;
 
-			// 용량 비교
-
-			if (!bmp1.Size.Equals(bmp2.Size))
+			bool equals = true;
+			Rectangle rect = new Rectangle(0, 0, bmp1.Width, bmp1.Height);
+			BitmapData bmpData1 = bmp1.LockBits(rect, ImageLockMode.ReadOnly, bmp1.PixelFormat);
+			BitmapData bmpData2 = bmp2.LockBits(rect, ImageLockMode.ReadOnly, bmp2.PixelFormat);
+			unsafe
 			{
-				Console.WriteLine("용량 같음");
-				return false;
-			}
-			for (int x = 0; x < bmp1.Width; x+=4)
-			{
-				for (int y = 0; y < bmp1.Height; y+=4)
+				byte* ptr1 = (byte*)bmpData1.Scan0.ToPointer();
+				byte* ptr2 = (byte*)bmpData2.Scan0.ToPointer();
+				int width = rect.Width * 3; // for 24bpp pixel data
+				for (int y = 0; equals && y < rect.Height; y++)
 				{
-					if (bmp1.GetPixel(x, y) != bmp2.GetPixel(x, y))
+					for (int x = 0; x < width; x++)
 					{
-						return false;
+						if (*ptr1 != *ptr2)
+						{
+							equals = false;
+							break;
+						}
+						ptr1++;
+						ptr2++;
 					}
+					ptr1 += bmpData1.Stride - width;
+					ptr2 += bmpData2.Stride - width;
 				}
 			}
-			return true;
+
+			bmp1.UnlockBits(bmpData1);
+			bmp2.UnlockBits(bmpData2);
+
+			return equals;
 		}
 
 
