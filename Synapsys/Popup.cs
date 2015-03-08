@@ -8,18 +8,14 @@ namespace Synapsys
 {
 	public partial class Popup : Form
 	{
-
-		public string Title, Text;
-
-		public Popup()
+		public Popup(string _title, string _text)
 		{
 			InitializeComponent();
 
-			this.label1.Text = Title;
-			this.label2.Text = Text;
+			this.label1.Text = _title;
+			this.label2.Text = _text;
 
 			AnimateWindow();
-			Thread.Sleep(2000);
 			HideAnimateWindow();
 		}
 
@@ -40,11 +36,13 @@ namespace Synapsys
 		{
 			ResetStartPosition(); // 팝업창의 설정
 			Animate.AnimateWindow(Handle, DeleayTime, Animate.DwFlagVerNegative); // WinApi 호출
+			Show();
 		}
 
 		private void HideAnimateWindow() // 사라지는 애니메이션
 		{
-			Animate.AnimateWindow(Handle, DeleayTime, Animate.DwFlagVerPositive); // WinApi 호출
+			Thread.Sleep(2000);
+			Animate.AnimateWindow(Handle, DeleayTime, Animate.DwFlagBlend); // WinApi 호출
 		}
 
 		private void ResetStartPosition()
