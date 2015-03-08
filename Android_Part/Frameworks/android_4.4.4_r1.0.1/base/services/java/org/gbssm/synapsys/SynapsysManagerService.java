@@ -1,5 +1,15 @@
 package org.gbssm.synapsys;
 
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+
+import android.content.Context;
+import android.os.RemoteException;
+import android.util.Slog;
+
+import org.gbssm.synapsys.ISynapsysManager;
+
 /**
  * 
  * SynapsysManager의 기능을 구현하는 시스템 서비스.
@@ -48,5 +58,5 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 		public void run() {
 			
 		}
-	}
+	};
 }

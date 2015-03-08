@@ -118,6 +118,9 @@ import com.android.internal.annotations.GuardedBy;
 import com.android.internal.app.IAppOpsService;
 import com.android.internal.os.IDropBoxManagerService;
 
+import org.gbssm.synapsys.ISynapsysManager;
+import org.gbssm.synapsys.SynapsysManager;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -600,7 +603,7 @@ class ContextImpl extends Context {
         	public Object createService(ContextImpl ctx) {
         		IBinder iBinder = ServiceManager.getService(Context.SYNAPSYS_SERVICE);
         		ISynapsysManager service = ISynapsysManager.Stub.asInterface(iBinder);
-        		return new SynapsysManager(service);
+        		return SynapsysManager.Factory.create(service);
         	}});
     }
 

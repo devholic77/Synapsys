@@ -69,7 +69,7 @@ import com.android.server.search.SearchManagerService;
 import com.android.server.usb.UsbService;
 import com.android.server.wifi.WifiService;
 import com.android.server.wm.WindowManagerService;
-import org.gbssm.server.synapsys.SynapsysManagerService;
+import org.gbssm.synapsys.SynapsysManagerService;
 
 import dalvik.system.VMRuntime;
 import dalvik.system.Zygote;
