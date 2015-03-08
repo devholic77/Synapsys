@@ -32,50 +32,125 @@ namespace Synapsys
 
 			//Console.WriteLine();
 
-			new Thread(new ThreadStart(capture)).Start();
+			new Thread(new ThreadStart(captureMachine)).Start();
 			//new Thread(new ThreadStart(trackMouse)).Start();
 		}
 
-		private string getCurrentMouse()
+		// 마우스 포인터가 위치한 모니터 번호를 리턴
+		private string getCurrentMonitor()
 		{
 			return Regex.Replace(Screen.FromPoint(new System.Drawing.Point(System.Windows.Forms.Cursor.Position.X,
 					System.Windows.Forms.Cursor.Position.Y)).DeviceName,
 					@"[^\d]", string.Empty);
 		}
 
+		private void captureMachine()
+		{
+			while(true)
+			{
+				capture();
+				Thread.Sleep(100);
+			}
+		}
+
+		// 화면을 캡쳐
+		private Bitmap [,]bitmapArray = new Bitmap[MAX_MONITOR,2];
+		private bool captSwitch = true;
+		private const int MAX_MONITOR = 3;
+		private static Bitmap bmpScreenShot;
+		private static Graphics g;
+
 		private void capture()
 		{
-
-			int cnt = 1;
-			int adder = 0;
+			
+			string currentMonitor;
 
 			foreach(Screen scr in Screen.AllScreens)
 			{
-				Bitmap bmpScreenShot = new Bitmap(scr.Bounds.Width, scr.Bounds.Height, PixelFormat.Format32bppArgb);
-				Graphics g = Graphics.FromImage(bmpScreenShot);
-				g.CopyFromScreen(scr.Bounds.X, scr.Bounds.Y, 0, 0, scr.Bounds.Size, CopyPixelOperation.SourceCopy);
+				if (scr == null)
+					continue;
 
+				currentMonitor = Regex.Replace(scr.DeviceName, @"[^\d]", string.Empty);
 
-
-				CURSORINFO pci;
-				pci.cbSize = System.Runtime.InteropServices.Marshal.SizeOf(typeof(CURSORINFO));
-
-				if (GetCursorInfo(out pci))
+				try
 				{
-					if (pci.flags == CURSOR_SHOWING)
+					bmpScreenShot = new Bitmap(scr.Bounds.Width, scr.Bounds.Height, PixelFormat.Format24bppRgb);
+
+					g = Graphics.FromImage(bmpScreenShot);
+					g.CopyFromScreen(scr.Bounds.X, scr.Bounds.Y, 0, 0, scr.Bounds.Size, CopyPixelOperation.SourceCopy);
+				
+					// 차영상
+					if (captSwitch)
 					{
-						DrawIcon(g.GetHdc(), pci.ptScreenPos.x, pci.ptScreenPos.y, pci.hCursor);
-						g.ReleaseHdc();
+						bitmapArray[Convert.ToInt32(currentMonitor), 0] = bmpScreenShot;
+					}
+					else
+					{
+						bitmapArray[Convert.ToInt32(currentMonitor), 1] = bmpScreenShot;
+						if(compare(bitmapArray[Convert.ToInt32(currentMonitor), 0],bitmapArray[Convert.ToInt32(currentMonitor), 1]))
+						{
+							// 바뀐게 없다
+							//Console.WriteLine(currentMonitor + ": 바뀐게 없다");
+						}
+						else
+						{
+							// 바뀌었다
+							Console.WriteLine(currentMonitor + ": Changed");
+						}
+					}
+
+
+
+					// 현재 모니터에 마우스 드로잉
+					if(currentMonitor.Equals(getCurrentMonitor()))
+					{
+						CURSORINFO pci;
+						pci.cbSize = System.Runtime.InteropServices.Marshal.SizeOf(typeof(CURSORINFO));
+
+						if (GetCursorInfo(out pci))
+						{
+							if (pci.flags == CURSOR_SHOWING)
+							{
+								DrawIcon(g.GetHdc(), pci.ptScreenPos.x, pci.ptScreenPos.y, pci.hCursor);
+								g.ReleaseHdc();
+							}
+						}
+					}
+
+					//bmpScreenShot.Save("c:\\" + currentMonitor + ".jpg", ImageFormat.Jpeg);
+				}
+				catch { }
+			}
+
+			captSwitch = !captSwitch;
+		}
+
+		private bool compare(Bitmap bmp1, Bitmap bmp2)
+		{
+			// false : 바뀌었다
+			// true : 바뀐게 없다.
+
+			if (bmp1 == null || bmp2 == null)
+				return false;
+
+			// 용량 비교
+
+			if (!bmp1.Size.Equals(bmp2.Size))
+			{
+				Console.WriteLine("용량 같음");
+				return false;
+			}
+			for (int x = 0; x < bmp1.Width; x+=4)
+			{
+				for (int y = 0; y < bmp1.Height; y+=4)
+				{
+					if (bmp1.GetPixel(x, y) != bmp2.GetPixel(x, y))
+					{
+						return false;
 					}
 				}
-
-
-
-
-
-				bmpScreenShot.Save("c:\\" + cnt + "_" + adder + ".png", ImageFormat.Png);
-				cnt++;
 			}
+			return true;
 		}
 
 
