@@ -17,7 +17,7 @@ namespace Shell_test
         public Program()
         {
             process = new Process();
-            startInfo = new ProcessStartInfo();
+            startInfo = new ProcessStartInfo();    
             startInfo.FileName = "CMD.exe";
             startInfo.UseShellExecute = false;
             startInfo.RedirectStandardInput = true;
