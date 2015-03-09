@@ -4,11 +4,9 @@ package org.gbssm.synapsys;
  * 
  * @author Yeonho.Kim
  * @since 2015.03.05
- *
+ * @hide
  */
-public class SynapsysManager {
+interface ISynapsysManager {
 
-	/* package */ SynapsysManager() {
-		
-	}
+	void requestDisplayConnection();
 }
