@@ -6,6 +6,8 @@ using System.Windows.Forms;
 using System.Runtime.InteropServices;
 using System;
 using System.Text.RegularExpressions;
+using System.Reflection;
+using WPFTaskbarNotifier;
 
 namespace Synapsys
 {
@@ -18,6 +20,7 @@ namespace Synapsys
         {
             InitializeComponent();
 			scrs = Screen.AllScreens;
+			noti.Show();
         }
 
 		private void Button_Click(object sender, RoutedEventArgs e)
@@ -192,6 +195,22 @@ namespace Synapsys
 		static extern bool DrawIcon(IntPtr hDC, int X, int Y, IntPtr hIcon);
 
 		const Int32 CURSOR_SHOWING = 0x00000001;
+
+		NotifierPopup noti = new NotifierPopup();
+
+		private void Button_Click_1(object sender, RoutedEventArgs e)
+		{
+
+			string title = "KakaoTalk";
+			string message = "동해물과 백두산이 마르고 닳도록";
+
+			noti.NotifyContent.Add(new NotifyObject(message, title));
+			noti.no
+			noti.Notify();
+
+
+
+		}
     }
 	
 }
