@@ -1,18 +1,52 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Text;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Documents;
-
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
+using System.ComponentModel;
 using System.Collections.ObjectModel;
+using WPFTaskbarNotifier;
 
-namespace Synapsys
+namespace WPFTaskbarNotifierExample
 {
+	/// <summary>
+	/// This is just a mock object to hold something of interest. 
+	/// </summary>
+	public class NotifyObject
+	{
+		public NotifyObject(string message, string title)
+		{
+			this.message = message;
+			this.title = title;
+		}
+
+		private string title;
+		public string Title
+		{
+			get { return this.title; }
+			set { this.title = value; }
+		}
+
+		private string message;
+		public string Message
+		{
+			get { return this.message; }
+			set { this.message = value; }
+		}
+	}
 
 	/// <summary>
-	/// NotifierPopup.xaml에 대한 상호 작용 논리
+	/// This is a TaskbarNotifier that contains a list of NotifyObjects to be displayed.
 	/// </summary>
-	public class NotifierPopup : TaskbarNotifier
+	public partial class ExampleTaskbarNotifier : TaskbarNotifier
 	{
-		public NotifierPopup()
+		public ExampleTaskbarNotifier()
 		{
 			InitializeComponent();
 		}

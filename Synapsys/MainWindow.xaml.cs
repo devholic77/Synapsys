@@ -8,6 +8,7 @@ using System;
 using System.Text.RegularExpressions;
 using System.Reflection;
 using WPFTaskbarNotifier;
+using WPFTaskbarNotifierExample;
 
 namespace Synapsys
 {
@@ -196,7 +197,7 @@ namespace Synapsys
 
 		const Int32 CURSOR_SHOWING = 0x00000001;
 
-		NotifierPopup noti = new NotifierPopup();
+		ExampleTaskbarNotifier noti = new ExampleTaskbarNotifier();
 
 		private void Button_Click_1(object sender, RoutedEventArgs e)
 		{
@@ -205,7 +206,6 @@ namespace Synapsys
 			string message = "동해물과 백두산이 마르고 닳도록";
 
 			noti.NotifyContent.Add(new NotifyObject(message, title));
-			noti.no
 			noti.Notify();
 
 
