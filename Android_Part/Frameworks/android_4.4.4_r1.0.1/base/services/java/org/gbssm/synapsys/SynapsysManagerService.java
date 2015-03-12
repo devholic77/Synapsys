@@ -1,14 +1,16 @@
 package org.gbssm.synapsys;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
 import android.content.Context;
+import android.os.Handler;
 import android.os.RemoteException;
+import android.os.SystemProperties;
 import android.util.Slog;
-
-import org.gbssm.synapsys.ISynapsysManager;
 
 /**
  * 
@@ -20,43 +22,94 @@ import org.gbssm.synapsys.ISynapsysManager;
  */
 public class SynapsysManagerService extends ISynapsysManager.Stub {
 	
-	private final int INIT_PORT = 12345;
+	static final String TAG = "SynapsysManagerService";	
+	
+	static final int LISTEN_PORT = 30300;
 	
 	Context mContext;
+	
+	
+	private boolean isServiceRunning;
+	
+	private Socket mControlSocket;
+	
 	
 	public SynapsysManagerService(Context context) {
 		mContext = context;
 	}
 	
-	public void requestDisplayConnection() throws RemoteException {
+	public int requestDisplayConnection() throws RemoteException {
 		Slog.i("SynapsysManagerService", "reqeustDisplayConnection()");
+		
+		return 0; // Port Number
 	}
 	
-	private void init() {
-		Thread initThread = new Thread(initRunnable);
+	public boolean invokeMouseEventFromTouch(int event_id, float event_x, float event_y) throws RemoteException {
+		
+		return false;
+	}
+	
+	public boolean interpolateMouseEvent(int event_id, float event_x, float event_y) throws RemoteException { 
+		
+		return false;
+	}
+	
+	/**
+	 * 
+	 */
+	void systemReady() {
+		// TODO : USB 연결 탐지.  Listener 등록
 		
 	}
 	
-	Runnable initRunnable = new Runnable() {
-		@Override
-		public void run() {
-			
+	void systemRunning() {
+		// TODO : 프로그램 연결 탐지 후,  연결 성립 (소켓연결)
+		// TODO : 통신 스레드 시작.
+
+		if (isServiceRunning)
+			return;
+		
+		setServiceRunning(true);
+		
+		do {
+			ServerSocket listenSocket = null;
 			try {
-				ServerSocket initSocket = new ServerSocket(INIT_PORT);
-				Socket connSocket = initSocket.accept();
+				listenSocket = new ServerSocket(LISTEN_PORT); 
+				listenSocket.setSoTimeout(10000);
+				Slog.v(TAG, "Synapsys Init Socket Open");
 				
-				initSocket.close();
+				mControlSocket = listenSocket.accept();
+				InputStream mControlInputstream = mControlSocket.getInputStream();
+				OutputStream mControlOutputstream = mControlSocket.getOutputStream();
 				
+				
+				listenSocket.close();
+						
 			} catch (IOException e) {
+				continue;
 				
+			} finally {
+				// ListenSocket Close.
+				if (listenSocket != null) {
+					try {
+						listenSocket.close();
+					} catch (IOException e) { ; }
+				}
 			}
-		}
-	};
-	
-	Runnable controlRunnable = new Runnable() {
-		@Override
-		public void run() {
 			
-		}
-	};
+		} while (SystemProperties.getBoolean("config.disable_synapsys", false));
+
+		setServiceRunning(false);
+	}
+	
+	synchronized void setServiceRunning(boolean running) {
+		isServiceRunning = running;
+	}
+	
+	
+	class SynaysysHandler extends Handler {
+		
+	}
 }
+
+

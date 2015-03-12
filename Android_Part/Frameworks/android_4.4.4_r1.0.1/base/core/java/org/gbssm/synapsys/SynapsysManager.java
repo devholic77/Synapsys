@@ -1,7 +1,10 @@
 package org.gbssm.synapsys;
 
+import java.io.IOException;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.InvalidParameterException;
+import java.util.concurrent.TimeoutException;
 
 import android.os.RemoteException;
 
@@ -38,42 +41,64 @@ public class SynapsysManager {
 	}
 
 	private OnDisplayConnectionListener mOnDisplayConnectionListener;
-//	
-//	/**
-//	 * 
-//	 * @author Yeonho.Kim
-//	 * @since 2015.03.07
-//	 *
-//	 */
-//	private class IDisplayConnectionListener extends IDisplayConnectionListener.Stub {
-//		
-//		public void onConnected(Socket displaySock) throws RemoteException {
-//			if (mOnDisplayConnectionListener != null)
-//				mOnDisplayConnectionListener.onConnected(displaySock);
-//		}
-//		
-//		public void onDisconnected() throws RemoteException {
-//			if (mOnDisplayConnectionListener != null)
-//				mOnDisplayConnectionListener.onDisconnected();
-//		}
-//	}
-//	
-//	private IDisplayConnectionListener mIDisplayConnectionListener;
 
+
+	private Socket mDisplaySocket;
 	
-	public void requestDisplayConnection() {
-		//requestDisplayConnection(null);
+	/**
+	 * Display 연결을 요청하고, 연결된 Socket을 전달받는다.
+	 * Socket 연결 과정에서 Thread 대기가 발생할 수 있기 때문에, MainThread에서 호출하지 않는 것이 좋다.
+	 * 
+	 * @return
+	 */
+	public Socket requestDisplayConnection() {
+		final int Timeout = 3000;
+		
+		try {
+			int port = mService.requestDisplayConnection();
+			
+			final int portF = port;
+			Thread thread = new Thread() {
+				@Override
+				public void run() {
+					try {
+						ServerSocket server = new ServerSocket(portF);
+						server.setSoTimeout(Timeout);
+						mDisplaySocket = server.accept();
+						
+					} catch (Exception e) {
+						e.printStackTrace();
+						mDisplaySocket = null;
+					}
+				}
+			};
+			thread.start();
+			thread.join(Timeout);
+			
+			return mDisplaySocket;
+			
+		} catch (RemoteException e) {
+			
+		} catch (InterruptedException e) {
+			// TODO : 제한된 연결시간을 초과.
+		}
+		
+		return null;
 	}
 	
-//	public void requestDisplayConnection(OnDisplayConnectionListener listener) {
-//		mOnDisplayConnectionListener = listener;
-//		
-//		try {
-//			mService.requestDisplayConnection(mIDisplayConnectionListener);
-//			
-//		} catch (RemoteException e) {
-//		}
-//	}
+	
+	/**
+	 * Android Device의 Touch Event를 PC의 Mouse Event로 발생시킨다.
+	 *
+	 */
+	public boolean invokeMouseEventFromTouch(int mouse_id, float mouse_x, float mouse_y) {
+		try {
+			return mService.invokeMouseEventFromTouch(mouse_id, mouse_x, mouse_y);
+			
+		} catch (RemoteException e) {	
+		}
+		return false;
+	}
 	
 	/**
 	 * 
@@ -87,7 +112,7 @@ public class SynapsysManager {
 			if (service != null)
 				return new SynapsysManager(service);
 			
-			throw new InvalidParameterException("SynapsysManager should be initiated by system.");
+			throw new InvalidParameterException("SynapsysManager should be initiated by system itself.");
 		}
 	}
 }
