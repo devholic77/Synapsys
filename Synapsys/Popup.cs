@@ -2,47 +2,46 @@
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
-using System.Threading;
 
 namespace Synapsys
 {
 	public partial class Popup : Form
 	{
-		public Popup(string _title, string _text)
+
+		private string title, message;
+
+		public Popup()
 		{
 			InitializeComponent();
-
-			this.label1.Text = _title;
-			this.label2.Text = _text;
-
-			AnimateWindow();
-			HideAnimateWindow();
+			//AnimateWindow(); // 윈도우 애니메이션 시작
 		}
 
-		private void Popup_Load(object sender, EventArgs e)
+		public void Set(string title, string message)
 		{
+			this.title = title;
+			this.message = message;
 		}
 
-		private const int MarginX = 0; // x좌표 여백
-		private const int MarginY = 0; // y좌표 여백
-		private const int DeleayTime = 500; // 창이 나타나는 시간 (밀리초 단위)
+		// 이하 환경 변수
+		private const int MarginX = 50; // x좌표 여백
+		private const int MarginY = 50; // y좌표 여백
+		private const int DeleayTime = 2000; // 창이 나타나는 시간 (밀리초 단위)
+		// 이상 환경 변수
 
 		private void button1_Click(object sender, EventArgs e)
 		{
 			Close(); // 팝업창 닫기
 		}
 
-		private void AnimateWindow()
+		public void AnimateWindow()
 		{
 			ResetStartPosition(); // 팝업창의 설정
-			Animate.AnimateWindow(Handle, DeleayTime, Animate.DwFlagVerNegative); // WinApi 호출
-			Show();
+			Animate.AnimateWindow(Handle, DeleayTime, Animate.DwFlagBlend); // WinApi 호출
 		}
 
 		private void HideAnimateWindow() // 사라지는 애니메이션
 		{
-			Thread.Sleep(2000);
-			Animate.AnimateWindow(Handle, DeleayTime, Animate.DwFlagBlend); // WinApi 호출
+			Animate.AnimateWindow(Handle, DeleayTime, Animate.DwFlagHide); // WinApi 호출
 		}
 
 		private void ResetStartPosition()

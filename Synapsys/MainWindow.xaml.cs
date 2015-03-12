@@ -7,8 +7,6 @@ using System.Runtime.InteropServices;
 using System;
 using System.Text.RegularExpressions;
 using System.Reflection;
-using WPFTaskbarNotifier;
-using WPFTaskbarNotifierExample;
 
 namespace Synapsys
 {
@@ -21,15 +19,11 @@ namespace Synapsys
         {
             InitializeComponent();
 			scrs = Screen.AllScreens;
-			noti.Show();
         }
 
 		private void Button_Click(object sender, RoutedEventArgs e)
 		{
-			Popup popup = new Popup("KakaoTaaalk", "asdfasdf");
-
-			//popup.Close();
-			popup.Activate();
+			
 		}
 
 		private void Button_Click2(object sender, RoutedEventArgs e)
@@ -197,18 +191,21 @@ namespace Synapsys
 
 		const Int32 CURSOR_SHOWING = 0x00000001;
 
-		ExampleTaskbarNotifier noti = new ExampleTaskbarNotifier();
+		public Popup popup = new Popup();
 
 		private void Button_Click_1(object sender, RoutedEventArgs e)
 		{
 
-			string title = "KakaoTalk";
-			string message = "동해물과 백두산이 마르고 닳도록";
+			string title = "KakaoTalk KakaoTalk KakaoTalk KakaoTalk KakaoTalk";
+			string message = "동해물과 백두산이 마르고 닳도록 하느님이 보우하사 우리 나라 만세 무궁화 삼천리 화려강산 대한사람 대한으로";
+			
+			//Popup popup = new Popup();
+			//popup.Set(title, message);
+			//popup.AnimateWindow();
+			////popup.Close();
 
-			noti.NotifyContent.Add(new NotifyObject(message, title));
-			noti.Notify();
-
-
+			TaskbarPopup popup = new TaskbarPopup();
+			popup.Gogo(title, message);
 
 		}
     }
