@@ -17,8 +17,8 @@ namespace Shell_test
 
             //new Synapsys_Display_Socket();
             new Synapsys_ADB_Instruction(str_display_socket, str_data_socket); // Port Forward 할 Port 2개를 입력 
-            new Synapsys_Display_Socket(1235);
-            new Synapsys_Data_Socket(1234);
+            new Synapsys_Display_Socket(1234);
+            new Synapsys_Data_Socket(1235);
         }
     }
     /*

@@ -29,7 +29,7 @@ namespace Shell_test
             process.StartInfo = startInfo;
 
             Check_Device();
-            Port_Forward(Display_Socket); // 내일 파라미터 2개로 하나에서 내는 것으로 수정수정수정정수정 
+            Port_Forward(Display_Socket);
             Port_Forward(Data_Socket);
    
 

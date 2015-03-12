@@ -10,19 +10,19 @@ using System.Net.Sockets;
 namespace Shell_test
 {
     class Synapsys_Display_Socket
-    {
+    {  
         int sPort;
         public Synapsys_Display_Socket(int port)
         {
             sPort = port;
             new Thread(new ThreadStart(Synapsys_Socket)).Start();
         }
-
         public static Socket socket;
         public static byte[] getbyte = new byte[1024];
         public static byte[] setbyte = new byte[1024];
 
-      
+
+
         public void Synapsys_Socket()
         {
             string sendstring = null;
@@ -32,33 +32,30 @@ namespace Shell_test
             IPEndPoint serverEndPoint = new IPEndPoint(serverIP, sPort);
 
             socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            Console.WriteLine("-----------------------------------------------------");
-            Console.WriteLine(" 서버로 접속을 시작합니다. [엔터를 입력하세요] ");
-            Console.WriteLine("-----------------------------------------------------");
-            Console.ReadLine();
 
             socket.Connect(serverEndPoint);
 
             if (socket.Connected)
             {
-                Console.WriteLine(">> 정상적으로 연결 되었습니다.(전송한 데이터를 입력해주세요)");
+                Console.WriteLine(">> Synapsys_Display_Socket Start");
             }
 
             while (true)
             {
-                Console.Write(">>");
-                sendstring = Console.ReadLine();
-
+               // Console.Write(">>");
+               // sendstring = Console.ReadLine();
+                sendstring = "Synapsys_Display_Socket";
                 if (sendstring != String.Empty)
                 {
                     int getValueLength = 0;
-                    setbyte = Encoding.UTF7.GetBytes(sendstring);
+                    setbyte = Encoding.UTF8.GetBytes(sendstring);
                     socket.Send(setbyte, 0, setbyte.Length, SocketFlags.None);
                     Console.WriteLine("송신 데이터 : {0} | 길이{1}", sendstring, setbyte.Length);
                     socket.Receive(getbyte, 0, getbyte.Length, SocketFlags.None);
                     getValueLength = byteArrayDefrag(getbyte);
-                    getstring = Encoding.UTF7.GetString(getbyte, 0, getValueLength + 1);
-                    Console.WriteLine(">>수신된 데이터 :{0} | 길이{1}", getstring, getValueLength + 1);
+                    getstring = Encoding.UTF8.GetString(getbyte, 0, getValueLength + 1);
+                    Console.WriteLine(">>수신 Synapsys_Display_Socket : ", getstring, getValueLength + 1);
+
                 }
 
                 getbyte = new byte[1024];
@@ -79,6 +76,5 @@ namespace Shell_test
 
             return endLength;
         }
-
     }
 }
