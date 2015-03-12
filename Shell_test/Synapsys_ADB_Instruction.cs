@@ -31,7 +31,7 @@ namespace Shell_test
             Check_Device();
             Port_Forward(Display_Socket);
             Port_Forward(Data_Socket);
-   
+            Port_Define("33332","0a1d99f6");
 
         }
         String cmd_string;
@@ -67,8 +67,7 @@ namespace Shell_test
         }
         public void Port_Forward(object str_inst)
         {
-            startInfo.WorkingDirectory = @"C:\Users\Jomin\android-sdks\platform-tools";
-            //Console.Write(startInfo.WorkingDirectory + ">");
+            startInfo.WorkingDirectory = @"C:\Users\Jomin\android-sdks\platform-tools";            
 
             cmd_string = (String)str_inst;
 
@@ -109,6 +108,42 @@ namespace Shell_test
                 return false;
             }
             return true;
+        }
+
+        public void Port_Define(String msg, String id)
+        {
+            String path = System.IO.Directory.GetCurrentDirectory();
+
+            String filename = "\\portdefine.txt";
+
+            String fullpath = path + filename;
+            System.IO.File.WriteAllText(fullpath, msg, Encoding.Default);
+
+            startInfo.WorkingDirectory = @"C:\Users\Jomin\android-sdks\platform-tools";           
+
+            String adb_msg = "adb -s " + id + " push " + fullpath + " /sdcard/portdefine.txt";
+
+            if (cmd_type(adb_msg))
+            {
+                try
+                {
+                    process.Start();
+                    process.StandardInput.Write(adb_msg + Environment.NewLine);
+                    process.StandardInput.Close();
+                    ret = process.StandardOutput.ReadToEnd();
+                    String ret_buf = ret.Substring(ret.IndexOf(adb_msg) + adb_msg.Length);
+                    Console.Write(adb_msg);
+
+                }
+                catch (Exception ex)
+                {
+                    startInfo.WorkingDirectory = @"C:\Users\Jomin\android-sdks\platform-tools";
+                    Console.WriteLine(ex.ToString());
+                }
+
+            }
+
+
         }
 
     }

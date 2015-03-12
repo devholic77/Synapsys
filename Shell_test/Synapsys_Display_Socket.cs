@@ -48,7 +48,7 @@ namespace Shell_test
                 if (sendstring != String.Empty)
                 {
                     int getValueLength = 0;
-                    setbyte = Encoding.UTF8.GetBytes(sendstring);
+                    setbyte = Encoding.UTF8.GetBytes(sendstring); 
                     socket.Send(setbyte, 0, setbyte.Length, SocketFlags.None);
                     Console.WriteLine("송신 데이터 : {0} | 길이{1}", sendstring, setbyte.Length);
                     socket.Receive(getbyte, 0, getbyte.Length, SocketFlags.None);
