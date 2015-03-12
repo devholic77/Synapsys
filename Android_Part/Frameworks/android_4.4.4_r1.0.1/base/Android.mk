@@ -405,9 +405,8 @@ aidl_files := \
 	frameworks/base/telephony/java/com/android/internal/telephony/ITelephony.aidl \
 	frameworks/base/wifi/java/android/net/wifi/BatchedScanSettings.aidl \
 	frameworks/base/wifi/java/android/net/wifi/BatchedScanResult.aidl \
-
+	frameworks/base/core/java/org/gbssm/synapsys/ISynapsysManager.aidl \
 ## ADDED ##
-##	frameworks/base/core/java/org/gbssm/synapsys/ISynapsysManager.aidl \
 
 
 gen := $(TARGET_OUT_COMMON_INTERMEDIATES)/framework.aidl
