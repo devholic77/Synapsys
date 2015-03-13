@@ -48,7 +48,8 @@
     <Compile Include="Synapsys_Buttons_Function.cs" />
     <Compile Include="Synapsys_Data_Socket.cs" />
     <Compile Include="Synapsys_Display_Socket.cs" />
-    <Compile Include="Synapsys_Main.cs" />
+    <Compile Include="Synapsys_Manager.cs" />
+    <Compile Include="Synapsys_Values.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

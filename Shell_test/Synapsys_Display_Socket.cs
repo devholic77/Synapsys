@@ -21,8 +21,6 @@ namespace Shell_test
         public static byte[] getbyte = new byte[1024];
         public static byte[] setbyte = new byte[1024];
 
-
-
         public void Synapsys_Socket()
         {
             string sendstring = null;
