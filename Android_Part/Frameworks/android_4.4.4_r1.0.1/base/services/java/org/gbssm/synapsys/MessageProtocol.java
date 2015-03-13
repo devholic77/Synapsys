@@ -9,4 +9,24 @@ package org.gbssm.synapsys;
  */
 public class MessageProtocol  {
 	
+	/**
+	 * 
+	 * @param bytes
+	 * @return
+	 */
+	public static MessageProtocol decode(byte[] bytes) {
+		MessageProtocol message = new MessageProtocol();
+		
+		return message; 
+	}
+	
+	/**
+	 * 
+	 * @param message
+	 * @return
+	 */
+	public static byte[] encode(MessageProtocol message) {
+		
+		return null;
+	}
 }
