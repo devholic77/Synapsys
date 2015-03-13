@@ -70,6 +70,7 @@ import com.android.server.usb.UsbService;
 import com.android.server.wifi.WifiService;
 import com.android.server.wm.WindowManagerService;
 import org.gbssm.synapsys.SynapsysManagerService;
+import org.gbssm.synapsys.TestManagerService;
 
 import dalvik.system.VMRuntime;
 import dalvik.system.Zygote;
@@ -159,6 +160,7 @@ class ServerThread {
         TelephonyRegistry telephonyRegistry = null;
         ConsumerIrService consumerIr = null;
         /* ADDED */ SynapsysManagerService synapsysManager = null;
+        /* ADDED */ TestManagerService testManager = null;
 
         // Create a handler thread just for the window manager to enjoy.
         HandlerThread wmHandlerThread = new HandlerThread("WindowManager");
@@ -210,7 +212,7 @@ class ServerThread {
         boolean disableSystemUI = SystemProperties.getBoolean("config.disable_systemui", false);
         boolean disableNonCoreServices = SystemProperties.getBoolean("config.disable_noncore", false);
         boolean disableNetwork = SystemProperties.getBoolean("config.disable_network", false);
-        /* ADDED */ boolean disableSynapsys;
+        /* ADDED */ boolean disableSynapsys = SystemProperties.getBoolean("config.disable_synapsys", false);
 
         try {
             Slog.i(TAG, "Display Manager");
@@ -823,11 +825,20 @@ class ServerThread {
             
             /*ADDED*/ 
             try {
-            	Slog.i(TAG, "Synapsys Service");
+            	Slog.i(TAG, "Synapsys Service test log222222333333333333333");
             	synapsysManager = new SynapsysManagerService(context);
             	ServiceManager.addService(Context.SYNAPSYS_SERVICE, synapsysManager);
             } catch (Throwable e) {
             	reportWtf("starting Synapsys Service", e);
+            }
+
+ 	    /*ADDED*/ 
+            try {
+            	Slog.i(TAG, "Test Service test");
+            	testManager = new TestManagerService(context);
+            	ServiceManager.addService(Context.TEST_SERVICE, testManager);
+            } catch (Throwable e) {
+            	reportWtf("starting Test Service", e);
             }
         }
 

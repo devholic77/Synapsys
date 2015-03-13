@@ -1,6 +1,9 @@
 package org.gbssm.synapsys;
 
 import android.content.Context;
+import android.os.ServiceManager;
+import org.gbssm.synapsys.ITestManager;
+
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.GestureDetector.OnDoubleTapListener;
@@ -27,19 +30,23 @@ public class WindowsTouchListener implements OnGestureListener, OnDoubleTapListe
 	int MultiTouch_flag = 0;
 	int Scroll_flag = 0;
 	int act = 0;
+	private static final String DTAG = "TestServer";
 
 	MotionEvent temp_e;
 
 	private final Context mContextF;
-	
 	private GestureDetector mGestureDetector;
+	
+	
+	ITestManager om = ITestManager.Stub.asInterface(ServiceManager.getService("test_service"));
 
 	public WindowsTouchListener(Context context) {
 		mContextF = context;
 
 		mGestureDetector = new GestureDetector(mContextF, this);
 		mGestureDetector.setIsLongpressEnabled(true);
-		mGestureDetector.setOnDoubleTapListener(this);
+		mGestureDetector.setOnDoubleTapListener(this);		
+		
 	}
 
 	public boolean onTouchEvent(MotionEvent e) {
@@ -154,14 +161,41 @@ public class WindowsTouchListener implements OnGestureListener, OnDoubleTapListe
 	public void MouseEvent(int event_id, float point_x, float point_y) {
 		switch (event_id) {
 		case LEFT_CLICK:
-			Log.d("Touch Event Call","On Left Click");						
+			try{
+				Log.d(DTAG, "Going to call service");
+	            om.setValue(10);
+	            Log.d(DTAG, "Service called successfully");
+			}catch(Exception e)
+			{
+				Log.d(DTAG, "FAILED to call service");
+	            e.printStackTrace();
+			}
+			
 			break;
 
 		case LEFT_DRAG:
+			try{
+				Log.d(DTAG, "Going to call service");
+	            om.setValue(20);
+	            Log.d(DTAG, "Service called successfully");
+			}catch(Exception e)
+			{
+				Log.d(DTAG, "FAILED to call service");
+	            e.printStackTrace();
+			}
 			Log.d("Touch Event Call","On Left Drag");	
 			break;
 
 		case LEFT_DOUBLE_CLICK:
+			try{
+				Log.d(DTAG, "Going to call service");
+	            om.setValue(30);
+	            Log.d(DTAG, "Service called successfully");
+			}catch(Exception e)
+			{
+				Log.d(DTAG, "FAILED to call service");
+	            e.printStackTrace();
+			}
 			Log.d("Touch Event Call","On Left Double Click");	
 			break;
 
