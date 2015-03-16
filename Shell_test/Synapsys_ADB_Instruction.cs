@@ -12,11 +12,9 @@ namespace Shell_test
     class Synapsys_ADB_Instruction
     {
         
-
         private Process process;
         private ProcessStartInfo startInfo;
-        String str_display_socket = "adb forward tcp:1234 tcp:1234";
-        String str_data_socket = "adb forward tcp:1235 tcp:1235";
+
         public Synapsys_ADB_Instruction(String Display_Socket, String Data_Socket)
         {
             Check_Device();
@@ -24,6 +22,11 @@ namespace Shell_test
             Port_Forward(Display_Socket);
             Port_Forward(Data_Socket);
             Port_Define("33332", "0a1d99f6");
+
+        }
+        public Synapsys_ADB_Instruction()
+        {
+
 
         }
         String cmd_string;
@@ -68,7 +71,7 @@ namespace Shell_test
                         Synapsys_Values.First_Device_Name = "";
                         Synapsys_Values.First_Device_State = "";
                         Synapsys_Values.Second_Device_Name = "";
-                        Synapsys_Values.Second_Device_State = "";
+                        Synapsys_Values.Second_Device_State = "";                        
                         Device_num = 0;
                     }
                     else if (result_msg.Length == 3)
@@ -98,7 +101,7 @@ namespace Shell_test
 
             return Device_num;
         }
-        public void Port_Forward(object str_inst)
+        public void Port_Forward(object str_inst) // 실재 ADB 포워딩
         {
             Console.WriteLine("");
             process = new Process();
@@ -113,8 +116,8 @@ namespace Shell_test
 
             startInfo.WorkingDirectory = @"C:\Users\Jomin\android-sdks\platform-tools";
 
-            cmd_string = (String)str_inst;
-
+            //cmd_string = (String)str_inst;
+            cmd_string = "adb forward tcp:"+(String)str_inst+" tcp:"+(String)str_inst;
             if (cmd_type(cmd_string))
             {
                 try
@@ -154,7 +157,7 @@ namespace Shell_test
             return true;
         }
 
-        public void Port_Define(String msg, String id)
+        public void Port_Define(String msg, String id) //안드로이드에 파일 저장하기 
         {
             Console.WriteLine("");
             process = new Process();

@@ -9,12 +9,22 @@ namespace Shell_test
     {
         public void Synapsys_Search_Button()
         {
-            Synapsys_Values.ADB_Instruction.Check_Device();
-            Synapsys_Values.ADB_Instruction.Port_Define("33332", "0a1d99f6");
-            Synapsys_Values.ADB_Instruction.Port_Define("33332", "0a1d99f6");
-            Synapsys_Values.ADB_Instruction.Port_Forward("dfd");
-            Synapsys_Values.ADB_Instruction.Port_Forward("dfd");
+            int device_num = 0;
 
+            device_num = Synapsys_Values.ADB_Instruction.Check_Device(); //returen 값이 Device 개수
+
+            if (device_num == 1)
+            {
+                Synapsys_Values.ADB_Instruction.Port_Define(Synapsys_Values.port[0], Synapsys_Values.First_Device_Name);
+                Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[0]);
+            }
+            else if(device_num == 2)
+            {
+                Synapsys_Values.ADB_Instruction.Port_Define(Synapsys_Values.port[0], Synapsys_Values.First_Device_Name);
+                Synapsys_Values.ADB_Instruction.Port_Define(Synapsys_Values.port[1], Synapsys_Values.Second_Device_Name);
+                Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[0]);
+                Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[1]);
+            }
         }
         public void Synapsys_Start_Monitor(int num)
         {

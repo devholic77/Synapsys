@@ -9,13 +9,24 @@ namespace Shell_test
     {
         static void Main(string[] args)
         {            
-            String str_display_socket = "adb forward tcp:1234 tcp:1234";
-            String str_data_socket = "adb forward tcp:1235 tcp:1235";
+
+            initialize_port();
             //new Synapsys_Display_Socket();
-            new Synapsys_ADB_Instruction(str_display_socket, str_data_socket); // Port Forward 할 Port 2개를 입력 
-            
+            //new Synapsys_ADB_Instruction(str_display_socket, str_data_socket); // Port Forward 할 Port 2개를 입력 
+            new Synapsys_ADB_Instruction(); // Port Forward 할 Port 2개를 입력 
             //  new Synapsys_Display_Socket(1234);
             //  new Synapsys_Data_Socket(1235);
+        }
+
+        static void initialize_port()
+        {
+            int j = 1234;
+
+            for (int i = 0; i < 100; i++) { 
+                Synapsys_Values.port[i] = j.ToString();
+                j++;
+            }
+
         }
     }
 }
