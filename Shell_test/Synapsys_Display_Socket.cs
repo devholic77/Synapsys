@@ -12,9 +12,9 @@ namespace Shell_test
     class Synapsys_Display_Socket
     {  
         int sPort;
-        public Synapsys_Display_Socket(int port)
+        public Synapsys_Display_Socket(String port)
         {
-            sPort = port;
+            sPort = Convert.ToInt32(port);
             new Thread(new ThreadStart(Synapsys_Socket)).Start();
         }
         public static Socket socket;

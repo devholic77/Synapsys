@@ -14,6 +14,8 @@ namespace Shell_test
         public static String Data_Socket_Port = "";
         public static String Display_Socket_Port = "";
         public static Synapsys_ADB_Instruction ADB_Instruction;
-        public static String[] port;
+
+        public static String[] port = {"1234","1235","1236","1237"};
+        public static String adb_install_path = @"C:\Users\Jomin\android-sdks\platform-tools";
     }
 }

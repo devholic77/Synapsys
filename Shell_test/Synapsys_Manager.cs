@@ -10,7 +10,7 @@ namespace Shell_test
         static void Main(string[] args)
         {            
 
-            initialize_port();
+            //initialize_port();
             //new Synapsys_Display_Socket();
             //new Synapsys_ADB_Instruction(str_display_socket, str_data_socket); // Port Forward 할 Port 2개를 입력 
             new Synapsys_ADB_Instruction(); // Port Forward 할 Port 2개를 입력 
@@ -22,10 +22,20 @@ namespace Shell_test
         {
             int j = 1234;
 
-            for (int i = 0; i < 100; i++) { 
-                Synapsys_Values.port[i] = j.ToString();
+            Synapsys_Values.port[0] = "1234";
+            Synapsys_Values.port[1] = "1235";
+            Synapsys_Values.port[2] = "1236";
+            Synapsys_Values.port[3] = "1237";
+
+
+
+
+            /*
+            for (int i = 0; i < 100; i++) {
+                Synapsys_Values.port[i] = Convert.ToString(j);
                 j++;
             }
+             */
 
         }
     }

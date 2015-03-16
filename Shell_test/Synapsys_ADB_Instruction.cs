@@ -9,26 +9,18 @@ using System.Net.Sockets;
 namespace Shell_test
 {
    
-    class Synapsys_ADB_Instruction
+    public class Synapsys_ADB_Instruction
     {
         
         private Process process;
         private ProcessStartInfo startInfo;
 
-        public Synapsys_ADB_Instruction(String Display_Socket, String Data_Socket)
-        {
-            Check_Device();
-            Check_Device();
-            Port_Forward(Display_Socket);
-            Port_Forward(Data_Socket);
-            Port_Define("33332", "0a1d99f6");
-
-        }
         public Synapsys_ADB_Instruction()
         {
-
+            Check_Device();
 
         }
+
         String cmd_string;
         String ret;
 
@@ -46,7 +38,7 @@ namespace Shell_test
             process.StartInfo = startInfo;
 
             int Device_num = 0;
-            startInfo.WorkingDirectory = @"C:\Users\Jomin\android-sdks\platform-tools";
+            startInfo.WorkingDirectory = Synapsys_Values.adb_install_path;
             Console.Write(startInfo.WorkingDirectory + ">");
 
             cmd_string = "adb devices";
@@ -81,6 +73,7 @@ namespace Shell_test
                         Synapsys_Values.Second_Device_Name = "";
                         Synapsys_Values.Second_Device_State = "";
                         Device_num = 1;
+                    
                     }
                     else if (result_msg.Length == 5)
                     {
@@ -94,7 +87,7 @@ namespace Shell_test
                 }
                 catch (Exception ex)
                 {
-                    startInfo.WorkingDirectory = @"C:\Users\Jomin\android-sdks\platform-tools";
+                    startInfo.WorkingDirectory = Synapsys_Values.adb_install_path;
                     Console.WriteLine(ex.ToString());
                 }
             }
@@ -114,7 +107,7 @@ namespace Shell_test
             process.EnableRaisingEvents = false;
             process.StartInfo = startInfo;
 
-            startInfo.WorkingDirectory = @"C:\Users\Jomin\android-sdks\platform-tools";
+            startInfo.WorkingDirectory = Synapsys_Values.adb_install_path;
 
             //cmd_string = (String)str_inst;
             cmd_string = "adb forward tcp:"+(String)str_inst+" tcp:"+(String)str_inst;
@@ -132,7 +125,7 @@ namespace Shell_test
                 }
                 catch (Exception ex)
                 {
-                    startInfo.WorkingDirectory = @"C:\Users\Jomin\android-sdks\platform-tools";
+                    startInfo.WorkingDirectory = Synapsys_Values.adb_install_path;
                     Console.WriteLine(ex.ToString());
                 }
 
@@ -177,7 +170,7 @@ namespace Shell_test
             String fullpath = path + filename;
             System.IO.File.WriteAllText(fullpath, msg, Encoding.Default);
 
-            startInfo.WorkingDirectory = @"C:\Users\Jomin\android-sdks\platform-tools";
+            startInfo.WorkingDirectory = Synapsys_Values.adb_install_path;
 
             String adb_msg = "adb -s " + id + " push " + fullpath + " /sdcard/portdefine.txt";
 
@@ -195,11 +188,18 @@ namespace Shell_test
                 }
                 catch (Exception ex)
                 {
-                    startInfo.WorkingDirectory = @"C:\Users\Jomin\android-sdks\platform-tools";
+                    startInfo.WorkingDirectory = Synapsys_Values.adb_install_path;
                     Console.WriteLine(ex.ToString());
                 }
 
             }
+
+
+        }
+
+        public void Start_Application(String id)
+        {
+
 
 
         }
