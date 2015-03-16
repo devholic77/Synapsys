@@ -19,7 +19,7 @@
 
 
         <Button Content="Device 1" HorizontalAlignment="Left" Margin="10" VerticalAlignment="Top" Width="100" Click="Button_Click_1"/>
-        <Button Content="Device 2" HorizontalAlignment="Left" Margin="10,45,0,0" VerticalAlignment="Top" Width="100"/>
+        <Button Content="Device 2" HorizontalAlignment="Left" Margin="10,45,0,0" VerticalAlignment="Top" Width="100" Click="Button_Click_2"/>
         <Button Content="Options" HorizontalAlignment="Left" Margin="10,80,0,0" VerticalAlignment="Top" Width="100"/>
 
 

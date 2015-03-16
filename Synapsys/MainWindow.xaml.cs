@@ -208,6 +208,18 @@ namespace Synapsys
 			popup.Gogo(title, message);
 
 		}
+
+		private void Button_Click_2(object sender, RoutedEventArgs e)
+		{
+			//KeyboardHook key = KeyboardHook.getInstance();
+			//key.Run();
+
+			//Hooker manager = new Hooker();
+			//manager.Add();
+
+			KeyboardMouse kb = KeyboardMouse.getInstance();
+			kb.Activate();
+		}
     }
 	
 }
