@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 namespace Shell_test
 {
@@ -18,7 +19,7 @@ namespace Shell_test
             //  new Synapsys_Data_Socket(1235);
             Synapsys_Values.Buttons_Function.Synapsys_Search_Button();
             Synapsys_Values.Buttons_Function.Synapsys_Start_Monitor(1);
-
+            
         }
 
         static void initialize_port()

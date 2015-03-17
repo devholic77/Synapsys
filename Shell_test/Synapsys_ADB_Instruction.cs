@@ -8,10 +8,10 @@ using System.Net;
 using System.Net.Sockets;
 namespace Shell_test
 {
-   
+
     public class Synapsys_ADB_Instruction
     {
-        
+
         private Process process;
         private ProcessStartInfo startInfo;
 
@@ -20,12 +20,15 @@ namespace Shell_test
             //Check_Device();
 
             //Start_Application(Synapsys_Values.First_Device_Name);
+            //new Thread(new ThreadStart(Check_Device)).Start();
+
         }
 
         String cmd_string;
         String ret;
 
-        public int Check_Device()
+        public void Check_Device() // 존나수정 Search Button이랑 합쳐서 전부 수정하기. 
+                                    // win 함수로 usb 연결여부를 계속해서 확인 후 변화가 있을때마다 함수 호출. 내일마무리하기.
         {
             Console.WriteLine("");
             process = new Process();
@@ -37,13 +40,12 @@ namespace Shell_test
             startInfo.RedirectStandardError = true;
             process.EnableRaisingEvents = false;
             process.StartInfo = startInfo;
-
-            int Device_num = 0;
             startInfo.WorkingDirectory = Synapsys_Values.adb_install_path;
             Console.Write(startInfo.WorkingDirectory + ">");
 
             cmd_string = "adb devices";
             int index;
+
             if (cmd_type(cmd_string))
             {
                 try
@@ -64,25 +66,32 @@ namespace Shell_test
                         Synapsys_Values.First_Device_Name = "";
                         Synapsys_Values.First_Device_State = "";
                         Synapsys_Values.Second_Device_Name = "";
-                        Synapsys_Values.Second_Device_State = "";                        
-                        Device_num = 0;
+                        Synapsys_Values.Second_Device_State = "";
+
+                        Synapsys_Values.Current_Device_Num = 0;
                     }
                     else if (result_msg.Length == 3)
                     {
-                        Synapsys_Values.First_Device_Name = result_msg[1];
-                        Synapsys_Values.First_Device_State = result_msg[2];
-                        Synapsys_Values.Second_Device_Name = "";
-                        Synapsys_Values.Second_Device_State = "";
-                        Device_num = 1;
-                    
+                        if (Synapsys_Values.First_Device_Use.Equals("Disuse") && Synapsys_Values.Second_Device_Use.Equals("Disuse"))
+                        {
+                            Synapsys_Values.First_Device_Name = result_msg[1];
+                            Synapsys_Values.First_Device_State = result_msg[2];
+                        };
+                        Synapsys_Values.Current_Device_Num = 1;
                     }
                     else if (result_msg.Length == 5)
                     {
-                        Synapsys_Values.First_Device_Name = result_msg[1];
-                        Synapsys_Values.First_Device_State = result_msg[2];
-                        Synapsys_Values.Second_Device_Name = result_msg[3];
-                        Synapsys_Values.Second_Device_State = result_msg[4];
-                        Device_num = 2;
+                        if (Synapsys_Values.First_Device_Use.Equals("Disuse"))
+                        {
+                            Synapsys_Values.First_Device_Name = result_msg[1];
+                            Synapsys_Values.First_Device_State = result_msg[2];
+                        }
+                        if (Synapsys_Values.Second_Device_Use.Equals("Disuse"))
+                        {
+                            Synapsys_Values.Second_Device_Name = result_msg[3];
+                            Synapsys_Values.Second_Device_State = result_msg[4];
+                        }
+                        Synapsys_Values.Current_Device_Num = 2;
                     }
                     Console.Write(msg);
                 }
@@ -91,9 +100,9 @@ namespace Shell_test
                     startInfo.WorkingDirectory = Synapsys_Values.adb_install_path;
                     Console.WriteLine(ex.ToString());
                 }
+
             }
 
-            return Device_num;
         }
         public void Port_Forward(object str_inst) // 실재 ADB 포워딩
         {
@@ -110,7 +119,7 @@ namespace Shell_test
 
             startInfo.WorkingDirectory = Synapsys_Values.adb_install_path;
 
-            cmd_string = "adb forward tcp:"+(String)str_inst+" tcp:"+(String)str_inst;
+            cmd_string = "adb forward tcp:" + (String)str_inst + " tcp:" + (String)str_inst;
             if (cmd_type(cmd_string))
             {
                 try
