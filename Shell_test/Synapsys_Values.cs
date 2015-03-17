@@ -13,9 +13,12 @@ namespace Shell_test
         public static String Second_Device_State = "";
         public static String Data_Socket_Port = "";
         public static String Display_Socket_Port = "";
-        public static Synapsys_ADB_Instruction ADB_Instruction;
-
+        public static String Synapsys_App_name = "com.example.synapsys_socket/com.example.synapsys_socket.MainActivity";
         public static String[] port = {"1234","1235","1236","1237"};
         public static String adb_install_path = @"C:\Users\Jomin\android-sdks\platform-tools";
+
+        public static Synapsys_ADB_Instruction ADB_Instruction =  new Synapsys_ADB_Instruction();
+        public static Synapsys_Buttons_Function Buttons_Function = new Synapsys_Buttons_Function();
+
     }
 }

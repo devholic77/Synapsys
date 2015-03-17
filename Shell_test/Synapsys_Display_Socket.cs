@@ -9,7 +9,7 @@ using System.Net.Sockets;
 
 namespace Shell_test
 {
-    class Synapsys_Display_Socket
+    public class Synapsys_Display_Socket
     {  
         int sPort;
         public Synapsys_Display_Socket(String port)

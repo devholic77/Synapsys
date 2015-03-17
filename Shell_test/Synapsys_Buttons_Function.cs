@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 namespace Shell_test
 {
-    class Synapsys_Buttons_Function
+    public class Synapsys_Buttons_Function
     {
         public void Synapsys_Search_Button()
         {
@@ -15,21 +16,17 @@ namespace Shell_test
 
             if (device_num == 1)
             {
-                Synapsys_Values.ADB_Instruction.Port_Define(Synapsys_Values.port[0], Synapsys_Values.First_Device_Name);
-                Synapsys_Values.ADB_Instruction.Port_Define(Synapsys_Values.port[1], Synapsys_Values.First_Device_Name);
+                Synapsys_Values.ADB_Instruction.Port_Define(Synapsys_Values.port[0], Synapsys_Values.port[1],Synapsys_Values.First_Device_Name);                
                 Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[0]);
                 Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[1]);
             }
             else if(device_num == 2)
             {
-                Synapsys_Values.ADB_Instruction.Port_Define(Synapsys_Values.port[0], Synapsys_Values.First_Device_Name);
-                Synapsys_Values.ADB_Instruction.Port_Define(Synapsys_Values.port[1], Synapsys_Values.First_Device_Name);
+                Synapsys_Values.ADB_Instruction.Port_Define(Synapsys_Values.port[0], Synapsys_Values.port[1], Synapsys_Values.First_Device_Name);
                 Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[0]);
                 Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[1]);
 
-
-                Synapsys_Values.ADB_Instruction.Port_Define(Synapsys_Values.port[2], Synapsys_Values.Second_Device_Name);
-                Synapsys_Values.ADB_Instruction.Port_Define(Synapsys_Values.port[3], Synapsys_Values.Second_Device_Name);
+                Synapsys_Values.ADB_Instruction.Port_Define(Synapsys_Values.port[2], Synapsys_Values.port[3], Synapsys_Values.Second_Device_Name);
                 Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[2]);
                 Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[3]);
             }
@@ -38,14 +35,17 @@ namespace Shell_test
         {
             if (num == 1)
             {
+                //Synapsys_Values.ADB_Instruction.Start_Application(Synapsys_Values.First_Device_Name);
                 new Synapsys_Display_Socket(Synapsys_Values.port[0]);
                 new Synapsys_Data_Socket(Synapsys_Values.port[1]);
             }
             else
             {
+                Synapsys_Values.ADB_Instruction.Start_Application(Synapsys_Values.First_Device_Name);
+                Synapsys_Values.ADB_Instruction.Start_Application(Synapsys_Values.Second_Device_Name);
+
                 new Synapsys_Display_Socket(Synapsys_Values.port[0]);
                 new Synapsys_Data_Socket(Synapsys_Values.port[1]);
-
                 new Synapsys_Display_Socket(Synapsys_Values.port[2]);
                 new Synapsys_Data_Socket(Synapsys_Values.port[3]);
             }

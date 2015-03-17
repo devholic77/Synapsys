@@ -17,8 +17,9 @@ namespace Shell_test
 
         public Synapsys_ADB_Instruction()
         {
-            Check_Device();
+            //Check_Device();
 
+            //Start_Application(Synapsys_Values.First_Device_Name);
         }
 
         String cmd_string;
@@ -109,7 +110,6 @@ namespace Shell_test
 
             startInfo.WorkingDirectory = Synapsys_Values.adb_install_path;
 
-            //cmd_string = (String)str_inst;
             cmd_string = "adb forward tcp:"+(String)str_inst+" tcp:"+(String)str_inst;
             if (cmd_type(cmd_string))
             {
@@ -150,7 +150,7 @@ namespace Shell_test
             return true;
         }
 
-        public void Port_Define(String msg, String id) //안드로이드에 파일 저장하기 
+        public void Port_Define(String display_port, String data_port, String device_name) //안드로이드에 파일 저장하기 
         {
             Console.WriteLine("");
             process = new Process();
@@ -162,6 +162,9 @@ namespace Shell_test
             startInfo.RedirectStandardError = true;
             process.EnableRaisingEvents = false;
             process.StartInfo = startInfo;
+            String msg = display_port + " " + data_port + " Synapsys";
+
+
 
             String path = System.IO.Directory.GetCurrentDirectory();
 
@@ -172,7 +175,7 @@ namespace Shell_test
 
             startInfo.WorkingDirectory = Synapsys_Values.adb_install_path;
 
-            String adb_msg = "adb -s " + id + " push " + fullpath + " /sdcard/portdefine.txt";
+            String adb_msg = "adb -s " + device_name + " push " + fullpath + " /sdcard/portdefine.txt";
 
             if (cmd_type(adb_msg))
             {
@@ -193,14 +196,44 @@ namespace Shell_test
                 }
 
             }
-
-
         }
 
-        public void Start_Application(String id)
+        public void Start_Application(String device_name) //PC에서 App 실행하기
         {
+            Console.WriteLine("");
+            process = new Process();
+            startInfo = new ProcessStartInfo();
+            startInfo.FileName = "CMD.exe";
+            startInfo.UseShellExecute = false;
+            startInfo.RedirectStandardInput = true;
+            startInfo.RedirectStandardOutput = true;
+            startInfo.RedirectStandardError = true;
+            process.EnableRaisingEvents = false;
+            process.StartInfo = startInfo;
 
+            startInfo.WorkingDirectory = Synapsys_Values.adb_install_path;
 
+            cmd_string = "adb -s " + device_name + " shell am start -n " + Synapsys_Values.Synapsys_App_name;
+
+            if (cmd_type(cmd_string))
+            {
+                try
+                {
+                    process.Start();
+                    process.StandardInput.Write(cmd_string + Environment.NewLine);
+                    process.StandardInput.Close();
+                    ret = process.StandardOutput.ReadToEnd();
+                    String ret_buf = ret.Substring(ret.IndexOf(cmd_string) + cmd_string.Length);
+                    Console.Write(ret_buf);
+
+                }
+                catch (Exception ex)
+                {
+                    startInfo.WorkingDirectory = Synapsys_Values.adb_install_path;
+                    Console.WriteLine(ex.ToString());
+                }
+
+            }
 
         }
 
