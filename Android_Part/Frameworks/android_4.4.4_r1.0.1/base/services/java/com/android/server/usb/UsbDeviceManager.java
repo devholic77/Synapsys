@@ -35,6 +35,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.os.ParcelFileDescriptor;
+import android.os.ServiceManager;
 import android.os.SystemClock;
 import android.os.SystemProperties;
 import android.os.UEventObserver;
@@ -60,6 +61,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Scanner;
+
+import org.gbssm.synapsys.SynapsysManagerService;
 
 /**
  * UsbDeviceManager manages USB state in device mode.
@@ -455,7 +458,7 @@ public class UsbDeviceManager {
         private void setAdbEnabled(boolean enable) {
             if (DEBUG) Slog.d(TAG, "setAdbEnabled: " + enable);
             if (enable != mAdbEnabled) {
-            	/*ADDED*/ updateSynapsysListener(enable, mConnected);
+            	/*ADDED*/ updateSynapsysListener(mConnected, enable);
                 
                 mAdbEnabled = enable;
                 // Due to the persist.sys.usb.config property trigger, changing adb state requires
@@ -582,9 +585,6 @@ public class UsbDeviceManager {
                 }
             }
 
-            /*ADDED*/
-            Slog.d(TAG, "ADB: " + mAdbEnabled + " / CONN: " + mConnected + " / CONF: " + mConfigured);
-            
             if (DEBUG) Slog.d(TAG, "broadcasting " + intent + " connected: " + mConnected
                                     + " configured: " + mConfigured);
             mContext.sendStickyBroadcastAsUser(intent, UserHandle.ALL);
@@ -619,7 +619,7 @@ public class UsbDeviceManager {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case MSG_UPDATE_STATE:
-                    /*ADDED*/ updateSynapsysListener(msg.arg1 == 1, mAdbEnabled);
+                    /*ADDED*/ updateSynapsysListener( (msg.arg1 == 1), mAdbEnabled );
                     
                     mConnected = (msg.arg1 == 1);
                     mConfigured = (msg.arg2 == 1);
@@ -739,9 +739,6 @@ public class UsbDeviceManager {
             if (mNotificationManager == null) return;
             final int id = com.android.internal.R.string.adb_active_notification_title;
             
-            /*ADDED*/
-            Slog.d(TAG, "ADB: " + mAdbEnabled +" / CONN: " + mConnected);
-            
             if (mAdbEnabled && mConnected) {
                 if ("0".equals(SystemProperties.get("persist.adb.notify"))) return;
 
@@ -779,14 +776,17 @@ public class UsbDeviceManager {
 
         /*ADDED*/
         private void updateSynapsysListener(boolean connected, boolean adbEnabled) {
-        	if (mAdbEnabled != adbEnabled) {
-        		
-        		
-        	} else if (mConnected != connected) {
-        		
-        		
+        	SynapsysManagerService service = (SynapsysManagerService) ServiceManager.getService(Context.SYNAPSYS_SERVICE);
+        	
+        	if (service == null) {
+        		Slog.i(TAG, "SynapsysManagerService isn't ready yet.");
+        		return;
         	}
         	
+        	if (mAdbEnabled != adbEnabled)
+        		service.dispatchUsbConnectionEvent(SynapsysManagerService.EVENT_ADB_ENABLE, adbEnabled, connected);
+        	else if (mConnected != connected) 
+        		service.dispatchUsbConnectionEvent(SynapsysManagerService.EVENT_USB_CONNECT, connected, adbEnabled);
         }
         
         public void dump(FileDescriptor fd, PrintWriter pw) {

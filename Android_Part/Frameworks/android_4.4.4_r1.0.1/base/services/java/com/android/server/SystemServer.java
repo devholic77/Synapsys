@@ -210,7 +210,7 @@ class ServerThread {
         boolean disableSystemUI = SystemProperties.getBoolean("config.disable_systemui", false);
         boolean disableNonCoreServices = SystemProperties.getBoolean("config.disable_noncore", false);
         boolean disableNetwork = SystemProperties.getBoolean("config.disable_network", false);
-        /* ADDED */ boolean disableSynapsys;
+        /* ADDED */ boolean disableSynapsys = SystemProperties.getBoolean("config.disable_synapsys", false);
 
         try {
             Slog.i(TAG, "Display Manager");
@@ -822,12 +822,14 @@ class ServerThread {
             }
             
             /*ADDED*/ 
-            try {
-            	Slog.i(TAG, "Synapsys Service");
-            	synapsysManager = new SynapsysManagerService(context);
-            	ServiceManager.addService(Context.SYNAPSYS_SERVICE, synapsysManager);
-            } catch (Throwable e) {
-            	reportWtf("starting Synapsys Service", e);
+            if (!disableSynapsys) {
+	            try {
+	            	Slog.i(TAG, "Synapsys Service");
+	            	synapsysManager = new SynapsysManagerService(context);
+	            	ServiceManager.addService(Context.SYNAPSYS_SERVICE, synapsysManager);
+	            } catch (Throwable e) {
+	            	reportWtf("starting Synapsys Service", e);
+	            }
             }
         }
 
@@ -942,6 +944,7 @@ class ServerThread {
         final TelephonyRegistry telephonyRegistryF = telephonyRegistry;
         final PrintManagerService printManagerF = printManager;
         final MediaRouterService mediaRouterF = mediaRouter;
+        /*ADDED*/ final SynapsysManagerService synapsysManagerF = synapsysManager;
 
         // We now tell the activity manager it is okay to run third party
         // code.  It will call back into us once it has gotten to the state
@@ -1095,6 +1098,7 @@ class ServerThread {
                 } catch (Throwable e) {
                     reportWtf("Notifying MediaRouterService running", e);
                 }
+                
             }
         });
 

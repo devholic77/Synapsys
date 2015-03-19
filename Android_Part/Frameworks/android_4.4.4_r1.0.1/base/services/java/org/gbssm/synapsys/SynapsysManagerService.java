@@ -1,5 +1,7 @@
 package org.gbssm.synapsys;
 
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -8,6 +10,7 @@ import java.net.Socket;
 
 import android.content.Context;
 import android.os.Handler;
+import android.os.Message;
 import android.os.RemoteException;
 import android.os.SystemProperties;
 import android.util.Slog;
@@ -22,6 +25,9 @@ import android.util.Slog;
  */
 public class SynapsysManagerService extends ISynapsysManager.Stub {
 	
+	public static final int EVENT_ADB_ENABLE = 1;
+	public static final int EVENT_USB_CONNECT = 2;
+	
 	static final String TAG = "SynapsysManagerService";	
 	
 	static final int LISTEN_PORT = 30300;
@@ -33,9 +39,13 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	
 	private Socket mControlSocket;
 	
+	private ConnectionFileDetector mConnectionDetector;
+	private SynapsysControlThread mControlThread;
+	
+	
 	
 	public SynapsysManagerService(Context context) {
-		mContext = context;
+		mContext = context; 
 	}
 	
 	public int requestDisplayConnection() throws RemoteException {
@@ -45,71 +55,94 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	}
 	
 	public boolean invokeMouseEventFromTouch(int event_id, float event_x, float event_y) throws RemoteException {
-		
+		// TODO : Windows PC로 Touch Event 전송.
 		return false;
 	}
 	
 	public boolean interpolateMouseEvent(int event_id, float event_x, float event_y) throws RemoteException { 
-		
+		//  TODO : Windows PC로부터 Touch Event 받기.
 		return false;
+	}
+	
+	/**
+	 * USB 연결 상태를 탐지하여 이벤트를 발생시킨다.   
+	 * 
+	 * @param event_id 변화를 감지한 이벤트 타입
+	 * @param event 이벤트 값
+	 * @param another 변화하지 않은 다른 이벤트 값
+	 */
+	public void dispatchUsbConnectionEvent(int event_id, boolean event, boolean another) {
+		Slog.d(TAG, "EventID : " + (event_id == 1 ? "ADB" : "CONN") + " / Event : " + event + " / Another : " + another);
+		
+		// 변화한 이벤트 타입에 따라 처리.
+		switch (event_id) {
+		case EVENT_ADB_ENABLE:
+		case EVENT_USB_CONNECT:
+			// ADB가 활성화된 상태에서 USB가 연결되었을 때, 
+			// USB가 연결된 상태에서 ADB가 활성화되었을 때,
+			// ConnectionFile의 변화를 감지하여, Synapsys 연결 상태를 확립한다.
+			if (event && another) {
+				systemReady();
+				return;
+			}
+		}
+		
+		// 연결이 성립하지 않는 다른 모든  경우,
+		systemStop();
 	}
 	
 	/**
 	 * 
 	 */
 	void systemReady() {
-		// TODO : USB 연결 탐지.  Listener 등록
-		
+		mConnectionDetector = ConnectionFileDetector.getInstance(new SynapsysHandler());
+		if (mConnectionDetector != null)
+			mConnectionDetector.start();
 	}
 	
-	void systemRunning() {
-		// TODO : 프로그램 연결 탐지 후,  연결 성립 (소켓연결)
-		// TODO : 통신 스레드 시작.
-
-		if (isServiceRunning)
-			return;
+	void systemStop() {
+		if (mConnectionDetector != null)
+			mConnectionDetector.stop();
+	}
+	
+	/**
+	 * 
+	 * 
+	 * @author  Yeonho.Kim
+	 *
+	 */
+	class SynapsysHandler extends Handler {
 		
-		setServiceRunning(true);
+		static final int MSG_PROCEED_CONNECTION = 0x100;
 		
-		do {
-			ServerSocket listenSocket = null;
-			try {
-				listenSocket = new ServerSocket(LISTEN_PORT); 
-				listenSocket.setSoTimeout(10000);
-				Slog.v(TAG, "Synapsys Init Socket Open");
-				
-				mControlSocket = listenSocket.accept();
-				InputStream mControlInputstream = mControlSocket.getInputStream();
-				OutputStream mControlOutputstream = mControlSocket.getOutputStream();
-				
-				
-				listenSocket.close();
-						
-			} catch (IOException e) {
-				continue;
-				
-			} finally {
-				// ListenSocket Close.
-				if (listenSocket != null) {
-					try {
-						listenSocket.close();
-					} catch (IOException e) { ; }
-				}
-			}
+		@Override
+		public void handleMessage(Message msg) {
 			
-		} while (SystemProperties.getBoolean("config.disable_synapsys", false));
-
-		setServiceRunning(false);
-	}
-	
-	synchronized void setServiceRunning(boolean running) {
-		isServiceRunning = running;
-	}
-	
-	
-	class SynaysysHandler extends Handler {
+			switch (msg.what) {
+			case MSG_PROCEED_CONNECTION:
+				MessageBox box;
+				
+				if (msg.obj != null) {
+					box = (MessageBox) msg.obj;
+					
+					mControlThread = new SynapsysControlThread(box.port);
+					mControlThread.start();
+				}
+				break;
+				
+			}
+		}
 		
 	}
+}
+
+/**
+ * 
+ * @author Yeonho.Kim
+ *
+ */
+class MessageBox {
+	int port;
 }
 
 

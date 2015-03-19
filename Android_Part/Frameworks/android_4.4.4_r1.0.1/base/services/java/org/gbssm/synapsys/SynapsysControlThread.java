@@ -1,5 +1,11 @@
 package org.gbssm.synapsys;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
+
 /**
  * 
  * @author Yeonho.Kim
@@ -8,13 +14,36 @@ package org.gbssm.synapsys;
  */
 public class SynapsysControlThread extends Thread {
 
-	public SynapsysControlThread() {
-		// TODO Auto-generated constructor stub
+	private static final int TIMEOUT = 10000; 	// ms
+	
+	private final int mPort;
+	
+	private Socket mConnectedSocket;
+	
+	public SynapsysControlThread(int port) {
+		mPort = port;
 	}
 	
 	@Override
 	public void run() {
-		// TODO Auto-generated method stub
-		super.run();
+		try {
+			ServerSocket listenSocket = new ServerSocket(mPort);	
+			listenSocket.setSoTimeout(TIMEOUT);
+			
+			mConnectedSocket = listenSocket.accept();
+			listenSocket.close();
+			
+			InputStream is = mConnectedSocket.getInputStream();
+			OutputStream os = mConnectedSocket.getOutputStream();
+			
+			
+		} catch (IOException e) {
+			// ServerSocket Timeout
+			
+		} catch (Exception e) {
+			
+		}
 	}
+	
+	
 }
