@@ -45,7 +45,7 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	}
 	
 	public boolean invokeMouseEventFromTouch(int event_id, float event_x, float event_y) throws RemoteException {
-		
+		Slog.i("SynapsysManagerService","id : "+event_id +" x : "+event_x +" y : "+event_y);
 		return false;
 	}
 	

@@ -2,7 +2,6 @@ package org.gbssm.synapsys;
 
 import java.net.Socket;
 import java.security.InvalidParameterException;
-
 import android.os.RemoteException;
 
 import org.gbssm.synapsys.ITestManager;

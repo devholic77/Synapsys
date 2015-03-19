@@ -1,9 +1,8 @@
 package org.gbssm.synapsys;
 
 import android.content.Context;
+import android.hardware.input.IInputManager;
 import android.os.ServiceManager;
-import org.gbssm.synapsys.ITestManager;
-
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.GestureDetector.OnDoubleTapListener;
@@ -37,22 +36,25 @@ public class WindowsTouchListener implements OnGestureListener, OnDoubleTapListe
 	private final Context mContextF;
 	private GestureDetector mGestureDetector;
 	
+	// TestManager 객체 생성
+	IInputManager om = IInputManager.Stub.asInterface(ServiceManager.getService("input"));
 	
-	ITestManager om = ITestManager.Stub.asInterface(ServiceManager.getService("test_service"));
+	// SynapsysManager 객체 생성
 
-	public WindowsTouchListener(Context context) {
+    SynapsysManager synapsysManager;
+   
+  
+    public WindowsTouchListener(Context context) {
 		mContextF = context;
-
 		mGestureDetector = new GestureDetector(mContextF, this);
 		mGestureDetector.setIsLongpressEnabled(true);
 		mGestureDetector.setOnDoubleTapListener(this);		
-		
+	    synapsysManager = (SynapsysManager)context.getSystemService(Context.SYNAPSYS_SERVICE);	 	    
 	}
 
 	public boolean onTouchEvent(MotionEvent e) {
 		temp_e = e;
 		act = temp_e.getAction();
-		
 		if (act == MotionEvent.ACTION_POINTER_2_DOWN) {		// 멀티 터치가 되었을 때 
 			
 			MultiTouch_flag = 1;
@@ -159,67 +161,9 @@ public class WindowsTouchListener implements OnGestureListener, OnDoubleTapListe
 	 * MouseEvent 처리 메소드
 	 */
 	public void MouseEvent(int event_id, float point_x, float point_y) {
-		switch (event_id) {
-		case LEFT_CLICK:
-			try{
-				Log.d(DTAG, "Going to call service");
-	            om.setValue(10);
-	            Log.d(DTAG, "Service called successfully");
-			}catch(Exception e)
-			{
-				Log.d(DTAG, "FAILED to call service");
-	            e.printStackTrace();
-			}
-			
-			break;
-
-		case LEFT_DRAG:
-			try{
-				Log.d(DTAG, "Going to call service");
-	            om.setValue(20);
-	            Log.d(DTAG, "Service called successfully");
-			}catch(Exception e)
-			{
-				Log.d(DTAG, "FAILED to call service");
-	            e.printStackTrace();
-			}
-			Log.d("Touch Event Call","On Left Drag");	
-			break;
-
-		case LEFT_DOUBLE_CLICK:
-			try{
-				Log.d(DTAG, "Going to call service");
-	            om.setValue(30);
-	            Log.d(DTAG, "Service called successfully");
-			}catch(Exception e)
-			{
-				Log.d(DTAG, "FAILED to call service");
-	            e.printStackTrace();
-			}
-			Log.d("Touch Event Call","On Left Double Click");	
-			break;
-
-		case RIGHT_CLICK:
-			Log.d("Touch Event Call","On Right Click");	
-			break;
-
-		case SCROLL_LEFT_RIGHT:
-			Log.d("Touch Event Call","On Scroll Left Right");	
-			break;
-
-		case SCROLL_UP_DOWN:
-			Log.d("Touch Event Call","On Scroll Up Down");	
-			break;
-
-		case EVENT_END:
-			Log.d("Touch Event Call","On Event End");	
-			break;
-		default:
-
-			break;
-		}
+		
+		synapsysManager.invokeMouseEventFromTouch(event_id, point_x, point_y);
 	
-
 	}
 
 }
