@@ -19,7 +19,7 @@
 //#define LOG_NDEBUG 0
 
 // Log debug messages for each raw event received from the EventHub.
-#define DEBUG_RAW_EVENTS 1
+#define DEBUG_RAW_EVENTS 0
 
 // Log debug messages about touch screen filtering hacks.
 #define DEBUG_HACKS 0
@@ -327,22 +327,13 @@ void InputReader::processEventsLocked(const RawEvent* rawEvents, size_t count) {
         } else {
             switch (rawEvent->type) {
             case EventHubInterface::DEVICE_ADDED:
-                       
                 addDeviceLocked(rawEvent->when, rawEvent->deviceId);
-                /* added */
-                 ALOGD("**************** ADD event: device=%d type=0x%04x code=0x%04x value=0x%08x when=%lld",
-                rawEvent->deviceId, rawEvent->type, rawEvent->code, rawEvent->value,
-                rawEvent->when);
                 break;
             case EventHubInterface::DEVICE_REMOVED:
                 removeDeviceLocked(rawEvent->when, rawEvent->deviceId);
                 break;
             case EventHubInterface::FINISHED_DEVICE_SCAN:
                 handleConfigurationChangedLocked(rawEvent->when);
-                /* added */
-                 ALOGD("**************** Change event: device=%d type=0x%04x code=0x%04x value=0x%08x when=%lld",
-                rawEvent->deviceId, rawEvent->type, rawEvent->code, rawEvent->value,
-                rawEvent->when);
                 break;
             default:
                 ALOG_ASSERT(false); // can't happen
@@ -364,23 +355,17 @@ void InputReader::addDeviceLocked(nsecs_t when, int32_t deviceId) {
     InputDeviceIdentifier identifier = mEventHub->getDeviceIdentifier(deviceId);
     uint32_t classes = mEventHub->getDeviceClasses(deviceId);
     int32_t controllerNumber = mEventHub->getDeviceControllerNumber(deviceId);
-	/* added  */
-	if(deviceId == (int32_t)10)
-	{
-		classes = INPUT_DEVICE_CLASS_CURSOR;
-	}
-	/* added */
+
     InputDevice* device = createDeviceLocked(deviceId, controllerNumber, identifier, classes);
     device->configure(when, &mConfig, 0);
     device->reset(when);
-
 
     if (device->isIgnored()) {
         ALOGI("Device added: id=%d, name='%s' (ignored non-input device)", deviceId,
                 identifier.name.string());
     } else {
-        ALOGI("Device added: id=%d, name='%s', sources=0x%08x , classes = 0x%08x , controllnumber = %d", deviceId,
-                identifier.name.string(), device->getSources(),classes,controllerNumber);
+        ALOGI("Device added: id=%d, name='%s', sources=0x%08x", deviceId,
+                identifier.name.string(), device->getSources());
     }
 
     mDevices.add(deviceId, device);
