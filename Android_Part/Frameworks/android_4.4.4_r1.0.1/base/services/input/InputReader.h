@@ -451,7 +451,7 @@ private:
     KeyedVector<int32_t, InputDevice*> mDevices;
 
     // low-level input event decoding and device management
-    void processEventsLocked(const RawEvent* rawEvents, size_t count);
+    void processEventsLocked(RawEvent* rawEvents, size_t count);
 
     void addDeviceLocked(nsecs_t when, int32_t deviceId);
     void removeDeviceLocked(nsecs_t when, int32_t deviceId);

@@ -19,7 +19,7 @@
 //#define LOG_NDEBUG 0
 
 // Log debug messages for each raw event received from the EventHub.
-#define DEBUG_RAW_EVENTS 0
+#define DEBUG_RAW_EVENTS 1
 
 // Log debug messages about touch screen filtering hacks.
 #define DEBUG_HACKS 0
@@ -57,6 +57,9 @@
 #define INDENT3 "      "
 #define INDENT4 "        "
 #define INDENT5 "          "
+
+/* added */
+bool once = true;
 
 namespace android {
 
@@ -266,7 +269,7 @@ void InputReader::loopOnce() {
     } // release lock
 
     size_t count = mEventHub->getEvents(timeoutMillis, mEventBuffer, EVENT_BUFFER_SIZE);
-
+	
     { // acquire lock
         AutoMutex _l(mLock);
         mReaderIsAliveCondition.broadcast();
@@ -274,6 +277,20 @@ void InputReader::loopOnce() {
         if (count) {
             processEventsLocked(mEventBuffer, count);
         }
+        /* added =============================================*/
+        if (once){
+			//make Rawevent 
+			RawEvent event[2];
+			event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
+			event[0].deviceId = (int32_t)20;
+			event[0].type = 0x10000000;
+			event[0].code = 0x0039;
+			event[0].value = 0xffffffff;
+			
+			processEventsLocked(event,2);
+			once = false;
+		}
+		/*====================================================*/
 
         if (mNextTimeout != LLONG_MAX) {
             nsecs_t now = systemTime(SYSTEM_TIME_MONOTONIC);
@@ -307,33 +324,62 @@ void InputReader::loopOnce() {
     mQueuedListener->flush();
 }
 
-void InputReader::processEventsLocked(const RawEvent* rawEvents, size_t count) {
-    for (const RawEvent* rawEvent = rawEvents; count;) {
+void InputReader::processEventsLocked( RawEvent* rawEvents, size_t count) {
+    for ( RawEvent* rawEvent = rawEvents; count;) {
+		
         int32_t type = rawEvent->type;
         size_t batchSize = 1;
         if (type < EventHubInterface::FIRST_SYNTHETIC_EVENT) {
+			
             int32_t deviceId = rawEvent->deviceId;
             while (batchSize < count) {
                 if (rawEvent[batchSize].type >= EventHubInterface::FIRST_SYNTHETIC_EVENT
                         || rawEvent[batchSize].deviceId != deviceId) {
                     break;
                 }
+              
                 batchSize += 1;
             }
 #if DEBUG_RAW_EVENTS
             ALOGD("BatchSize: %d Count: %d", batchSize, count);
 #endif
-            processEventsForDeviceLocked(deviceId, rawEvent, batchSize);
+		  /* added =============================== */
+			if(rawEvent[0].deviceId > (int32_t)6)
+			{
+				int cnt = 0;
+				while(count > cnt)
+				{
+					rawEvent[cnt].deviceId = (int32_t)20;
+					cnt++;
+				}		
+				rawEvent[0].deviceId = (int32_t)20;
+				deviceId = (int32_t)20;		
+			}
+			/* ==================================== */
+
+			processEventsForDeviceLocked(deviceId, rawEvent, batchSize);
         } else {
             switch (rawEvent->type) {
             case EventHubInterface::DEVICE_ADDED:
+                       
                 addDeviceLocked(rawEvent->when, rawEvent->deviceId);
+                /* added =============================== */
+                 ALOGD("**************** BatchSize: %d Count: %d", batchSize, count);
+                 ALOGD("**************** ADD event: device=%d type=0x%04x code=0x%04x value=0x%08x when=%lld",
+                rawEvent->deviceId, rawEvent->type, rawEvent->code, rawEvent->value,
+                rawEvent->when);
+                 /* ==================================== */
                 break;
             case EventHubInterface::DEVICE_REMOVED:
                 removeDeviceLocked(rawEvent->when, rawEvent->deviceId);
                 break;
             case EventHubInterface::FINISHED_DEVICE_SCAN:
                 handleConfigurationChangedLocked(rawEvent->when);
+                 /* added =============================== */
+                 ALOGD("**************** Change event: device=%d type=0x%04x code=0x%04x value=0x%08x when=%lld",
+                rawEvent->deviceId, rawEvent->type, rawEvent->code, rawEvent->value,
+                rawEvent->when);
+                 /* ==================================== */
                 break;
             default:
                 ALOG_ASSERT(false); // can't happen
@@ -355,17 +401,23 @@ void InputReader::addDeviceLocked(nsecs_t when, int32_t deviceId) {
     InputDeviceIdentifier identifier = mEventHub->getDeviceIdentifier(deviceId);
     uint32_t classes = mEventHub->getDeviceClasses(deviceId);
     int32_t controllerNumber = mEventHub->getDeviceControllerNumber(deviceId);
-
+ /* added =============================== */
+	if(deviceId == (int32_t)20)
+	{
+		classes = INPUT_DEVICE_CLASS_CURSOR;
+	}
+ /* ===================================== */
     InputDevice* device = createDeviceLocked(deviceId, controllerNumber, identifier, classes);
     device->configure(when, &mConfig, 0);
     device->reset(when);
+
 
     if (device->isIgnored()) {
         ALOGI("Device added: id=%d, name='%s' (ignored non-input device)", deviceId,
                 identifier.name.string());
     } else {
-        ALOGI("Device added: id=%d, name='%s', sources=0x%08x", deviceId,
-                identifier.name.string(), device->getSources());
+        ALOGI("Device added: id=%d, name='%s', sources=0x%08x , classes = 0x%08x , controllnumber = %d", deviceId,
+                identifier.name.string(), device->getSources(),classes,controllerNumber);
     }
 
     mDevices.add(deviceId, device);
