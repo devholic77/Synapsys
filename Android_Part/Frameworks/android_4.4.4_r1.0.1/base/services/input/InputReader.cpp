@@ -60,6 +60,8 @@
 
 /* added */
 bool once = true;
+bool event_once = false;
+int32_t move_test = 0;
 
 namespace android {
 
@@ -289,7 +291,7 @@ void InputReader::loopOnce() {
 			
 			processEventsLocked(event,2);
 			once = false;
-		}
+		}		
 		/*====================================================*/
 
         if (mNextTimeout != LLONG_MAX) {
@@ -343,7 +345,8 @@ void InputReader::processEventsLocked( RawEvent* rawEvents, size_t count) {
 #if DEBUG_RAW_EVENTS
             ALOGD("BatchSize: %d Count: %d", batchSize, count);
 #endif
-		  /* added =============================== */
+		  /* added =============================== 
+			
 			if(rawEvent[0].deviceId > (int32_t)6)
 			{
 				int cnt = 0;
@@ -354,8 +357,39 @@ void InputReader::processEventsLocked( RawEvent* rawEvents, size_t count) {
 				}		
 				rawEvent[0].deviceId = (int32_t)20;
 				deviceId = (int32_t)20;		
+			}*/
+			if(rawEvent[0].deviceId == (int32_t)6 && rawEvent[0].type == 0x00000003)
+			{	
+					//make Rawevent 
+					
+					ssize_t deviceIndex = mDevices.indexOfKey((int32_t)20);
+					InputDevice* device = mDevices.valueAt(deviceIndex);
+					RawEvent event[3];
+					event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
+					event[0].deviceId = (int32_t)20;
+					event[0].type = 0x00000002;
+					event[0].code = 0x00000000;
+					event[0].value = 0xfffffffd;
+					
+					event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
+					event[1].deviceId = (int32_t)20;
+					event[1].type = 0x00000002;
+					event[1].code = 0x00000001;
+					event[1].value = 0xfffffffd;
+					
+					event[2].when = systemTime(SYSTEM_TIME_MONOTONIC);
+					event[2].deviceId = (int32_t)20;
+					event[2].type = 0x00000000;
+					event[2].code = 0x00000000;
+					event[2].value = 0x00000000;
+					
+					device->process(event, 3);	
+	
 			}
-			/* ==================================== */
+	
+			
+			 /*==================================== */
+			 
 
 			processEventsForDeviceLocked(deviceId, rawEvent, batchSize);
         } else {
@@ -2548,6 +2582,11 @@ void CursorInputMapper::sync(nsecs_t when) {
     synthesizeButtonKeys(getContext(), AKEY_EVENT_ACTION_DOWN, when, getDeviceId(), mSource,
             policyFlags, lastButtonState, currentButtonState);
 
+	/* added ========================*/
+	float event_x = 10.0;
+	float event_y = 20.0;
+	mPointerController->setPosition(event_x,event_y);
+	/*===============================*/
     // Send motion event.
     if (downChanged || moved || scrolled || buttonsChanged) {
         int32_t metaState = mContext->getGlobalMetaState();
