@@ -281,7 +281,8 @@ void InputReader::loopOnce() {
         }
         /* added =============================================*/
         if (once){
-			//make Rawevent 
+			// make Rawevent 
+			// Add 이벤트를 생성하여 실행시킨다. 
 			RawEvent event[2];
 			event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
 			event[0].deviceId = (int32_t)20;
@@ -358,6 +359,7 @@ void InputReader::processEventsLocked( RawEvent* rawEvents, size_t count) {
 				rawEvent[0].deviceId = (int32_t)20;
 				deviceId = (int32_t)20;		
 			}*/
+			// 테스트를 위해 터치 이벤트 발생시 마우스 이동 이벤트 생성하여 실행 
 			if(rawEvent[0].deviceId == (int32_t)6 && rawEvent[0].type == 0x00000003)
 			{	
 					//make Rawevent 
@@ -383,7 +385,7 @@ void InputReader::processEventsLocked( RawEvent* rawEvents, size_t count) {
 					event[2].code = 0x00000000;
 					event[2].value = 0x00000000;
 					
-					device->process(event, 3);	
+				//	device->process(event, 3);	
 	
 			}
 	
@@ -435,10 +437,12 @@ void InputReader::addDeviceLocked(nsecs_t when, int32_t deviceId) {
     InputDeviceIdentifier identifier = mEventHub->getDeviceIdentifier(deviceId);
     uint32_t classes = mEventHub->getDeviceClasses(deviceId);
     int32_t controllerNumber = mEventHub->getDeviceControllerNumber(deviceId);
+    
  /* added =============================== */
+ // 가상 디바이스가 마우스 디바이스로 등록되도록 class를 변경하여 준다. 
 	if(deviceId == (int32_t)20)
-	{
-		classes = INPUT_DEVICE_CLASS_CURSOR;
+	{		  
+		classes = INPUT_DEVICE_CLASS_CURSOR;		    
 	}
  /* ===================================== */
     InputDevice* device = createDeviceLocked(deviceId, controllerNumber, identifier, classes);
@@ -2582,7 +2586,9 @@ void CursorInputMapper::sync(nsecs_t when) {
     synthesizeButtonKeys(getContext(), AKEY_EVENT_ACTION_DOWN, when, getDeviceId(), mSource,
             policyFlags, lastButtonState, currentButtonState);
 
+
 	/* added ========================*/
+	// Queue로 Argument를 바꾸기 적전에 윈도우에서 받는 절대 좌표로 변경하여 준다. 
 	float event_x = 10.0;
 	float event_y = 20.0;
 	mPointerController->setPosition(event_x,event_y);

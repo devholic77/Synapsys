@@ -8,6 +8,8 @@ import android.view.GestureDetector;
 import android.view.GestureDetector.OnDoubleTapListener;
 import android.view.GestureDetector.OnGestureListener;
 import android.view.MotionEvent;
+import android.hardware.input.InputManager;
+
 
 /**
  * 작업 시작!!
@@ -38,7 +40,7 @@ public class WindowsTouchListener implements OnGestureListener, OnDoubleTapListe
 	
 	// TestManager 객체 생성
 	IInputManager om = IInputManager.Stub.asInterface(ServiceManager.getService("input"));
-	
+	InputManager im ;
 	// SynapsysManager 객체 생성
 
     SynapsysManager synapsysManager;
@@ -49,7 +51,9 @@ public class WindowsTouchListener implements OnGestureListener, OnDoubleTapListe
 		mGestureDetector = new GestureDetector(mContextF, this);
 		mGestureDetector.setIsLongpressEnabled(true);
 		mGestureDetector.setOnDoubleTapListener(this);		
-	    synapsysManager = (SynapsysManager)context.getSystemService(Context.SYNAPSYS_SERVICE);	 	    
+	    synapsysManager = (SynapsysManager)context.getSystemService(Context.SYNAPSYS_SERVICE);	 	  
+	    im = (InputManager)context.getSystemService(Context.INPUT_SERVICE);
+	   
 	}
 
 	public boolean onTouchEvent(MotionEvent e) {
