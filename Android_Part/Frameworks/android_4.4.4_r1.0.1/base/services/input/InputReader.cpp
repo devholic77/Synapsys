@@ -62,6 +62,8 @@
 bool once = true;
 bool event_once = false;
 int32_t move_test = 0;
+float mouse_x = 20.0;
+float mouse_y = 20.0;
 
 namespace android {
 
@@ -325,6 +327,36 @@ void InputReader::loopOnce() {
     // listener is actually the input dispatcher, which calls into the window manager,
     // which occasionally calls into the input reader.
     mQueuedListener->flush();
+}
+/* added */
+void InputReader::virtualMouseEvent(int32_t event_id, float_t event_x, float_t event_y){
+	
+	ALOGD("native Test call");
+	ssize_t deviceIndex = mDevices.indexOfKey((int32_t)20);
+	InputDevice* device = mDevices.valueAt(deviceIndex);
+	RawEvent event[3];
+	event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
+	event[0].deviceId = (int32_t)20;
+	event[0].type = 0x00000002;
+	event[0].code = 0x00000000;
+	event[0].value = 0xfffffffd;
+
+	event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
+	event[1].deviceId = (int32_t)20;
+	event[1].type = 0x00000002;
+	event[1].code = 0x00000001;
+	event[1].value = 0xfffffffd;
+
+	event[2].when = systemTime(SYSTEM_TIME_MONOTONIC);
+	event[2].deviceId = (int32_t)20;
+	event[2].type = 0x00000000;
+	event[2].code = 0x00000000;
+	event[2].value = 0x00000000;
+	
+	mouse_x = event_x;
+	mouse_y = event_y;
+
+	device->process(event, 3);	
 }
 
 void InputReader::processEventsLocked( RawEvent* rawEvents, size_t count) {
@@ -2588,10 +2620,8 @@ void CursorInputMapper::sync(nsecs_t when) {
 
 
 	/* added ========================*/
-	// Queue로 Argument를 바꾸기 적전에 윈도우에서 받는 절대 좌표로 변경하여 준다. 
-	float event_x = 10.0;
-	float event_y = 20.0;
-	mPointerController->setPosition(event_x,event_y);
+	// Queue로 Argument를 바꾸기 적전에 윈도우에서 받는 절대 좌표로 변경하여 준다. 	
+	mPointerController->setPosition(mouse_x,mouse_y);
 	/*===============================*/
     // Send motion event.
     if (downChanged || moved || scrolled || buttonsChanged) {

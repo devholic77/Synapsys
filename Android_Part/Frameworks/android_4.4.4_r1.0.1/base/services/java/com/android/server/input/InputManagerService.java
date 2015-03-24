@@ -154,7 +154,7 @@ public class InputManagerService extends IInputManager.Stub
             int logicalLeft, int logicalTop, int logicalRight, int logicalBottom,
             int physicalLeft, int physicalTop, int physicalRight, int physicalBottom,
             int deviceWidth, int deviceHeight);
-
+	
     private static native int nativeGetScanCodeState(int ptr,
             int deviceId, int sourceMask, int scanCode);
     private static native int nativeGetKeyCodeState(int ptr,
@@ -186,7 +186,9 @@ public class InputManagerService extends IInputManager.Stub
     private static native void nativeReloadDeviceAliases(int ptr);
     private static native String nativeDump(int ptr);
     private static native void nativeMonitor(int ptr);
-
+	/* added */
+	private static native void nativeEventReceive(int deviceId, float mouse_x, float mouse_y );
+	
     // Input event injection constants defined in InputDispatcher.h.
     private static final int INPUT_EVENT_INJECTION_SUCCEEDED = 0;
     private static final int INPUT_EVENT_INJECTION_PERMISSION_DENIED = 1;
@@ -1249,6 +1251,14 @@ public class InputManagerService extends IInputManager.Stub
         synchronized (mInputFilterLock) { }
         nativeMonitor(mPtr);
     }
+
+	/* by dhuck added */
+	//Native callback
+	public void Event_Receive(int deviceId, float mouse_x, float mouse_y )
+	{
+		 Slog.d(TAG, "Inputmanagerservice jnicall id :" + deviceId + "mouse_x :"+mouse_x+", mouse_y :" + mouse_y);
+		 nativeEventReceive(deviceId, mouse_x, mouse_y );
+	}
 
     // Native callback.
     private void notifyConfigurationChanged(long whenNanos) {

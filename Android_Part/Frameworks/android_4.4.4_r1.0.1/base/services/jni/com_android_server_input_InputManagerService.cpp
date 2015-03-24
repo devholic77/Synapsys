@@ -39,6 +39,9 @@
 #include <input/PointerController.h>
 #include <input/SpriteController.h>
 
+/* added */
+#include <input/InputReader.h>
+
 #include <android_os_MessageQueue.h>
 #include <android_view_InputDevice.h>
 #include <android_view_KeyEvent.h>
@@ -85,6 +88,8 @@ static struct {
     jmethodID getPointerIcon;
     jmethodID getKeyboardLayoutOverlay;
     jmethodID getDeviceAlias;
+
+    
 } gServiceClassInfo;
 
 static struct {
@@ -99,7 +104,8 @@ static struct {
     jclass clazz;
 } gMotionEventClassInfo;
 
-
+/* added */
+sp<InputReaderInterface> mReader;
 // --- Global functions ---
 
 template<typename T>
@@ -177,6 +183,7 @@ public:
     void setSystemUiVisibility(int32_t visibility);
     void setPointerSpeed(int32_t speed);
     void setShowTouches(bool enabled);
+
 
     /* --- InputReaderPolicyInterface implementation --- */
 
@@ -976,7 +983,13 @@ void NativeInputManager::loadPointerResources(PointerResources* outResources) {
 
 
 // ----------------------------------------------------------------------------
-
+/* added */
+static void nativejnicall(JNIEnv* env, jclass clazz,
+ jint deviceId, jfloat event_x, jfloat event_y)
+{
+	mReader->virtualMouseEvent( deviceId,event_x, event_y);
+	ALOGW(" jni level call deviceid = %d, event_x = %f , evnet_y = %f ",deviceId , event_x, event_y);
+}
 static jint nativeInit(JNIEnv* env, jclass clazz,
         jobject serviceObj, jobject contextObj, jobject messageQueueObj) {
     sp<MessageQueue> messageQueue = android_os_MessageQueue_getMessageQueue(env, messageQueueObj);
@@ -993,7 +1006,9 @@ static jint nativeInit(JNIEnv* env, jclass clazz,
 
 static void nativeStart(JNIEnv* env, jclass clazz, jint ptr) {
     NativeInputManager* im = reinterpret_cast<NativeInputManager*>(ptr);
-
+	/* added ==================*/
+	mReader = im->getInputManager()->getReader();
+	/* ========================*/
     status_t result = im->getInputManager()->start();
     if (result) {
         jniThrowRuntimeException(env, "Input manager could not be started.");
@@ -1346,6 +1361,10 @@ static JNINativeMethod gInputManagerMethods[] = {
             (void*) nativeDump },
     { "nativeMonitor", "(I)V",
             (void*) nativeMonitor },
+    /* added */
+    { "nativeEventReceive", "(IFF)V",
+			(void*) nativejnicall },
+    
 };
 
 #define FIND_CLASS(var, className) \
@@ -1443,6 +1462,7 @@ int register_android_server_InputManager(JNIEnv* env) {
     GET_METHOD_ID(gServiceClassInfo.getDeviceAlias, clazz,
             "getDeviceAlias", "(Ljava/lang/String;)Ljava/lang/String;");
 
+
     // InputDevice
 
     FIND_CLASS(gInputDeviceClassInfo.clazz, "android/view/InputDevice");
@@ -1458,6 +1478,7 @@ int register_android_server_InputManager(JNIEnv* env) {
     FIND_CLASS(gMotionEventClassInfo.clazz, "android/view/MotionEvent");
     gMotionEventClassInfo.clazz = jclass(env->NewGlobalRef(gMotionEventClassInfo.clazz));
 
+   
     return 0;
 }
 

@@ -337,7 +337,11 @@ public:
     virtual void vibrate(int32_t deviceId, const nsecs_t* pattern, size_t patternSize,
             ssize_t repeat, int32_t token) = 0;
     virtual void cancelVibrate(int32_t deviceId, int32_t token) = 0;
+    
+    /* added */  
+    virtual void virtualMouseEvent(int32_t event_id, float_t event_x, float_t event_y) = 0;
 };
+
 
 
 /* Internal interface used by individual input devices to access global input device state
@@ -406,6 +410,9 @@ public:
     virtual void vibrate(int32_t deviceId, const nsecs_t* pattern, size_t patternSize,
             ssize_t repeat, int32_t token);
     virtual void cancelVibrate(int32_t deviceId, int32_t token);
+    
+    /* added */  
+    virtual void virtualMouseEvent(int32_t event_id, float_t event_x, float_t event_y);
 
 protected:
     // These members are protected so they can be instrumented by test cases.

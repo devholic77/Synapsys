@@ -643,6 +643,16 @@ public final class InputManager {
             return false;
         }
     }
+ /* by dhuck added */
+    public void Event_Receive(int deviceId, float mouse_x, float mouse_y ){
+		
+		try {
+			Log.w(TAG, "inputManager call");		
+			mIm.Event_Receive(deviceId, mouse_x, mouse_y );
+		} catch (RemoteException ex) {
+			
+		}
+	}
 
     private void populateInputDevicesLocked() {
         if (mInputDevicesChangedListener == null) {
