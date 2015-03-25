@@ -14,12 +14,15 @@ import android.os.Message;
 import android.os.RemoteException;
 import android.os.SystemProperties;
 import android.util.Slog;
+/* by dhuck. added */
+import android.hardware.input.InputManager;
 
 /**
  * 
  * SynapsysManager의 기능을 구현하는 시스템 서비스.
  * 
  * @author Yeonho.Kim
+ * @author Dhunkil.Kim
  * @since 2015.03.06
  *
  */
@@ -29,24 +32,25 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	public static final int EVENT_USB_CONNECT = 2;
 	
 	static final String TAG = "SynapsysManagerService";	
-	
 	static final int LISTEN_PORT = 30300;
 	
 	final Context mContext;
-	
-	
 	private boolean isServiceRunning;
-	
 	private Socket mControlSocket;
 	
 	private ConnectionFileDetector mConnectionDetector;
 	private SynapsysControlThread mControlThread;
 	private ConnectionBox mConnectionBox;
-	
+
+	/* by dhuck. added */
+	InputManager im ;
 	
 	
 	public SynapsysManagerService(Context context) {
-		mContext = context; 
+		mContext = context;
+		
+		/* by dhuck. added */
+		im = (InputManager)context.getSystemService(Context.INPUT_SERVICE);
 	}
 	
 	public int requestDisplayConnection() throws RemoteException {
@@ -58,9 +62,10 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	}
 	
 	public boolean invokeMouseEventFromTouch(int event_id, float event_x, float event_y) throws RemoteException {
-
 		// TODO : Windows PC로 Touch Event 전송.
 		Slog.i(TAG, "invokeMouseEventFromTouch : event=" + event_id + " / x=" + event_x + " / y=" + event_y);
+
+		jnicall(20, event_x, event_y );
 		return false;
 	}
 	
@@ -130,9 +135,13 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 		systemStop();
 	}
 	
-	/**
-	 * 
-	 */
+	/* by dhuck. added */	
+	private void jnicall(int deviceId, float event_x, float event_y ) {
+		Slog.i("SynapsysManagerService","framework : JNI CALL test ");
+		im.Event_Receive(deviceId,event_x,event_y);
+	}
+	
+
 	void systemReady() {
 		mConnectionDetector = ConnectionFileDetector.getInstance(new SynapsysHandler());
 		if (mConnectionDetector != null)
