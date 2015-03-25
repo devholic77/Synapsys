@@ -48,7 +48,7 @@
 
 
         <Popup x:Name="Popup_settings" 
-       VerticalOffset="-70"
+       VerticalOffset="-90"
        HorizontalOffset="100" 
        Placement="Bottom"
        PopupAnimation="Fade"
@@ -59,8 +59,10 @@
                     <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.WindowFrameColorKey}}"/>
                 </Border.Background>
                 <StackPanel>
-                    <Label Content="Device 1" Foreground="White"/><CheckBox Content="Ctrl + Alt + 1"/>
-                    <Label Content="Device 2" Foreground="White"/><CheckBox Content="Ctrl + Alt + 2"/>
+                    <Label Content="Device 1" Foreground="White"/>
+                    <CheckBox Content="Ctrl + Alt + 1" Checked="checkbox_handler" Unchecked="checkbox_handler" Name="checkbox1"/>
+                    <Label Content="Device 2" Foreground="White"/>
+                    <CheckBox Content="Ctrl + Alt + 2"  Checked="checkbox_handler" Unchecked="checkbox_handler" Name="checkbox2"/>
                     <Button Content="Close" Name="btn_Close" Background="Gray" Margin="0,10,0,0" Click="btn_Close_Click"/>
                 </StackPanel>
                 
