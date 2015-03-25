@@ -6,6 +6,8 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import org.gbssm.synapsys.SynapsysManagerService.SynapsysHandler;
+
 /**
  * 
  * @author Yeonho.Kim
@@ -20,7 +22,7 @@ public class SynapsysControlThread extends Thread {
 	
 	private Socket mConnectedSocket;
 	
-	public SynapsysControlThread(int port) {
+	public SynapsysControlThread(SynapsysHandler handler, int port) {
 		mPort = port;
 	}
 	
@@ -45,5 +47,8 @@ public class SynapsysControlThread extends Thread {
 		}
 	}
 	
-	
+	@Override
+	public void destroy() {
+		
+	}
 }

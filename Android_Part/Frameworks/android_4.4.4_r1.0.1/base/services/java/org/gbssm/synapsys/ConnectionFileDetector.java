@@ -1,7 +1,9 @@
 package org.gbssm.synapsys;
 
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
+import java.nio.CharBuffer;
 
 import org.gbssm.synapsys.SynapsysManagerService.SynapsysHandler;
 
@@ -50,7 +52,6 @@ public class ConnectionFileDetector extends FileObserver {
 	
 	
 	private final SynapsysHandler mHandler;
-	
 	private final String TAG = "ConnectionFileDetector";
 	
 	private ConnectionFileDetector(SynapsysHandler handler) {
@@ -64,6 +65,7 @@ public class ConnectionFileDetector extends FileObserver {
 	
 	@Override
 	public void onEvent(int event, String path) {
+		Slog.d(TAG, event + " : " + path);
 		
 		switch (event) {
 		case OPEN:
@@ -79,9 +81,7 @@ public class ConnectionFileDetector extends FileObserver {
 			break;
 			
 		case CLOSE_WRITE:
-			
-			MessageBox box = new MessageBox();
-			box.port = 10000;
+			ConnectionBox box = readConnectionFile();
 			
 			// SynapsysManagerService_SynapsysHandler로 연결 결과 메시지를 보낸다.
 			Message message = Message.obtain(mHandler);
@@ -127,6 +127,31 @@ public class ConnectionFileDetector extends FileObserver {
 		} catch (IOException e) {
 			Slog.e(TAG, e.getMessage());
 		}
+	}
+	
+	public ConnectionBox readConnectionFile() {
+
+		ConnectionBox box = new ConnectionBox();
+		// TODO: ConnectionFile로 부터 포트번호를 읽는다.
+		try {
+			FileReader reader = new FileReader(new File(CONNECTION_FILE_DIR));
+
+			// Port 번호 읽기.
+			CharBuffer buffer = CharBuffer.allocate(4);
+			reader.read(buffer);
+			box.port = Integer.parseInt(buffer.toString());
+			
+			reader.close();
+			
+		} catch (IOException e) {
+			
+		} catch (NumberFormatException e) {
+			
+		} finally {
+			
+		}
+		
+		return box;
 	}
 
 	@Override

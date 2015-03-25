@@ -212,7 +212,10 @@ public class UsbDeviceManager {
         // make sure the ADB_ENABLED setting value matches the current state
         Settings.Global.putInt(mContentResolver, Settings.Global.ADB_ENABLED, mAdbEnabled ? 1 : 0);
 
+        /*ADDED*/ setCurrentFunctions(UsbManager.USB_FUNCTION_MTP, true);
+        
         mHandler.sendEmptyMessage(MSG_SYSTEM_READY);
+
     }
 
     private void startAccessoryMode() {
@@ -356,6 +359,7 @@ public class UsbDeviceManager {
                 }
 
                 mCurrentFunctions = mDefaultFunctions;
+                
                 String state = FileUtils.readTextFile(new File(STATE_PATH), 0, null).trim();
                 updateState(state);
                 mAdbEnabled = containsFunction(mCurrentFunctions, UsbManager.USB_FUNCTION_ADB);

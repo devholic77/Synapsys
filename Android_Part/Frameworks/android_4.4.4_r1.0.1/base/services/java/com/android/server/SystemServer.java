@@ -820,7 +820,7 @@ class ServerThread {
                     reportWtf("starting MediaRouterService", e);
                 }
             }
-            
+
             /*ADDED*/ 
             if (!disableSynapsys) {
 	            try {
@@ -831,6 +831,7 @@ class ServerThread {
 	            	reportWtf("starting Synapsys Service", e);
 	            }
             }
+            
         }
 
         // Before things start rolling, be sure we have decided whether

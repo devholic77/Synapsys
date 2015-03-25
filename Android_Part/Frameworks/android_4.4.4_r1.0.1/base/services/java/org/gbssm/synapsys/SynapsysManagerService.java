@@ -32,7 +32,7 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	
 	static final int LISTEN_PORT = 30300;
 	
-	Context mContext;
+	final Context mContext;
 	
 	
 	private boolean isServiceRunning;
@@ -41,6 +41,7 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	
 	private ConnectionFileDetector mConnectionDetector;
 	private SynapsysControlThread mControlThread;
+	private ConnectionBox mConnectionBox;
 	
 	
 	
@@ -49,20 +50,57 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	}
 	
 	public int requestDisplayConnection() throws RemoteException {
-		Slog.i("SynapsysManagerService", "reqeustDisplayConnection()");
+		Slog.i(TAG, "reqeustDisplayConnection()");
+		if (mConnectionBox != null)
+			return mConnectionBox.port + 1;
 		
-		return 0; // Port Number
+		return -1; // Port Number
 	}
 	
 	public boolean invokeMouseEventFromTouch(int event_id, float event_x, float event_y) throws RemoteException {
 		// TODO : Windows PC로 Touch Event 전송.
+		Slog.i(TAG, "invokeMouseEventFromTouch : event=" + event_id + " / x=" + event_x + " / y=" + event_y);
 		return false;
 	}
 	
-	public boolean interpolateMouseEvent(int event_id, float event_x, float event_y) throws RemoteException { 
-		//  TODO : Windows PC로부터 Touch Event 받기.
+	public boolean invokeKeyboardEvent(int event_id, int key_code) throws RemoteException {
+		Slog.i(TAG, "invokeKeyboardEvent : event=" + event_id + " / keyCode=" + key_code);
 		return false;
 	}
+	
+	public boolean invokeNotificationEvent() throws RemoteException {
+		// TODO : Windows PC로 Notification Event 전송.
+		return false;
+	}
+	
+	public boolean invokeTaskInfoEvents() throws RemoteException {
+		// TODO : WIndows PC로 Task-Info Event 전송.
+		return false;
+	}
+	
+	
+	public boolean interpolateMouseEvent(int event_id, float event_x, float event_y) throws RemoteException { 
+		//  TODO : Windows PC로부터 Touch Event 받기.
+		Slog.i(TAG, "interpolateMouseEvent : event=" + event_id + " / x=" + event_x + " / y=" + event_y);
+		return false;
+	}
+	
+	public boolean interpolateKeyboardEvent(int event_id, int key_code) throws RemoteException { 
+		//  TODO : Windows PC로부터 Keyboard Event 받기.
+		Slog.i(TAG, "interpolateKeyboardEvent : event=" + event_id + " / keyCode=" + key_code);
+		return false;
+	}
+	
+	public boolean interpolateNotificationEvent() throws RemoteException {
+		//  TODO : Windows PC로부터 Notification Event 받기. 
+		return false;
+	}
+	
+	public boolean interpolateTaskInfoEvent() throws RemoteException {
+		// TODO : Windows PC로부터 Task-Info Event 받기.
+		return false;
+	}
+	
 	
 	/**
 	 * USB 연결 상태를 탐지하여 이벤트를 발생시킨다.   
@@ -100,35 +138,82 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 			mConnectionDetector.start();
 	}
 	
+	/**
+	 * 
+	 */
 	void systemStop() {
 		if (mConnectionDetector != null)
 			mConnectionDetector.stop();
 	}
 	
 	/**
-	 * 
+	 * SynapsysManagerService에서 기능의 일괄 처리를 위한 Handler. 
 	 * 
 	 * @author  Yeonho.Kim
+	 * @since 2015.03.15
 	 *
 	 */
 	class SynapsysHandler extends Handler {
-		
+		/**
+		 * Handler 메시지 : 연결 성립 / 시작.
+		 */
 		static final int MSG_PROCEED_CONNECTION = 0x100;
+		/**
+		 * Handler 메시지 : 연결 해제 / 종료.
+		 */
+		static final int MSG_FINISHED_CONNECTION = 0xF00;
+		/**
+		 * 
+		 */
+		static final int MSG_PUSH_NOTIFICATION = 0x700;
+		/**
+		 * 
+		 */
+		static final int MSG_PULL_NOTIFICATION = 0x707;
+		/**
+		 * 
+		 */
+		static final int MSG_PUSH_TASKINFO = 0x800;
+		/**
+		 * 
+		 */
+		static final int MSG_PULL_TASKINFO = 0x808;
+		
 		
 		@Override
 		public void handleMessage(Message msg) {
+			Slog.d(TAG, "handleMessage : " + msg.what);
 			
 			switch (msg.what) {
 			case MSG_PROCEED_CONNECTION:
-				MessageBox box;
-				
 				if (msg.obj != null) {
-					box = (MessageBox) msg.obj;
+					mConnectionBox = (ConnectionBox) msg.obj;
 					
-					mControlThread = new SynapsysControlThread(box.port);
+					mControlThread = new SynapsysControlThread(this, mConnectionBox.port);
 					mControlThread.start();
 				}
 				break;
+				
+			case MSG_FINISHED_CONNECTION:
+				if (mControlThread != null) {
+					try {
+						mControlThread.join(1000);
+						
+					} catch (InterruptedException e) {
+					} finally {
+						mControlThread.destroy();
+						mControlThread = null;
+					}
+				}
+				break;
+				
+			case MSG_PUSH_NOTIFICATION:
+				
+			case MSG_PUSH_TASKINFO:
+				
+			case MSG_PULL_NOTIFICATION:
+				
+			case MSG_PULL_TASKINFO:
 				
 			}
 		}
@@ -139,9 +224,12 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 /**
  * 
  * @author Yeonho.Kim
+ * @since 2015.03.15
  *
  */
-class MessageBox {
+class ConnectionBox {
+	String deviceName;
+	int deviceId;
 	int port;
 }
 
