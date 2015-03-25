@@ -9,6 +9,9 @@ package org.gbssm.synapsys;
  */
 public class MessageProtocol  {
 	
+	public static final char END = '\n';
+	
+	
 	/**
 	 * 
 	 * @param bytes
@@ -20,13 +23,13 @@ public class MessageProtocol  {
 		return message; 
 	}
 	
-	/**
-	 * 
-	 * @param message
-	 * @return
-	 */
-	public static byte[] encode(MessageProtocol message) {
+	public MessageProtocol() {
+		// TODO Auto-generated constructor stub
+	}
+	
+	public byte[] encode() {
 		
 		return null;
 	}
+	
 }

@@ -1,12 +1,17 @@
 package org.gbssm.synapsys;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
+import java.nio.ByteBuffer;
 
 import org.gbssm.synapsys.SynapsysManagerService.SynapsysHandler;
+
+import android.os.Message;
+import android.util.Log;
 
 /**
  * 
@@ -17,38 +22,101 @@ import org.gbssm.synapsys.SynapsysManagerService.SynapsysHandler;
 public class SynapsysControlThread extends Thread {
 
 	private static final int TIMEOUT = 10000; 	// ms
+
+	private final String TAG = "SynapsysMediaThread";
 	
-	private final int mPort;
+	private final SynapsysHandler mHandler;
+	private final ConnectionBox mBox;
 	
 	private Socket mConnectedSocket;
 	
-	public SynapsysControlThread(SynapsysHandler handler, int port) {
-		mPort = port;
+	private DataInputStream mDIS;
+	private DataOutputStream mDOS;
+	
+	private boolean isDestroyed;
+	
+	public SynapsysControlThread(SynapsysHandler handler, ConnectionBox box) {
+		mHandler = handler;
+		mBox = box;
 	}
 	
 	@Override
 	public void run() {
+		final int port = mBox.port;
+
+		Log.d(TAG, "ControlThread_Run()_Port : " + port);
 		try {
-			ServerSocket listenSocket = new ServerSocket(mPort);	
+			ServerSocket listenSocket = new ServerSocket(port);	
 			listenSocket.setSoTimeout(TIMEOUT);
 			
-			mConnectedSocket = listenSocket.accept();
+			do {
+				try {
+					mConnectedSocket = listenSocket.accept();
+					
+				} catch (SocketTimeoutException e) {
+					
+				}
+				
+				if (isDestroyed)
+					return;
+					
+			} while (mConnectedSocket == null);
+
+			Log.d(TAG, "ControlThread_Connected!");
+			mDIS = new DataInputStream(mConnectedSocket.getInputStream());
+			mDOS = new DataOutputStream(mConnectedSocket.getOutputStream());
+
 			listenSocket.close();
 			
-			InputStream is = mConnectedSocket.getInputStream();
-			OutputStream os = mConnectedSocket.getOutputStream();
-			
+			while(mDIS != null) {
+				byte[] bytes = new byte[1024];
+				Log.d(TAG, "ControlThread_Received! : " + mDIS.read(bytes));
+				
+				String send = "ControlThread_Write";
+				mDOS.writeUTF(send);
+				Log.d(TAG, "ControlThread_Send! : " + send.length());
+			}
 			
 		} catch (IOException e) {
-			// ServerSocket Timeout
+			
 			
 		} catch (Exception e) {
+			
+		} finally {
+			Message message = Message.obtain(mHandler);
+			message.what = SynapsysHandler.MSG_PROCEED_CONNECTION;
+			message.obj = mBox;
+
+			mHandler.sendMessageDelayed(message, 500);
+			Log.d(TAG, "ControlThread_Destroyed!");
+		}
+	}
+	
+	public void send(MessageProtocol message) {
+		try {
+			if (mDOS != null)
+				mDOS.write(message.encode());
+			
+		} catch (IOException e) {
 			
 		}
 	}
 	
 	@Override
 	public void destroy() {
+		isDestroyed = true;
 		
+		try {
+			if (mConnectedSocket != null) {
+				mConnectedSocket.close();
+				mConnectedSocket = null;
+			}
+			
+		} catch (IOException e) {
+			
+		} finally {
+			mDIS = null;
+			mDOS = null;
+		}
 	}
 }

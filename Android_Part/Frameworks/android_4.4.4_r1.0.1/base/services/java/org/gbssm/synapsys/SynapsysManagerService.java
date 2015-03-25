@@ -14,15 +14,12 @@ import android.os.Message;
 import android.os.RemoteException;
 import android.os.SystemProperties;
 import android.util.Slog;
-/* by dhuck. added */
-import android.hardware.input.InputManager;
 
 /**
  * 
  * SynapsysManager의 기능을 구현하는 시스템 서비스.
  * 
  * @author Yeonho.Kim
- * @author Dhunkil.Kim
  * @since 2015.03.06
  *
  */
@@ -32,25 +29,26 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	public static final int EVENT_USB_CONNECT = 2;
 	
 	static final String TAG = "SynapsysManagerService";	
+	
 	static final int LISTEN_PORT = 30300;
 	
 	final Context mContext;
+	
+	
 	private boolean isServiceRunning;
+	
 	private Socket mControlSocket;
 	
 	private ConnectionFileDetector mConnectionDetector;
 	private SynapsysControlThread mControlThread;
+	private SynapsysMediaThread mMediaThread;
+	
 	private ConnectionBox mConnectionBox;
-
-	/* by dhuck. added */
-	InputManager im ;
+	private ConnectionBox mMediaBox;
 	
 	
 	public SynapsysManagerService(Context context) {
-		mContext = context;
-		
-		/* by dhuck. added */
-		im = (InputManager)context.getSystemService(Context.INPUT_SERVICE);
+		mContext = context; 
 	}
 	
 	public int requestDisplayConnection() throws RemoteException {
@@ -64,8 +62,6 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	public boolean invokeMouseEventFromTouch(int event_id, float event_x, float event_y) throws RemoteException {
 		// TODO : Windows PC로 Touch Event 전송.
 		Slog.i(TAG, "invokeMouseEventFromTouch : event=" + event_id + " / x=" + event_x + " / y=" + event_y);
-
-		jnicall(20, event_x, event_y );
 		return false;
 	}
 	
@@ -135,13 +131,9 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 		systemStop();
 	}
 	
-	/* by dhuck. added */	
-	private void jnicall(int deviceId, float event_x, float event_y ) {
-		Slog.i("SynapsysManagerService","framework : JNI CALL test ");
-		im.Event_Receive(deviceId,event_x,event_y);
-	}
-	
-
+	/**
+	 * 
+	 */
 	void systemReady() {
 		mConnectionDetector = ConnectionFileDetector.getInstance(new SynapsysHandler());
 		if (mConnectionDetector != null)
@@ -154,6 +146,7 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	void systemStop() {
 		if (mConnectionDetector != null)
 			mConnectionDetector.stop();
+
 	}
 	
 	/**
@@ -175,6 +168,14 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 		/**
 		 * 
 		 */
+		static final int MSG_PROCEED_MEDIA = 0x110;
+		/**
+		 * 
+		 */
+		static final int MSG_FINISHED_MEDIA = 0xFF0;
+		/**
+		 * 
+		 */
 		static final int MSG_PUSH_NOTIFICATION = 0x700;
 		/**
 		 * 
@@ -192,27 +193,51 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 		
 		@Override
 		public void handleMessage(Message msg) {
-			Slog.d(TAG, "handleMessage : " + msg.what);
+			//Slog.d(TAG, "handleMessage : " + msg.what);
 			
 			switch (msg.what) {
 			case MSG_PROCEED_CONNECTION:
 				if (msg.obj != null) {
+					removeMessages(MSG_PROCEED_CONNECTION);
 					mConnectionBox = (ConnectionBox) msg.obj;
 					
-					mControlThread = new SynapsysControlThread(this, mConnectionBox.port);
+					mControlThread = new SynapsysControlThread(this, mConnectionBox);
 					mControlThread.start();
+				}
+				break;
+				
+			case MSG_PROCEED_MEDIA:
+				if (msg.obj != null) {
+					removeMessages(MSG_PROCEED_MEDIA);
+					mMediaBox = (ConnectionBox) msg.obj;
+					
+					mMediaThread = new SynapsysMediaThread(this, mMediaBox);
+					mMediaThread.start();
 				}
 				break;
 				
 			case MSG_FINISHED_CONNECTION:
 				if (mControlThread != null) {
 					try {
+						mControlThread.destroy();
 						mControlThread.join(1000);
 						
 					} catch (InterruptedException e) {
 					} finally {
-						mControlThread.destroy();
 						mControlThread = null;
+					}
+				}
+				break;
+				
+			case MSG_FINISHED_MEDIA:
+				if (mMediaThread != null) {
+					try {
+						mMediaThread.destroy();
+						mMediaThread.join(1000);
+						
+					} catch (InterruptedException e) {
+					} finally {
+						mMediaThread = null;
 					}
 				}
 				break;
@@ -238,9 +263,20 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
  *
  */
 class ConnectionBox {
+	public static final int TYPE_CONTROL = 1;
+	public static final int TYPE_MEDIA = 2;
+
+	final int type;
+	
+	public ConnectionBox(int type) {
+		this.type = type;
+	}
+	
 	String deviceName;
 	int deviceId;
 	int port;
+	
+	
 }
 
 

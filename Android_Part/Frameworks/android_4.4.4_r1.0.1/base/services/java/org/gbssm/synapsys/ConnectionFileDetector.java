@@ -1,5 +1,6 @@
 package org.gbssm.synapsys;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -55,7 +56,7 @@ public class ConnectionFileDetector extends FileObserver {
 	private final String TAG = "ConnectionFileDetector";
 	
 	private ConnectionFileDetector(SynapsysHandler handler) {
-		super(CONNECTION_FILE_DIR);
+		super(SYNAPSYS_DIRECTORY);
 		
 		mHandler = handler;
 		
@@ -63,38 +64,49 @@ public class ConnectionFileDetector extends FileObserver {
 		makeConnectionFile();
 	}
 	
+	private ConnectionBox mControlBox;
+	private ConnectionBox mMediaBox;
+	
+	private boolean isCreated;
+	
 	@Override
 	public void onEvent(int event, String path) {
 		Slog.d(TAG, event + " : " + path);
 		
 		switch (event) {
-		case OPEN:
-			break;
-			
-		case ACCESS:
-			break;
-
-		case CLOSE_NOWRITE:
-			break;
-			
-		case MODIFY:
+		case CREATE:
+			if (CONNECTION_FILE_DIR.equals(SYNAPSYS_DIRECTORY + "/" + path)) {
+				Message.obtain(mHandler, SynapsysHandler.MSG_FINISHED_CONNECTION).sendToTarget();
+				Message.obtain(mHandler, SynapsysHandler.MSG_FINISHED_CONNECTION).sendToTarget();
+				isCreated = true;
+			}
 			break;
 			
 		case CLOSE_WRITE:
-			ConnectionBox box = readConnectionFile();
-			
-			// SynapsysManagerService_SynapsysHandler로 연결 결과 메시지를 보낸다.
-			Message message = Message.obtain(mHandler);
-			message.what = SynapsysHandler.MSG_PROCEED_CONNECTION;
-			message.obj = box;
-			message.sendToTarget();
+			if (isCreated) {
+				Slog.d(TAG, "Closed_Write : " + event + " : " + path);
+				readConnectionFile();
+				
+				// SynapsysManagerService_SynapsysHandler로 연결 결과 메시지를 보낸다.
+				Message message = Message.obtain(mHandler);
+				message.what = SynapsysHandler.MSG_PROCEED_CONNECTION;
+				message.obj = mControlBox;
+				message.sendToTarget();
+				
+				message = Message.obtain(mHandler);
+				message.what = SynapsysHandler.MSG_PROCEED_MEDIA;
+				message.obj = mMediaBox;
+				message.sendToTarget();
+				
+				isCreated = false;
+			}
 			break;
 			
-		case ATTRIB:
-			break;
-			
-		case DELETE_SELF:
-			makeConnectionFile();
+		case DELETE:
+			if (CONNECTION_FILE_DIR.equals(SYNAPSYS_DIRECTORY + "/" + path)) {
+				Message.obtain(mHandler, SynapsysHandler.MSG_FINISHED_CONNECTION).sendToTarget();
+				Message.obtain(mHandler, SynapsysHandler.MSG_FINISHED_CONNECTION).sendToTarget();
+			}
 			break;
 			
 		case 32768:
@@ -112,6 +124,9 @@ public class ConnectionFileDetector extends FileObserver {
 	
 	public void stop() {
 		super.stopWatching();
+
+		mHandler.sendEmptyMessage(SynapsysHandler.MSG_FINISHED_CONNECTION);
+		mHandler.sendEmptyMessage(SynapsysHandler.MSG_FINISHED_MEDIA);
 	}
 
 	public void makeConnectionFile() {
@@ -129,29 +144,34 @@ public class ConnectionFileDetector extends FileObserver {
 		}
 	}
 	
-	public ConnectionBox readConnectionFile() {
+	public void readConnectionFile() {
 
-		ConnectionBox box = new ConnectionBox();
+		mControlBox = new ConnectionBox(ConnectionBox.TYPE_CONTROL);
+		mMediaBox = new ConnectionBox(ConnectionBox.TYPE_MEDIA);
+		
 		// TODO: ConnectionFile로 부터 포트번호를 읽는다.
+		BufferedReader reader = null;
 		try {
-			FileReader reader = new FileReader(new File(CONNECTION_FILE_DIR));
+			reader = new BufferedReader(new FileReader(CONNECTION_FILE_DIR));
 
-			// Port 번호 읽기.
-			CharBuffer buffer = CharBuffer.allocate(4);
-			reader.read(buffer);
-			box.port = Integer.parseInt(buffer.toString());
+			mMediaBox.port = Integer.parseInt(reader.readLine());
+			mControlBox.port = Integer.parseInt(reader.readLine());
 			
-			reader.close();
+			mMediaBox.deviceName = mControlBox.deviceName = reader.readLine();
+			
+			if (!"Synapsys".equals(reader.readLine()))
+				throw new IOException("ConnectionFile isn't edited properly.");
 			
 		} catch (IOException e) {
 			
 		} catch (NumberFormatException e) {
 			
 		} finally {
-			
+			try {
+				if (reader != null)
+					reader.close();
+			} catch (IOException e) { }
 		}
-		
-		return box;
 	}
 
 	@Override
