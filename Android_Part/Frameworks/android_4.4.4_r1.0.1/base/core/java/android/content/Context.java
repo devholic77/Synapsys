@@ -2464,6 +2464,16 @@ public abstract class Context {
      *  @see org.gbssm.synapsys.SynapsysManager
      */
     /*ADDED*/ public static final String SYNAPSYS_SERVICE = "synapsys";
+
+     /**
+     * Use with {@link #getSystemService} to retrieve a
+     * {@link org.gbssm.synapsys.TestManager} for performing 
+     * "Test" operations.
+     * 
+     *  @see #getSystemService
+     *  @see org.gbssm.synapsys.TestManager
+     */
+    /*ADDED*/ public static final String TEST_SERVICE = "test_service";
     
     
     /**

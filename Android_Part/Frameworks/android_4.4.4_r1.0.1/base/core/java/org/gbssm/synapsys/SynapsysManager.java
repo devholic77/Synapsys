@@ -12,7 +12,6 @@ import org.gbssm.synapsys.ISynapsysManager;
 
 
 /**
- * SDK로 접근할 수 있는  SynapsysManager.
  * 
  * @author Yeonho.Kim
  * @since 2015.03.05

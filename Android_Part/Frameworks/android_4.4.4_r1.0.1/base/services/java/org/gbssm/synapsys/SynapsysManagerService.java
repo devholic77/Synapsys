@@ -58,6 +58,7 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	}
 	
 	public boolean invokeMouseEventFromTouch(int event_id, float event_x, float event_y) throws RemoteException {
+
 		// TODO : Windows PC로 Touch Event 전송.
 		Slog.i(TAG, "invokeMouseEventFromTouch : event=" + event_id + " / x=" + event_x + " / y=" + event_y);
 		return false;

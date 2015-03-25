@@ -70,6 +70,7 @@ import com.android.server.usb.UsbService;
 import com.android.server.wifi.WifiService;
 import com.android.server.wm.WindowManagerService;
 import org.gbssm.synapsys.SynapsysManagerService;
+import org.gbssm.synapsys.TestManagerService;
 
 import dalvik.system.VMRuntime;
 import dalvik.system.Zygote;
@@ -159,6 +160,7 @@ class ServerThread {
         TelephonyRegistry telephonyRegistry = null;
         ConsumerIrService consumerIr = null;
         /* ADDED */ SynapsysManagerService synapsysManager = null;
+        /* ADDED */ TestManagerService testManager = null;
 
         // Create a handler thread just for the window manager to enjoy.
         HandlerThread wmHandlerThread = new HandlerThread("WindowManager");
@@ -831,7 +833,15 @@ class ServerThread {
 	            	reportWtf("starting Synapsys Service", e);
 	            }
             }
-            
+
+ 	    /*ADDED_Dhuck For TEST*/ 
+            try {
+            	Slog.i(TAG, "Test Service test");
+            	testManager = new TestManagerService(context);
+            	ServiceManager.addService(Context.TEST_SERVICE, testManager);
+            } catch (Throwable e) {
+            	reportWtf("starting Test Service", e);
+            }
         }
 
         // Before things start rolling, be sure we have decided whether

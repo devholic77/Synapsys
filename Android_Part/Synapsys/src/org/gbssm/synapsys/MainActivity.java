@@ -2,6 +2,7 @@ package org.gbssm.synapsys;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.ServiceManager;
 import android.view.MotionEvent;
 
 /**
@@ -23,7 +24,8 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.main_activity);
 		
 		mStreamingView = (StreamingView) findViewById(R.id.streamingView);
-		mTouchListener = new WindowsTouchListener(this);
+		mTouchListener = new WindowsTouchListener(this);		
+	
 	}
 
 	@Override
