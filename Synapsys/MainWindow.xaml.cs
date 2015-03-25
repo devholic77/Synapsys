@@ -2,24 +2,43 @@
 using System.Threading;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.Windows.Forms;
 using System.Runtime.InteropServices;
+using System.Windows.Forms;
 using System;
 using System.Text.RegularExpressions;
-using System.Reflection;
 
 namespace Synapsys
 {
     /// <summary>
     /// MainWindow.xaml에 대한 상호 작용 논리
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : Elysium.Controls.Window
     {
         public MainWindow()
         {
             InitializeComponent();
 			scrs = Screen.AllScreens;
+			addItem_Listbox("Synapsys Started");
+			addItem_Listbox("Please Connect devices..");
+
+			btn_d1_start.IsEnabled = false;
+			btn_d1_stop.IsEnabled = false;
+			btn_d2_start.IsEnabled = false;
+			btn_d2_stop.IsEnabled = false;
+
         }
+
+		private void Setting_Click(object sender, RoutedEventArgs e)
+		{
+			Popup_settings.IsOpen = true;
+		}
+
+		private void addItem_Listbox(string s)
+		{
+			Listbox1.Items.Add(s);
+			Listbox1.Items.MoveCurrentToLast();
+			Listbox1.UpdateLayout();
+		}
 
 		private void Button_Click(object sender, RoutedEventArgs e)
 		{
@@ -220,6 +239,13 @@ namespace Synapsys
 			KeyboardMouse kb = KeyboardMouse.getInstance();
 			kb.Activate();
 		}
+
+		private void btn_Close_Click(object sender, RoutedEventArgs e)
+		{
+			Popup_settings.IsOpen = false;
+		}
+
+		
     }
 	
 }

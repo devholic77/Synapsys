@@ -3,6 +3,12 @@ using MouseKeyboardActivityMonitor;
 using MouseKeyboardActivityMonitor.WinApi;
 using System.Windows.Forms;
 
+// Keycontrol
+using System.Runtime.InteropServices;
+using System.Windows.Forms;
+using System.Drawing;
+using System.Threading;
+
 namespace Synapsys
 {
 	class KeyboardMouse
@@ -78,7 +84,7 @@ namespace Synapsys
 		private void HookManager_KeyUp(object sender, KeyEventArgs e)
 		{
 			Console.WriteLine(string.Format("KeyUp - {0}\n", e.KeyValue));
-
+			Console.WriteLine(string.Format("KeyUp - {0}\n", e.KeyCode));
 		}
 
 
@@ -128,7 +134,62 @@ namespace Synapsys
 		#endregion
 
 
+		#region MOUSE EVENT WORKER
 
+		[DllImport("user32.dll")]
+		private static extern void mouse_event(int dwFlags, int dx, int dy, int dwData, int dwExtraInfo);
+		private const int MOUSEEVENTF_LEFTDOWN = 0x0002;
+		private const int MOUSEEVENTF_LEFTUP = 0x0004;
+		private const int MOUSEEVENTF_RIGHTDOWN = 0x0008;
+		private const int MOUSEEVENTF_RIGHTUP = 0x0010;
+		private const int MOUSEEVENTF_MIDDLEUP = 0x0040;
+		private const int MOUSEEVENTF_MIDDLEDOWN = 0x0020;
+
+		public void MOVE_MOUSE(int x, int y)
+		{
+			Cursor.Position = new Point(
+						//Cursor.Position.X + int.Parse((String)col["mouseX"].GetValue()),
+						//Cursor.Position.Y + int.Parse((String)col["mouseY"].GetValue())
+						x, y
+					);
+		}
+
+		public void EVENT_MOUSE(int k)
+		{
+			switch(k)
+			{
+				case 0:		// MOVE
+					break;
+				case 1:		// CLICK_LEFT
+					mouse_event(MOUSEEVENTF_LEFTDOWN, Control.MousePosition.X, Control.MousePosition.Y, 0, 0);
+					break;
+				case 2:		// CLICK_RIGHT
+					mouse_event(MOUSEEVENTF_RIGHTDOWN, Control.MousePosition.X, Control.MousePosition.Y, 0, 0);
+					break;
+				case 3:		// DOUBLE_CLICK_LEFT
+					mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_LEFTUP, Control.MousePosition.X, Control.MousePosition.Y, 0, 0);
+					Thread.Sleep(150);
+					mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_LEFTUP, Control.MousePosition.X, Control.MousePosition.Y, 0, 0);
+					break;
+				case 4:		// UNPRESS_LEFT
+					mouse_event(MOUSEEVENTF_LEFTUP, Control.MousePosition.X, Control.MousePosition.Y, 0, 0);
+					break;
+				case 5:		// UNPRESS_RIGHT
+					mouse_event(MOUSEEVENTF_RIGHTUP, Control.MousePosition.X, Control.MousePosition.Y, 0, 0);
+					break;
+				case 6:		// WHEEL_UP
+					mouse_event(MOUSEEVENTF_MIDDLEUP, Control.MousePosition.X, Control.MousePosition.Y, 0, 0);
+					break;
+				case 7:		// WHEEL_DOWN
+					mouse_event(MOUSEEVENTF_MIDDLEDOWN, Control.MousePosition.X, Control.MousePosition.Y, 0, 0);
+					break;
+				default:	// DEFAULT
+					break;
+			}
+		}
+
+
+		#endregion
 
 	}
 }
