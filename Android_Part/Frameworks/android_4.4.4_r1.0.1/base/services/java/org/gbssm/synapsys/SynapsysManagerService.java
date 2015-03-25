@@ -11,6 +11,8 @@ import android.os.Handler;
 import android.os.RemoteException;
 import android.os.SystemProperties;
 import android.util.Slog;
+/* by dhuck. added */
+import android.hardware.input.InputManager;
 
 /**
  * 
@@ -23,19 +25,18 @@ import android.util.Slog;
 public class SynapsysManagerService extends ISynapsysManager.Stub {
 	
 	static final String TAG = "SynapsysManagerService";	
-	
 	static final int LISTEN_PORT = 30300;
-	
 	Context mContext;
-	
-	
 	private boolean isServiceRunning;
-	
 	private Socket mControlSocket;
 	
+	/* by dhuck. added */
+	InputManager im ;
 	
 	public SynapsysManagerService(Context context) {
 		mContext = context;
+		/* by dhuck. added */
+		im = (InputManager)context.getSystemService(Context.INPUT_SERVICE);
 	}
 	
 	public int requestDisplayConnection() throws RemoteException {
@@ -46,6 +47,7 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	
 	public boolean invokeMouseEventFromTouch(int event_id, float event_x, float event_y) throws RemoteException {
 		Slog.i("SynapsysManagerService","id : "+event_id +" x : "+event_x +" y : "+event_y);
+		jnicall(20, event_x, event_y );
 		return false;
 	}
 	
@@ -53,10 +55,14 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 		
 		return false;
 	}
+/* by dhuck. added */	
+	private void jnicall(int deviceId, float event_x, float event_y )
+	{
+		Slog.i("SynapsysManagerService","framework : JNI CALL test ");
+		im.Event_Receive(deviceId,event_x,event_y);
+	}
 	
-	/**
-	 * 
-	 */
+
 	void systemReady() {
 		// TODO : USB 연결 탐지.  Listener 등록
 		
