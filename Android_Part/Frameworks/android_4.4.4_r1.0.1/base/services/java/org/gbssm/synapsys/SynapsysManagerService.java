@@ -8,6 +8,8 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import com.android.internal.telephony.MmiCode;
+
 import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
@@ -136,6 +138,7 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	 */
 	void systemReady() {
 		mConnectionDetector = ConnectionFileDetector.getInstance(new SynapsysHandler());
+		
 		if (mConnectionDetector != null)
 			mConnectionDetector.start();
 	}
@@ -146,7 +149,6 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	void systemStop() {
 		if (mConnectionDetector != null)
 			mConnectionDetector.stop();
-
 	}
 	
 	/**
@@ -157,22 +159,32 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	 *
 	 */
 	class SynapsysHandler extends Handler {
+		// *** Level C : Connection 관련 *** //
 		/**
-		 * Handler 메시지 : 연결 성립 / 시작.
+		 * Handler 메시지 : 데이터 연결 성립 / 시작.
 		 */
-		static final int MSG_PROCEED_CONNECTION = 0x100;
+		static final int MSG_PROCEED_CONTROL = 0xC100;
 		/**
-		 * Handler 메시지 : 연결 해제 / 종료.
+		 * Handler 메시지 : 데이터 연결 해제 / 대기.
 		 */
-		static final int MSG_FINISHED_CONNECTION = 0xF00;
+		static final int MSG_DESTROY_CONTROL = 0xC110;
 		/**
-		 * 
+		 * Handler 메시지 : 데이터 연결 해제 / 종료.
 		 */
-		static final int MSG_PROCEED_MEDIA = 0x110;
+		static final int MSG_EXIT_CONTROL = 0xC111;
 		/**
-		 * 
+		 * Handler 메시지 : 미디어 연결 성립 / 시작.
 		 */
-		static final int MSG_FINISHED_MEDIA = 0xFF0;
+		static final int MSG_PROCEED_MEDIA = 0xC200;
+		/**
+		 * Handler 메시지 : 미디어 연결 해제 / 대기.
+		 */
+		static final int MSG_DESTROY_MEDIA = 0xC220;
+		/**
+		 * Handler 메시지 : 미디어 연결 해제 / 종료.
+		 */
+		static final int MSG_EXIT_MEDIA = 0xC222;
+		
 		/**
 		 * 
 		 */
@@ -193,13 +205,15 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 		
 		@Override
 		public void handleMessage(Message msg) {
-			//Slog.d(TAG, "handleMessage : " + msg.what);
+			Slog.d(TAG, "handleMessage : " + msg.what);
 			
 			switch (msg.what) {
-			case MSG_PROCEED_CONNECTION:
+			case MSG_PROCEED_CONTROL:
 				if (msg.obj != null) {
-					removeMessages(MSG_PROCEED_CONNECTION);
 					mConnectionBox = (ConnectionBox) msg.obj;
+					
+					if (mControlThread != null)
+						mControlThread.exit();
 					
 					mControlThread = new SynapsysControlThread(this, mConnectionBox);
 					mControlThread.start();
@@ -208,38 +222,30 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 				
 			case MSG_PROCEED_MEDIA:
 				if (msg.obj != null) {
-					removeMessages(MSG_PROCEED_MEDIA);
 					mMediaBox = (ConnectionBox) msg.obj;
+					
+					if (mMediaThread != null)
+						mMediaThread.exit();
 					
 					mMediaThread = new SynapsysMediaThread(this, mMediaBox);
 					mMediaThread.start();
 				}
 				break;
 				
-			case MSG_FINISHED_CONNECTION:
-				if (mControlThread != null) {
-					try {
-						mControlThread.destroy();
-						mControlThread.join(1000);
-						
-					} catch (InterruptedException e) {
-					} finally {
-						mControlThread = null;
-					}
-				}
+			case MSG_DESTROY_CONTROL:
+				destroyThread(mControlThread);
 				break;
 				
-			case MSG_FINISHED_MEDIA:
-				if (mMediaThread != null) {
-					try {
-						mMediaThread.destroy();
-						mMediaThread.join(1000);
-						
-					} catch (InterruptedException e) {
-					} finally {
-						mMediaThread = null;
-					}
-				}
+			case MSG_DESTROY_MEDIA:
+				destroyThread(mMediaThread);
+				break;
+				
+			case MSG_EXIT_CONTROL:
+				exitThread(mControlThread);
+				break;
+				
+			case MSG_EXIT_MEDIA:
+				exitThread(mMediaThread);
 				break;
 				
 			case MSG_PUSH_NOTIFICATION:
@@ -253,6 +259,33 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 			}
 		}
 		
+		public final SynapsysManagerService getService() {
+			return SynapsysManagerService.this;
+		}
+	}
+	
+	private static void destroyThread(SynapsysThread thread) {
+		if (thread != null) {
+			try {
+				thread.destroy();
+				thread.join(100);
+			} catch (InterruptedException e) {
+			} finally {
+				thread = null;
+			}
+		}
+	}
+	
+	private static void exitThread(SynapsysThread thread) {
+		if (thread != null) {
+			try {
+				thread.exit();
+				thread.join(100);
+			} catch (InterruptedException e) {
+			} finally {
+				thread = null;
+			}
+		}
 	}
 }
 
@@ -275,8 +308,6 @@ class ConnectionBox {
 	String deviceName;
 	int deviceId;
 	int port;
-	
-	
 }
 
 

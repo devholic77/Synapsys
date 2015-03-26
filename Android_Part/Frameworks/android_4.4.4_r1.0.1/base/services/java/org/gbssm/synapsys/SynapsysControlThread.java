@@ -19,13 +19,8 @@ import android.util.Log;
  * @since 2015.03.10
  *
  */
-public class SynapsysControlThread extends Thread {
+public class SynapsysControlThread extends SynapsysThread {
 
-	private static final int TIMEOUT = 10000; 	// ms
-
-	private final String TAG = "SynapsysMediaThread";
-	
-	private final SynapsysHandler mHandler;
 	private final ConnectionBox mBox;
 	
 	private Socket mConnectedSocket;
@@ -36,7 +31,7 @@ public class SynapsysControlThread extends Thread {
 	private boolean isDestroyed;
 	
 	public SynapsysControlThread(SynapsysHandler handler, ConnectionBox box) {
-		mHandler = handler;
+		super(handler);
 		mBox = box;
 	}
 	
@@ -54,7 +49,6 @@ public class SynapsysControlThread extends Thread {
 					mConnectedSocket = listenSocket.accept();
 					
 				} catch (SocketTimeoutException e) {
-					
 				}
 				
 				if (isDestroyed)
@@ -79,26 +73,17 @@ public class SynapsysControlThread extends Thread {
 			
 		} catch (IOException e) {
 			
-			
 		} catch (Exception e) {
 			
 		} finally {
-			Message message = Message.obtain(mHandler);
-			message.what = SynapsysHandler.MSG_PROCEED_CONNECTION;
-			message.obj = mBox;
-
-			mHandler.sendMessageDelayed(message, 500);
-			Log.d(TAG, "ControlThread_Destroyed!");
-		}
-	}
+			if (!isExited) {
+				Message message = Message.obtain(mHandler);
+				message.what = SynapsysHandler.MSG_PROCEED_CONTROL;
+				message.obj = mBox;
 	
-	public void send(MessageProtocol message) {
-		try {
-			if (mDOS != null)
-				mDOS.write(message.encode());
-			
-		} catch (IOException e) {
-			
+				mHandler.sendMessageDelayed(message, 100);
+			}
+			Log.d(TAG, "ControlThread_Destroyed!");
 		}
 	}
 	
@@ -119,4 +104,21 @@ public class SynapsysControlThread extends Thread {
 			mDOS = null;
 		}
 	}
+	
+	@Override
+	public void exit() {
+		isExited = true;
+		destroy();
+	}
+
+	public void send(MessageProtocol message) {
+		try {
+			if (mDOS != null)
+				mDOS.write(message.encode());
+			
+		} catch (IOException e) {
+			
+		}
+	}
+	
 }

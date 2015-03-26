@@ -1,14 +1,11 @@
 package org.gbssm.synapsys;
 
-import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
-import java.nio.charset.Charset;
 
 import org.gbssm.synapsys.SynapsysManagerService.SynapsysHandler;
 
@@ -21,24 +18,17 @@ import android.util.Log;
  * @since 2015.03.25
  *
  */
-public class SynapsysMediaThread extends Thread {
+public class SynapsysMediaThread extends SynapsysThread {
 
-	private static final int TIMEOUT = 10000; 	// ms
-	
-	private final String TAG = "SynapsysMediaThread";
-	
-	private final SynapsysHandler mHandler;
 	private final ConnectionBox mBox;
 	
 	private Socket mMediaSocket;
 	private DataInputStream mDIS;
 	private DataOutputStream mDOS;
 
-	private boolean isDestroyed;
-	
 	
 	public SynapsysMediaThread(SynapsysHandler handler, ConnectionBox box) {
-		mHandler = handler;
+		super(handler);
 		mBox = box;
 	}
 	
@@ -55,9 +45,7 @@ public class SynapsysMediaThread extends Thread {
 				try {
 					mMediaSocket = listenSocket.accept();
 					
-				} catch (SocketTimeoutException e) {
-					
-				}
+				} catch (SocketTimeoutException e) { }
 
 				if (isDestroyed)
 					return;
@@ -80,16 +68,17 @@ public class SynapsysMediaThread extends Thread {
 			}
 			
 		} catch (IOException e) {
-			// ServerSocket Timeout
 			
 		} catch (Exception e) {
 			
 		} finally {
-			Message message = Message.obtain(mHandler);
-			message.what = SynapsysHandler.MSG_PROCEED_MEDIA;
-			message.obj = mBox;
-
-			mHandler.sendMessageDelayed(message, 500);
+			if (!isExited) {
+				Message message = Message.obtain(mHandler);
+				message.what = SynapsysHandler.MSG_PROCEED_MEDIA;
+				message.obj = mBox;
+	
+				mHandler.sendMessageDelayed(message, 50);
+			}
 			Log.d(TAG, "MediaThread_Destroyed!");
 		}
 	}
@@ -110,5 +99,17 @@ public class SynapsysMediaThread extends Thread {
 			mDIS = null;
 			mDOS = null;
 		}
+		
+		this.interrupt();
+	}
+	
+	@Override
+	public void exit() {
+		isExited = true;
+		destroy();
+	}
+	
+	public void send(MessageProtocol message) {
+		
 	}
 }
