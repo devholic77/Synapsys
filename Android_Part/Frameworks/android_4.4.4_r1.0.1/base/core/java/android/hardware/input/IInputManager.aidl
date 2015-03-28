@@ -57,5 +57,5 @@ interface IInputManager {
     void vibrate(int deviceId, in long[] pattern, int repeat, IBinder token);
     void cancelVibrate(int deviceId, IBinder token);
  /* by Dhuck added */
-	void Event_Receive(int deviceId, float mouse_x, float mouse_y );
+	void Event_Receive(int event_type, int event_code, float value_1, float value_2 );
 }

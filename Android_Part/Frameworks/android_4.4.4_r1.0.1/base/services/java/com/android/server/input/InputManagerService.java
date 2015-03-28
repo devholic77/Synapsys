@@ -187,7 +187,7 @@ public class InputManagerService extends IInputManager.Stub
     private static native String nativeDump(int ptr);
     private static native void nativeMonitor(int ptr);
 	/* added */
-	private static native void nativeEventReceive(int deviceId, float mouse_x, float mouse_y );
+	private static native void nativeEventReceive(int event_type, int event_code,float value_1, float value_2 );
 	
     // Input event injection constants defined in InputDispatcher.h.
     private static final int INPUT_EVENT_INJECTION_SUCCEEDED = 0;
@@ -1254,10 +1254,10 @@ public class InputManagerService extends IInputManager.Stub
 
 	/* by dhuck added */
 	//Native callback
-	public void Event_Receive(int deviceId, float mouse_x, float mouse_y )
+	public void Event_Receive(int event_type, int event_code, float value_1, float value_2 )
 	{
-		 Slog.d(TAG, "Inputmanagerservice jnicall id :" + deviceId + "mouse_x :"+mouse_x+", mouse_y :" + mouse_y);
-		 nativeEventReceive(deviceId, mouse_x, mouse_y );
+	//	 Slog.d(TAG, "Inputmanagerservice jnicall id :" + deviceId + "mouse_x :"+mouse_x+", mouse_y :" + mouse_y);
+		 nativeEventReceive(event_type,event_code,value_1,value_2);
 	}
 
     // Native callback.

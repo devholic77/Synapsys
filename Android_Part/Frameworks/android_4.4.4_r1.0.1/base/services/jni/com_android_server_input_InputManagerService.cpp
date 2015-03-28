@@ -985,10 +985,10 @@ void NativeInputManager::loadPointerResources(PointerResources* outResources) {
 // ----------------------------------------------------------------------------
 /* added */
 static void nativejnicall(JNIEnv* env, jclass clazz,
- jint deviceId, jfloat event_x, jfloat event_y)
+ jint event_type, jint event_code, jfloat value_1, jfloat value_2)
 {
-	mReader->virtualMouseEvent( deviceId,event_x, event_y);
-	ALOGW(" jni level call deviceid = %d, event_x = %f , evnet_y = %f ",deviceId , event_x, event_y);
+	mReader->virtualDeviceEvent( event_type, event_code, value_1, value_2);
+	//ALOGW(" jni level call type = %d, code = %d,  value_1 = %f , value_2 = %f ",event_type, event_code, value_1 , value_2);
 }
 static jint nativeInit(JNIEnv* env, jclass clazz,
         jobject serviceObj, jobject contextObj, jobject messageQueueObj) {
@@ -1362,7 +1362,7 @@ static JNINativeMethod gInputManagerMethods[] = {
     { "nativeMonitor", "(I)V",
             (void*) nativeMonitor },
     /* added */
-    { "nativeEventReceive", "(IFF)V",
+    { "nativeEventReceive", "(IIFF)V",
 			(void*) nativejnicall },
     
 };

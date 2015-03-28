@@ -47,7 +47,7 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	
 	public boolean invokeMouseEventFromTouch(int event_id, float event_x, float event_y) throws RemoteException {
 		Slog.i("SynapsysManagerService","id : "+event_id +" x : "+event_x +" y : "+event_y);
-		jnicall(20, event_x, event_y );
+		jnicall(0,1,event_x, event_y );
 		return false;
 	}
 	
@@ -56,10 +56,10 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 		return false;
 	}
 /* by dhuck. added */	
-	private void jnicall(int deviceId, float event_x, float event_y )
+	private void jnicall(int event_type,int event_code, float value_1, float value_2 )
 	{
-		Slog.i("SynapsysManagerService","framework : JNI CALL test ");
-		im.Event_Receive(deviceId,event_x,event_y);
+		//Slog.i("SynapsysManagerService","framework : JNI CALL test ");
+		im.Event_Receive(event_type,event_code,value_1,value_2);
 	}
 	
 

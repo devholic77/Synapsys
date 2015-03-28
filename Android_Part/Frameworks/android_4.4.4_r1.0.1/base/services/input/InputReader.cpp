@@ -59,6 +59,10 @@
 #define INDENT5 "          "
 
 /* added */
+#define KEYBOARD_EVENT (0)
+#define MOUSE_EVENT (1)
+
+/* added */
 bool once = true;
 bool event_once = false;
 int32_t move_test = 0;
@@ -283,8 +287,8 @@ void InputReader::loopOnce() {
         }
         /* added =============================================*/
         if (once){
-			// make Rawevent 
-			// Add 이벤트를 생성하여 실행시킨다. 
+			// 초기 부팅시 가상 디바이스 추가  
+			// Add 이벤트를 생성하여 가상 마우스 추가
 			RawEvent event[2];
 			event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
 			event[0].deviceId = (int32_t)20;
@@ -293,6 +297,17 @@ void InputReader::loopOnce() {
 			event[0].value = 0xffffffff;
 			
 			processEventsLocked(event,2);
+			
+			//Add 이벤트를 생성하여 가상 키보드 추가 
+			
+			event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
+			event[0].deviceId = (int32_t)21;
+			event[0].type = 0x10000000;
+			event[0].code = 0x0039;
+			event[0].value = 0xffffffff;
+			
+			processEventsLocked(event,2);
+			
 			once = false;
 		}		
 		/*====================================================*/
@@ -329,9 +344,23 @@ void InputReader::loopOnce() {
     mQueuedListener->flush();
 }
 /* added */
-void InputReader::virtualMouseEvent(int32_t event_id, float_t event_x, float_t event_y){
-	
-	ALOGD("native Test call");
+void InputReader::virtualDeviceEvent(int32_t event_type, int32_t event_code, float value_1, float value_2){
+	ALOGD("native Test call type = %d , code = %d , value_1 = %f, value_2 = %f",event_type,event_code,value_1,value_2);	
+	switch(event_type)
+	{
+		case KEYBOARD_EVENT:		
+		
+		break;
+		
+		case MOUSE_EVENT:		
+		
+		break;		
+		
+		default:
+		
+		break;
+	}
+
 	ssize_t deviceIndex = mDevices.indexOfKey((int32_t)20);
 	InputDevice* device = mDevices.valueAt(deviceIndex);
 	RawEvent event[3];
@@ -353,8 +382,8 @@ void InputReader::virtualMouseEvent(int32_t event_id, float_t event_x, float_t e
 	event[2].code = 0x00000000;
 	event[2].value = 0x00000000;
 	
-	mouse_x = event_x;
-	mouse_y = event_y;
+	mouse_x = value_1;
+	mouse_y = value_2;
 
 	device->process(event, 3);	
 }
@@ -474,7 +503,12 @@ void InputReader::addDeviceLocked(nsecs_t when, int32_t deviceId) {
  // 가상 디바이스가 마우스 디바이스로 등록되도록 class를 변경하여 준다. 
 	if(deviceId == (int32_t)20)
 	{		  
-		classes = INPUT_DEVICE_CLASS_CURSOR;		    
+		classes = INPUT_DEVICE_CLASS_CURSOR;		//EventHub.h 참고 
+	}
+	
+	if(deviceId == (int32_t)21)
+	{		  
+		classes = INPUT_DEVICE_CLASS_KEYBOARD;		    
 	}
  /* ===================================== */
     InputDevice* device = createDeviceLocked(deviceId, controllerNumber, identifier, classes);
