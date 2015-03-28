@@ -61,8 +61,9 @@ public class ConnectionFileDetector extends FileObserver {
 		// 초기화
 		makeConnectionFile();
 	}
-	
+
 	private ConnectionBox mControlBox;
+	private ConnectionBox mDisplayBox;
 	private ConnectionBox mMediaBox;
 	
 	private boolean isCreated;
@@ -141,15 +142,17 @@ public class ConnectionFileDetector extends FileObserver {
 	public void readConnectionFile() {
 
 		mControlBox = new ConnectionBox(ConnectionBox.TYPE_CONTROL);
+		mDisplayBox = new ConnectionBox(ConnectionBox.TYPE_DISPLAY);
 		mMediaBox = new ConnectionBox(ConnectionBox.TYPE_MEDIA);
 		
 		// ConnectionFile로 부터 포트번호를 읽는다.
 		BufferedReader reader = null;
 		try {
 			reader = new BufferedReader(new FileReader(CONNECTION_FILE_DIR));
-
-			mMediaBox.port = Integer.parseInt(reader.readLine());
+			
+			mDisplayBox.port = Integer.parseInt(reader.readLine());
 			mControlBox.port = Integer.parseInt(reader.readLine());
+			mMediaBox.port = Integer.parseInt(reader.readLine());
 			
 			mMediaBox.deviceName = mControlBox.deviceName = reader.readLine();
 			

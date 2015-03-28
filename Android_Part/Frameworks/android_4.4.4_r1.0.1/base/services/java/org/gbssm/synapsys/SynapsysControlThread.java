@@ -63,12 +63,24 @@ public class SynapsysControlThread extends SynapsysThread {
 			listenSocket.close();
 			
 			while(mDIS != null) {
-				byte[] bytes = new byte[1024];
+				byte[] bytes = new byte[ControlProtocol.MSG_SIZE];
 				Log.d(TAG, "ControlThread_Received! : " + mDIS.read(bytes));
 				
-				String send = "ControlThread_Write";
-				mDOS.writeUTF(send);
-				Log.d(TAG, "ControlThread_Send! : " + send.length());
+				ControlProtocol[] protocols = ControlProtocol.decode(bytes);
+				for (int itr = 0; itr < protocols.length; itr++)
+					protocols[itr].process(mHandler.getService());
+				
+				//
+				ControlProtocol protocol = new ControlProtocol(0);
+				protocol.mCode = 10;
+				protocol.mValue1 = 100;
+				protocol.mValue2 = 200;
+				protocol.mValue3 = 300;
+				
+				Log.i("Synapsys_Message", "ControlThread_Encoding : " + 
+						protocol.mType +" / " + protocol.mCode + " / " + protocol.mValue1 + " / " + protocol.mValue2 + " / " + protocol.mValue3);
+				
+				send(protocol);
 			}
 			
 		} catch (IOException e) {
@@ -111,14 +123,16 @@ public class SynapsysControlThread extends SynapsysThread {
 		destroy();
 	}
 
-	public void send(MessageProtocol message) {
+	public void send(ControlProtocol message) {
 		try {
-			if (mDOS != null)
+			if (mDOS != null && message != null) {
 				mDOS.write(message.encode());
+				mDOS.flush();
+				
+				Log.d(TAG, "ControlThread_Send! : " + message.toString());
+			}
 			
-		} catch (IOException e) {
-			
-		}
+		} catch (IOException e) { }
 	}
 	
 }

@@ -62,6 +62,7 @@ public class SynapsysMediaThread extends SynapsysThread {
 				byte[] bytes = new byte[1024];
 				Log.d(TAG, "MediaThread_Received! : " + mDIS.read(bytes));
 				
+				
 				String send = "MediaThread_Write";
 				mDOS.writeUTF(send);
 				Log.d(TAG, "MediaThread_Send! : " + send.length());

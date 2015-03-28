@@ -298,6 +298,7 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 class ConnectionBox {
 	public static final int TYPE_CONTROL = 1;
 	public static final int TYPE_MEDIA = 2;
+	public static final int TYPE_DISPLAY = 3;
 
 	final int type;
 	
