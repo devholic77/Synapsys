@@ -1,0 +1,17 @@
+#Fri Jul 03 13:54:38 KST 2009
+eclipse.preferences.version=1
+encoding//src/com/android/inputmethod/latin/BinaryDictionary.java=UTF-8
+encoding//src/com/android/inputmethod/latin/Dictionary.java=UTF-8
+encoding//src/com/android/inputmethod/latin/UserDictionary.java=UTF-8
+encoding//src/com/feelnsolar/inputmethod/hangul/CandidateView.java=UTF-8
+encoding//src/com/feelnsolar/inputmethod/hangul/CandidateViewContainer.java=UTF-8
+encoding//src/com/feelnsolar/inputmethod/hangul/HangulAutomata.java=UTF-8
+encoding//src/com/feelnsolar/inputmethod/hangul/KeyboardSettings.java=UTF-8
+encoding//src/com/feelnsolar/inputmethod/hangul/KeyboardSwitcher.java=UTF-8
+encoding//src/com/feelnsolar/inputmethod/hangul/LatinKeyboard.java=UTF-8
+encoding//src/com/feelnsolar/inputmethod/hangul/LatinKeyboardView.java=UTF-8
+encoding//src/com/feelnsolar/inputmethod/hangul/SoftKeyboard.java=UTF-8
+encoding//src/com/feelnsolar/inputmethod/hangul/Suggest.java=UTF-8
+encoding//src/com/feelnsolar/inputmethod/hangul/TextEntryState.java=UTF-8
+encoding//src/com/feelnsolar/inputmethod/hangul/Tutorial.java=UTF-8
+encoding//src/com/feelnsolar/inputmethod/hangul/WordComposer.java=UTF-8
