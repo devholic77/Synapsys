@@ -59,8 +59,20 @@
 #define INDENT5 "          "
 
 /* added */
-#define KEYBOARD_EVENT (0)
-#define MOUSE_EVENT (1)
+//event_define
+#define KEYBOARD_EVENT 	(0)
+#define MOUSE_EVENT 	(1)
+
+//code define 
+#define MOUSE_MOVE  	(0)
+#define MOUSE_L_CLICK	(1)
+#define MOUSE_R_CLICK 	(2)
+#define MOUSE_L_UNCLICK	(3)
+#define MOUSE_R_UNCLICK	(4)
+#define MOUSE_DCLICK	(5)
+#define MOUSE_WHELL_UP	(6)
+#define MOUSE_WHELL_DOWN (7)
+
 
 /* added */
 bool once = true;
@@ -346,46 +358,182 @@ void InputReader::loopOnce() {
 /* added */
 void InputReader::virtualDeviceEvent(int32_t event_type, int32_t event_code, float value_1, float value_2){
 	ALOGD("native Test call type = %d , code = %d , value_1 = %f, value_2 = %f",event_type,event_code,value_1,value_2);	
+	ssize_t deviceIndex = mDevices.indexOfKey((int32_t)20);
+	InputDevice* device = mDevices.valueAt(deviceIndex);
+	RawEvent event[3];
+	
 	switch(event_type)
 	{
 		case KEYBOARD_EVENT:		
-		
+			ALOGD("keyboard event");
 		break;
 		
 		case MOUSE_EVENT:		
+			ALOGD("mouse event");
+			
+			if(event_code == MOUSE_MOVE)	//when mouse move event
+			{
+				event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
+				event[0].deviceId = (int32_t)20;
+				event[0].type = 0x00000002;
+				event[0].code = 0x00000000;
+				event[0].value = 0xfffffffd;
+
+				event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
+				event[1].deviceId = (int32_t)20;
+				event[1].type = 0x00000002;
+				event[1].code = 0x00000001;
+				event[1].value = 0xfffffffd;
+
+				event[2].when = systemTime(SYSTEM_TIME_MONOTONIC);
+				event[2].deviceId = (int32_t)20;
+				event[2].type = 0x00000000;
+				event[2].code = 0x00000000;
+				event[2].value = 0x00000000;
+				
+				mouse_x = value_1;
+				mouse_y = value_2;
+				device->process(event, 3);	
+			}
+			else if(event_code == MOUSE_L_CLICK)	//when mouse left click event
+			{
+				event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
+				event[0].deviceId = (int32_t)20;
+				event[0].type = 0x00000004;
+				event[0].code = 0x00000004;
+				event[0].value = 0x00090001;
+
+				event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
+				event[1].deviceId = (int32_t)20;
+				event[1].type = 0x00000001;
+				event[1].code = 0x00000110;
+				event[1].value = 0x00000001;
+
+				event[2].when = systemTime(SYSTEM_TIME_MONOTONIC);
+				event[2].deviceId = (int32_t)20;
+				event[2].type = 0x00000000;
+				event[2].code = 0x00000000;
+				event[2].value = 0x00000000;
+				
+				mouse_x = value_1;
+				mouse_y = value_2;
+				device->process(event, 3);	
+			}
+			else if(event_code == MOUSE_R_CLICK)	//when mouse right click event
+			{
+				event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
+				event[0].deviceId = (int32_t)20;
+				event[0].type = 0x00000004;
+				event[0].code = 0x00000004;
+				event[0].value = 0x00090002;
+
+				event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
+				event[1].deviceId = (int32_t)20;
+				event[1].type = 0x00000001;
+				event[1].code = 0x00000111;
+				event[1].value = 0x00000001;
+
+				event[2].when = systemTime(SYSTEM_TIME_MONOTONIC);
+				event[2].deviceId = (int32_t)20;
+				event[2].type = 0x00000000;
+				event[2].code = 0x00000000;
+				event[2].value = 0x00000000;
+				
+				mouse_x = value_1;
+				mouse_y = value_2;
+				device->process(event, 3);	
+			}
+			else if(event_code == MOUSE_L_UNCLICK)	//when mouse left unclick event
+			{
+				event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
+				event[0].deviceId = (int32_t)20;
+				event[0].type = 0x00000004;
+				event[0].code = 0x00000004;
+				event[0].value = 0x00090001;
+
+				event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
+				event[1].deviceId = (int32_t)20;
+				event[1].type = 0x00000001;
+				event[1].code = 0x00000110;
+				event[1].value = 0x00000000;
+
+				event[2].when = systemTime(SYSTEM_TIME_MONOTONIC);
+				event[2].deviceId = (int32_t)20;
+				event[2].type = 0x00000000;
+				event[2].code = 0x00000000;
+				event[2].value = 0x00000000;
+				
+				mouse_x = value_1;
+				mouse_y = value_2;
+				device->process(event, 3);	
+			}
+			else if(event_code == MOUSE_R_UNCLICK)	//when mouse right unclick event
+			{
+				event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
+				event[0].deviceId = (int32_t)20;
+				event[0].type = 0x00000004;
+				event[0].code = 0x00000004;
+				event[0].value = 0x00090002;
+
+				event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
+				event[1].deviceId = (int32_t)20;
+				event[1].type = 0x00000001;
+				event[1].code = 0x00000111;
+				event[1].value = 0x00000000;
+
+				event[2].when = systemTime(SYSTEM_TIME_MONOTONIC);
+				event[2].deviceId = (int32_t)20;
+				event[2].type = 0x00000000;
+				event[2].code = 0x00000000;
+				event[2].value = 0x00000000;
+				
+				mouse_x = value_1;
+				mouse_y = value_2;
+				device->process(event, 3);	
+			}		
+			else if(event_code == MOUSE_WHELL_UP)	//when mouse wheel up event
+			{
+				event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
+				event[0].deviceId = (int32_t)20;
+				event[0].type = 0x00000002;
+				event[0].code = 0x00000008;
+				event[0].value = 0xffffffff;
+
+				event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
+				event[1].deviceId = (int32_t)20;
+				event[1].type = 0x00000000;
+				event[1].code = 0x00000000;
+				event[1].value = 0x00000000;
+				
+				mouse_x = value_1;
+				mouse_y = value_2;
+				device->process(event, 2);	
+			}		
+			else if(event_code == MOUSE_WHELL_DOWN)	//when mouse whell down event
+			{
+				event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
+				event[0].deviceId = (int32_t)20;
+				event[0].type = 0x00000002;
+				event[0].code = 0x00000008;
+				event[0].value = 0x00000001;
+
+				event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
+				event[1].deviceId = (int32_t)20;
+				event[1].type = 0x00000000;
+				event[1].code = 0x00000000;
+				event[1].value = 0x00000000;
+				
+				mouse_x = value_1;
+				mouse_y = value_2;
+				device->process(event, 2);	
+			}				
 		
 		break;		
 		
 		default:
 		
 		break;
-	}
-
-	ssize_t deviceIndex = mDevices.indexOfKey((int32_t)20);
-	InputDevice* device = mDevices.valueAt(deviceIndex);
-	RawEvent event[3];
-	event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
-	event[0].deviceId = (int32_t)20;
-	event[0].type = 0x00000002;
-	event[0].code = 0x00000000;
-	event[0].value = 0xfffffffd;
-
-	event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
-	event[1].deviceId = (int32_t)20;
-	event[1].type = 0x00000002;
-	event[1].code = 0x00000001;
-	event[1].value = 0xfffffffd;
-
-	event[2].when = systemTime(SYSTEM_TIME_MONOTONIC);
-	event[2].deviceId = (int32_t)20;
-	event[2].type = 0x00000000;
-	event[2].code = 0x00000000;
-	event[2].value = 0x00000000;
-	
-	mouse_x = value_1;
-	mouse_y = value_2;
-
-	device->process(event, 3);	
+	}	
 }
 
 void InputReader::processEventsLocked( RawEvent* rawEvents, size_t count) {
