@@ -4,7 +4,7 @@
     android:layout_height="match_parent" >
     
     
-    <org.gbssm.synapsys.StreamingView 
+    <org.gbssm.synapsys.streaming.StreamingView 
         android:id="@+id/streamingView"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />

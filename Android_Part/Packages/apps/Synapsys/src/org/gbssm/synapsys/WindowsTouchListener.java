@@ -2,13 +2,13 @@ package org.gbssm.synapsys;
 
 import android.content.Context;
 import android.hardware.input.IInputManager;
+import android.hardware.input.InputManager;
 import android.os.ServiceManager;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.GestureDetector.OnDoubleTapListener;
 import android.view.GestureDetector.OnGestureListener;
 import android.view.MotionEvent;
-import android.hardware.input.InputManager;
 
 
 /**

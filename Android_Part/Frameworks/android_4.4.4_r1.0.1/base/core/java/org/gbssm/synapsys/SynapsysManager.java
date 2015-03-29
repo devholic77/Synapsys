@@ -12,13 +12,27 @@ import org.gbssm.synapsys.ISynapsysManager;
 
 
 /**
+ * SDK로 접근할 수 있는  SynapsysManager.
  * 
  * @author Yeonho.Kim
  * @since 2015.03.05
  *
  */
 public class SynapsysManager {
+	/**
+	 * Broadcast Intent Action
+	 */
+	public static final String BROADCAST_ACTION_SYNAPSYS = "org.gbssm.synapsys.system_broadcast.action";
+	/**
+	 * Extra Boolean Value 
+	 */
+	public static final String BROADCAST_EXTRA_USB_READY = "Synapsys_USB_Ready";
+	/**
+	 * Extra Boolean Value 
+	 */
+	public static final String BROADCAST_EXTRA_CONNECTION = "Synpasys_Connection";
 
+	
 	private final ISynapsysManager mService;
 	
 	/* package */ SynapsysManager(ISynapsysManager service) {
@@ -26,21 +40,20 @@ public class SynapsysManager {
 		
 	}
 	
-	/**
-	 * 
-	 * @author Yeonho.Kim
-	 * @since 2015.03.07
-	 *
-	 */
-	public interface OnDisplayConnectionListener {
-		
-		public void onConnected(Socket displaySock);
-		
-		public void onDisconnected();
-	}
-
-	private OnDisplayConnectionListener mOnDisplayConnectionListener;
-
+//	/**
+//	 * 
+//	 * @author Yeonho.Kim
+//	 * @since 2015.03.07
+//	 *
+//	 */
+//	public interface OnDisplayConnectionListener {
+//		
+//		public void onConnected(Socket displaySock);
+//		
+//		public void onDisconnected();
+//	}
+//
+//	private OnDisplayConnectionListener mOnDisplayConnectionListener;
 
 	private Socket mDisplaySocket;
 	
@@ -64,6 +77,8 @@ public class SynapsysManager {
 						ServerSocket server = new ServerSocket(portF);
 						server.setSoTimeout(Timeout);
 						mDisplaySocket = server.accept();
+						mDisplaySocket.setReuseAddress(true);
+						mDisplaySocket.setTcpNoDelay(true);
 						
 					} catch (Exception e) {
 						e.printStackTrace();
@@ -93,6 +108,19 @@ public class SynapsysManager {
 	public boolean invokeMouseEventFromTouch(int mouse_id, float mouse_x, float mouse_y) {
 		try {
 			return mService.invokeMouseEventFromTouch(mouse_id, mouse_x, mouse_y);
+			
+		} catch (RemoteException e) {	
+		}
+		return false;
+	}
+	
+	/**
+	 * Android Device의 Keyboard Event를 PC의 Keyboard Event로 발생시킨다.
+	 *
+	 */
+	public boolean invokeKeyboardEvent(int event_id, int key_code) {
+		try {
+			return mService.invokeKeyboardEvent(event_id, key_code);
 			
 		} catch (RemoteException e) {	
 		}

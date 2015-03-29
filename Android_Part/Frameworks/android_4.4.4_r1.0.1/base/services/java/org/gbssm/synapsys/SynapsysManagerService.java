@@ -11,10 +11,13 @@ import java.net.Socket;
 import com.android.internal.telephony.MmiCode;
 
 import android.content.Context;
+import android.content.Intent;
+import android.hardware.usb.UsbManager;
 import android.os.Handler;
 import android.os.Message;
 import android.os.RemoteException;
 import android.os.SystemProperties;
+import android.os.UserHandle;
 import android.util.Slog;
 
 /**
@@ -31,8 +34,6 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	public static final int EVENT_USB_CONNECT = 2;
 	
 	static final String TAG = "SynapsysManagerService";	
-	
-	static final int LISTEN_PORT = 30300;
 	
 	final Context mContext;
 	
@@ -125,12 +126,14 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 			// ConnectionFile의 변화를 감지하여, Synapsys 연결 상태를 확립한다.
 			if (event && another) {
 				systemReady();
+				broadcastSynapsysState(true, false);
 				return;
 			}
 		}
 		
 		// 연결이 성립하지 않는 다른 모든  경우,
 		systemStop();
+		broadcastSynapsysState(false, false);
 	}
 	
 	/**
@@ -149,6 +152,19 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	void systemStop() {
 		if (mConnectionDetector != null)
 			mConnectionDetector.stop();
+	}
+	
+	/**
+	 * 
+	 * @param ready
+	 * @param connection
+	 */
+	void broadcastSynapsysState(boolean ready, boolean connection) {
+        Intent intent = new Intent(SynapsysManager.BROADCAST_ACTION_SYNAPSYS);
+        intent.putExtra(SynapsysManager.BROADCAST_EXTRA_USB_READY, ready);
+        intent.putExtra(SynapsysManager.BROADCAST_EXTRA_CONNECTION, connection);
+
+        mContext.sendStickyBroadcast(intent);
 	}
 	
 	/**
@@ -217,6 +233,8 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 					
 					mControlThread = new SynapsysControlThread(this, mConnectionBox);
 					mControlThread.start();
+					
+					broadcastSynapsysState(true, true);
 				}
 				break;
 				
@@ -257,6 +275,8 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 			case MSG_PULL_TASKINFO:
 				
 			}
+			
+			removeMessages(msg.what);
 		}
 		
 		public final SynapsysManagerService getService() {
