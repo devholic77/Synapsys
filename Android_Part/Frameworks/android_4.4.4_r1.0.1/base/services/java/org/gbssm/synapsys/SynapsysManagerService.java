@@ -48,6 +48,7 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	
 	private ConnectionBox mConnectionBox;
 	private ConnectionBox mMediaBox;
+	private ConnectionBox mDisplayBox;
 	
 	
 	public SynapsysManagerService(Context context) {
@@ -56,8 +57,8 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	
 	public int requestDisplayConnection() throws RemoteException {
 		Slog.i(TAG, "reqeustDisplayConnection()");
-		if (mConnectionBox != null)
-			return mConnectionBox.port + 1;
+		if (mDisplayBox != null)
+			return mDisplayBox.port + 1;
 		
 		return -1; // Port Number
 	}
@@ -126,18 +127,18 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 			// ConnectionFile의 변화를 감지하여, Synapsys 연결 상태를 확립한다.
 			if (event && another) {
 				systemReady();
-				broadcastSynapsysState(true, false);
+				broadcastSynapsysState(true, false, false);
 				return;
 			}
 		}
 		
 		// 연결이 성립하지 않는 다른 모든  경우,
 		systemStop();
-		broadcastSynapsysState(false, false);
+		broadcastSynapsysState(false, false, false);
 	}
 	
 	/**
-	 * 
+	 * System Phase-1 Ready : {@link ConnectionFileDetector} start.
 	 */
 	void systemReady() {
 		mConnectionDetector = ConnectionFileDetector.getInstance(new SynapsysHandler());
@@ -147,21 +148,25 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	}
 	
 	/**
-	 * 
+	 * System Phase-1 Stop : {@link ConnectionFileDetector} stop.
 	 */
 	void systemStop() {
 		if (mConnectionDetector != null)
 			mConnectionDetector.stop();
+		
+		broadcastSynapsysState(true, false, false);
 	}
 	
 	/**
 	 * 
-	 * @param ready
+	 * @param usb
+	 * @param pc
 	 * @param connection
 	 */
-	void broadcastSynapsysState(boolean ready, boolean connection) {
+	void broadcastSynapsysState(boolean usb, boolean pc, boolean connection) {
         Intent intent = new Intent(SynapsysManager.BROADCAST_ACTION_SYNAPSYS);
-        intent.putExtra(SynapsysManager.BROADCAST_EXTRA_USB_READY, ready);
+        intent.putExtra(SynapsysManager.BROADCAST_EXTRA_USB_READY, usb);
+        intent.putExtra(SynapsysManager.BROADCAST_EXTRA_PC_READY, pc);
         intent.putExtra(SynapsysManager.BROADCAST_EXTRA_CONNECTION, connection);
 
         mContext.sendStickyBroadcast(intent);
@@ -177,30 +182,56 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	class SynapsysHandler extends Handler {
 		// *** Level C : Connection 관련 *** //
 		/**
-		 * Handler 메시지 : 데이터 연결 성립 / 시작.
+		 * Handler 메시지 : 데이터 소켓 오픈 및 진행.
 		 */
 		static final int MSG_PROCEED_CONTROL = 0xC100;
 		/**
-		 * Handler 메시지 : 데이터 연결 해제 / 대기.
+		 * Handler 메시지 : 데이터 소켓 연결 성립 알림.
 		 */
-		static final int MSG_DESTROY_CONTROL = 0xC110;
+		static final int MSG_CONNECTED_CONTROL = 0xC11C;
 		/**
-		 * Handler 메시지 : 데이터 연결 해제 / 종료.
+		 * Handler 메시지 : 미디어 연결 해제 및 재진행 명령.
 		 */
-		static final int MSG_EXIT_CONTROL = 0xC111;
+		static final int MSG_EXIT_CONTROL = 0xC10E;
 		/**
-		 * Handler 메시지 : 미디어 연결 성립 / 시작.
+		 * Handler 메시지 : 데이터 연결 해제 명령.
+		 */
+		static final int MSG_DESTROY_CONTROL = 0xC10D;
+		/**
+		 * Handler 메시지 : 데이터 연결 해제 알림.
+		 */
+		static final int MSG_DESTROYED_CONTROL = 0xC11D;
+		
+		/**
+		 * Handler 메시지 : 미디어 소켓 오픈 및 진행.
 		 */
 		static final int MSG_PROCEED_MEDIA = 0xC200;
 		/**
-		 * Handler 메시지 : 미디어 연결 해제 / 대기.
+		 * Handler 메시지 : 미디어 소켓 연결 성립 알림.
 		 */
-		static final int MSG_DESTROY_MEDIA = 0xC220;
+		static final int MSG_CONNECTED_MEDIA = 0xC21C;
 		/**
-		 * Handler 메시지 : 미디어 연결 해제 / 종료.
+		 * Handler 메시지 : 미디어 연결 해제 명령.
 		 */
-		static final int MSG_EXIT_MEDIA = 0xC222;
+		static final int MSG_EXIT_MEDIA = 0xC20E;
+		/**
+		 * Handler 메시지 : 미디어 연결 해제 명령.
+		 */
+		static final int MSG_DESTROY_MEDIA = 0xC20D;
+		/**
+		 * Handler 메시지 : 미디어 연결 해제 알림.
+		 */
+		static final int MSG_DESTROYED_MEDIA = 0xC21D;
 		
+		
+		/**
+		 * Handler 메시지 : 디스플레이 소켓.
+		 */
+		static final int MSG_PROCEED_DISPLAY = 0xC300;
+		
+		
+		
+		// *** LEVEL E : Event 관련 *** //
 		/**
 		 * 
 		 */
@@ -221,51 +252,100 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 		
 		@Override
 		public void handleMessage(Message msg) {
-			Slog.d(TAG, "handleMessage : " + msg.what);
+			Slog.i(TAG, "handleMessage : " + msg.what);
 			
 			switch (msg.what) {
+			// *** Level C : Connection 관련 *** //
 			case MSG_PROCEED_CONTROL:
 				if (msg.obj != null) {
-					mConnectionBox = (ConnectionBox) msg.obj;
+					ConnectionBox box = (ConnectionBox) msg.obj;
 					
-					if (mControlThread != null)
-						mControlThread.exit();
-					
-					mControlThread = new SynapsysControlThread(this, mConnectionBox);
-					mControlThread.start();
-					
-					broadcastSynapsysState(true, true);
+					if (SynapsysControlThread.isAbleToCreate()) {
+						mControlThread = new SynapsysControlThread(this, mConnectionBox = box);
+						mControlThread.start();
+						
+						broadcastSynapsysState(true, true, false);
+						
+					} else if (SynapsysControlThread.isRunning() || !box.equals(mConnectionBox))
+						Message.obtain(this, MSG_EXIT_CONTROL, box).sendToTarget();
 				}
 				break;
 				
-			case MSG_PROCEED_MEDIA:
-				if (msg.obj != null) {
-					mMediaBox = (ConnectionBox) msg.obj;
-					
-					if (mMediaThread != null)
-						mMediaThread.exit();
-					
-					mMediaThread = new SynapsysMediaThread(this, mMediaBox);
-					mMediaThread.start();
-				}
-				break;
-				
-			case MSG_DESTROY_CONTROL:
-				destroyThread(mControlThread);
-				break;
-				
-			case MSG_DESTROY_MEDIA:
-				destroyThread(mMediaThread);
+			case MSG_CONNECTED_CONTROL:
+				broadcastSynapsysState(true, true, true);
 				break;
 				
 			case MSG_EXIT_CONTROL:
-				exitThread(mControlThread);
+				sendMessageDelayed(Message.obtain(this, MSG_PROCEED_CONTROL, msg.obj), 250);
+				
+			case MSG_DESTROY_CONTROL:
+				if (mControlThread != null) {
+					try {
+						mControlThread.destroy();
+						mControlThread.join(100);
+					} catch (InterruptedException e) {
+					} finally {
+						mControlThread = null;
+					}
+				}
+				break;
+				
+			case MSG_DESTROYED_CONTROL:
+				broadcastSynapsysState(true, true, false);
+				return;
+				
+				
+			case MSG_PROCEED_MEDIA:
+				if (msg.obj != null) {
+					ConnectionBox box = (ConnectionBox) msg.obj;
+
+					if (SynapsysMediaThread.isAbleToCreate()) {
+						mMediaThread = new SynapsysMediaThread(this, mMediaBox = box);
+						mMediaThread.start();
+						
+					} else if (SynapsysControlThread.isRunning() || !box.equals(mMediaBox)) 
+						Message.obtain(this, MSG_EXIT_MEDIA, box).sendToTarget();
+				}
+				break;
+				
+			case MSG_CONNECTED_MEDIA:
+				//
 				break;
 				
 			case MSG_EXIT_MEDIA:
-				exitThread(mMediaThread);
+				sendMessageDelayed(Message.obtain(this, MSG_PROCEED_MEDIA, msg.obj), 250);
+				
+			case MSG_DESTROY_MEDIA:
+				if (mMediaThread != null) {
+					try {
+						mMediaThread.destroy();
+						mMediaThread.join(100);
+					} catch (InterruptedException e) { ; 
+					} finally {
+						mMediaThread = null;
+					}
+				}
+				break;	
+				
+			case MSG_DESTROYED_MEDIA:
+				//
+				return;
+				
+				
+			case MSG_PROCEED_DISPLAY:
+				if (msg.obj != null) {
+					ConnectionBox box = (ConnectionBox) msg.obj;
+					
+					if (!box.equals(mDisplayBox)) {
+						mDisplayBox = box;
+						Slog.d(TAG, "Display_Port : " + mDisplayBox.port);
+					}
+				}
 				break;
 				
+				
+
+			// *** LEVEL E : Event 관련 *** //
 			case MSG_PUSH_NOTIFICATION:
 				
 			case MSG_PUSH_TASKINFO:
@@ -275,36 +355,10 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 			case MSG_PULL_TASKINFO:
 				
 			}
-			
-			removeMessages(msg.what);
 		}
 		
 		public final SynapsysManagerService getService() {
 			return SynapsysManagerService.this;
-		}
-	}
-	
-	private static void destroyThread(SynapsysThread thread) {
-		if (thread != null) {
-			try {
-				thread.destroy();
-				thread.join(100);
-			} catch (InterruptedException e) {
-			} finally {
-				thread = null;
-			}
-		}
-	}
-	
-	private static void exitThread(SynapsysThread thread) {
-		if (thread != null) {
-			try {
-				thread.exit();
-				thread.join(100);
-			} catch (InterruptedException e) {
-			} finally {
-				thread = null;
-			}
 		}
 	}
 }
@@ -322,13 +376,31 @@ class ConnectionBox {
 
 	final int type;
 	
+	String deviceName;
+	int deviceId;
+	int port;
+	
 	public ConnectionBox(int type) {
 		this.type = type;
 	}
 	
-	String deviceName;
-	int deviceId;
-	int port;
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null)
+			return false;
+		
+		return hashCode() == obj.hashCode();
+	}
+	
+	@Override
+	public int hashCode() {
+		StringBuilder builder = new StringBuilder(type);
+		builder.append(deviceName);
+		builder.append(deviceId);
+		builder.append(port);
+		
+		return builder.toString().hashCode();
+	}
 }
 
 

@@ -6,7 +6,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.Toast;
 
 /**
@@ -19,11 +18,10 @@ public class SynapsysBroadcastReceiver extends BroadcastReceiver {
 
 	@Override
 	public void onReceive(Context context, Intent intent) {
-		Log.d("SynapsysBroadcastReceiver", intent.toString());
-		
 		Bundle bundle = intent.getExtras();
 		
-		boolean isReady = bundle.getBoolean(SynapsysManager.BROADCAST_EXTRA_USB_READY);
+		boolean isUSBready = bundle.getBoolean(SynapsysManager.BROADCAST_EXTRA_USB_READY);
+		boolean isPCready = bundle.getBoolean(SynapsysManager.BROADCAST_EXTRA_PC_READY);
 		boolean isConnected = bundle.getBoolean(SynapsysManager.BROADCAST_EXTRA_CONNECTION);
 		
 		SynapsysApplication mApplication = (SynapsysApplication) context.getApplicationContext();
@@ -34,7 +32,7 @@ public class SynapsysBroadcastReceiver extends BroadcastReceiver {
 			mApplication.stopStreaming();
 		}
 		
-		Toast.makeText(context, "Ready : " + isReady + ", Connected : " + isConnected, Toast.LENGTH_SHORT).show();
+		Toast.makeText(context, "USB : " + isUSBready + ", PC : " + isPCready +", Connected : " + isConnected, Toast.LENGTH_SHORT).show();
 	}
 
 }

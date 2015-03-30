@@ -72,13 +72,11 @@ public class ConnectionFileDetector extends FileObserver {
 	public void onEvent(int event, String path) {
 		Slog.d(TAG, event + " : " + path);
 		
+		
 		switch (event) {
 		case CREATE:
 			if (CONNECTION_FILE_DIR.equals(SYNAPSYS_DIRECTORY + "/" + path)) {
 				isCreated = true;
-				
-				mHandler.sendEmptyMessage(SynapsysHandler.MSG_EXIT_CONTROL);
-				mHandler.sendEmptyMessage(SynapsysHandler.MSG_EXIT_MEDIA);
 			}
 			break;
 			
@@ -97,6 +95,11 @@ public class ConnectionFileDetector extends FileObserver {
 					message = Message.obtain(mHandler);
 					message.what = SynapsysHandler.MSG_PROCEED_MEDIA;
 					message.obj = mMediaBox;
+					message.sendToTarget();
+
+					message = Message.obtain(mHandler);
+					message.what = SynapsysHandler.MSG_PROCEED_DISPLAY;
+					message.obj = mDisplayBox;
 					message.sendToTarget();
 					
 					isCreated = false;
@@ -120,8 +123,8 @@ public class ConnectionFileDetector extends FileObserver {
 	public void stop() {
 		super.stopWatching();
 
-		mHandler.sendEmptyMessage(SynapsysHandler.MSG_EXIT_CONTROL);
-		mHandler.sendEmptyMessage(SynapsysHandler.MSG_EXIT_MEDIA);
+		mHandler.sendEmptyMessage(SynapsysHandler.MSG_DESTROY_CONTROL);
+		mHandler.sendEmptyMessage(SynapsysHandler.MSG_DESTROY_MEDIA);
 	}
 
 	public void makeConnectionFile() {
@@ -154,7 +157,7 @@ public class ConnectionFileDetector extends FileObserver {
 			mControlBox.port = Integer.parseInt(reader.readLine());
 			mMediaBox.port = Integer.parseInt(reader.readLine());
 			
-			mMediaBox.deviceName = mControlBox.deviceName = reader.readLine();
+			mMediaBox.deviceName = mControlBox.deviceName = mDisplayBox.deviceName = reader.readLine();
 			
 			if (!"Synapsys".equals(reader.readLine()))
 				throw new IOException("ConnectionFile isn't edited properly.");

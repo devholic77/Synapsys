@@ -220,6 +220,8 @@ class ControlProtocol<V1, V2, V3> extends MessageProtocol {
  */
 class MediaProtocol extends MessageProtocol {
 	
+	public static final int MSG_SIZE = 128;
+	
 	MediaProtocol() {
 		// TODO Auto-generated constructor stub
 	}

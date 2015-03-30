@@ -30,6 +30,10 @@ public class SynapsysManager {
 	/**
 	 * Extra Boolean Value 
 	 */
+	public static final String BROADCAST_EXTRA_PC_READY = "Synapsys_PC_Ready";
+	/**
+	 * Extra Boolean Value 
+	 */
 	public static final String BROADCAST_EXTRA_CONNECTION = "Synpasys_Connection";
 
 	

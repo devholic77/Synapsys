@@ -1,9 +1,11 @@
 package org.gbssm.synapsys.streaming;
 
+import org.gbssm.synapsys.R;
 import org.gbssm.synapsys.global.SynapsysApplication;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -56,6 +58,9 @@ public class StreamingView extends SurfaceView implements SurfaceHolder.Callback
 		
 		if (mSurfaceThread != null)
 			mSurfaceThread.destroy();
+		
+		mStreamingImage = BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher);
+		mSurfaceImage = BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher);
 		
 		mSurfaceThread = new SurfaceThread();	
 	}
