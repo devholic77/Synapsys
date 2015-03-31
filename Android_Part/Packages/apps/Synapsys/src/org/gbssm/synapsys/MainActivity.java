@@ -27,9 +27,9 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.main_activity);
 		
 		
-		mApplication = (SynapsysApplication) getApplication();
-		mTouchListener = new WindowsTouchListener(this);		
+		mApplication = (SynapsysApplication) getApplication();	
 		mStreamingView = (StreamingView) findViewById(R.id.streamingView);
+		mTouchListener = new WindowsTouchListener(this);	
 	}
 
 	@Override
