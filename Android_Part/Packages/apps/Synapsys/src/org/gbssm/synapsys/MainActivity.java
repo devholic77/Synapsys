@@ -28,8 +28,8 @@ public class MainActivity extends Activity {
 		
 		
 		mApplication = (SynapsysApplication) getApplication();
-		mStreamingView = (StreamingView) findViewById(R.id.streamingView);
 		mTouchListener = new WindowsTouchListener(this);		
+		mStreamingView = (StreamingView) findViewById(R.id.streamingView);
 	}
 
 	@Override
