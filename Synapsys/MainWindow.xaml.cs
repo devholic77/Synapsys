@@ -6,6 +6,8 @@ using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using System;
 using System.Text.RegularExpressions;
+using System.Windows.Interop;
+using Synapsys_ADB;
 
 namespace Synapsys
 {
@@ -29,7 +31,48 @@ namespace Synapsys
 			//KEYBOARD, MOUSE HOOK
 			KeyboardMouse kb = KeyboardMouse.getInstance();
 			kb.Activate();
+
+			Form1 form = new Form1();
+			form.Visible = false;
+			form.Execute += new Form1.execute(Clap);
+			form.Show();
         }
+
+
+		private void btn1_start(object sender, RoutedEventArgs e)
+		{
+			if (Synapsys_Values.Add_device[1].Equals(""))
+			{
+				Synapsys_Values.Buttons_Function.Synapsys_Start_Monitor(Synapsys_Values.Add_device[0]);
+			}
+			else
+			{
+				Synapsys_Values.Buttons_Function.Synapsys_Start_Monitor(Synapsys_Values.Add_device[0]);
+				Synapsys_Values.Buttons_Function.Synapsys_Start_Monitor(Synapsys_Values.Add_device[1]);
+			}
+			Synapsys_Values.Add_device[0] = "";
+			Synapsys_Values.Add_device[1] = "";
+		}
+
+		#region ADB
+
+		void Clap(object sender, ConnEvent e) // 이벤트 발생시 실행하고픈 함수. 델리게이트 선언의 파라미터를 따라갸아 한다.
+		{
+			Console.WriteLine("Clap");
+			Console.WriteLine(e.Device);
+			Console.WriteLine(e.Message);
+			btn_d1_start.Dispatcher.Invoke(new update1Callback(this.update3), "1");
+		}
+
+		private void update3(string s)
+		{
+			if (s.Equals("1"))
+			{
+				btn_d1_start.IsEnabled = true;
+			}
+		}
+
+		#endregion
 
 		private void Setting_Click(object sender, RoutedEventArgs e)
 		{
@@ -323,6 +366,7 @@ namespace Synapsys
 			checkbox1.Dispatcher.Invoke(new update1Callback(this.update2), Keyup_Collector_string2);
 			Keyup_Collector_string2 = "";
 		}
+
 
 		
     }

@@ -37,7 +37,7 @@
                 <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.MenuHighlightColorKey}}"/>
             </TextBlock.Foreground>
         </TextBlock>
-        <Button Content="START" VerticalAlignment="Top" Width="75" Margin="10,50,25,0" Name="btn_d1_start"/>
+        <Button Content="START" VerticalAlignment="Top" Width="75" Margin="10,50,25,0" Name="btn_d1_start" Click="btn1_start"/>
         <Button Content="STOP" VerticalAlignment="Top" Width="75" Margin="90,50,-55,0" Name="btn_d1_stop"/>
 
         <Button Content="START" VerticalAlignment="Top" Width="75" Margin="10,137,25,-36" Name="btn_d2_start"/>
