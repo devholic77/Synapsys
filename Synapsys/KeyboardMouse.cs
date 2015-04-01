@@ -5,7 +5,6 @@ using System.Windows.Forms;
 
 // Keycontrol
 using System.Runtime.InteropServices;
-using System.Windows.Forms;
 using System.Drawing;
 using System.Threading;
 
@@ -13,7 +12,7 @@ namespace Synapsys
 {
 	class KeyboardMouse
 	{
-		private static KeyboardHookListener m_KeyboardHookManager;
+		public static KeyboardHookListener m_KeyboardHookManager;
 		private static MouseHookListener m_MouseHookManager;
 		private static KeyboardMouse kb = null;
 
@@ -83,7 +82,7 @@ namespace Synapsys
 
 		private void HookManager_KeyUp(object sender, KeyEventArgs e)
 		{
-			Console.WriteLine(string.Format("KeyUp - {0}\n", e.KeyValue));
+			//Console.WriteLine(string.Format("KeyUp - {0}\n", e.KeyValue));
 			Console.WriteLine(string.Format("KeyUp - {0}\n", e.KeyCode));
 		}
 

@@ -161,6 +161,16 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Synapsys_ADB\Synapsys_ADB.csproj">
+      <Project>{ae30b916-3aec-4869-aa3f-fe43a53b4e2a}</Project>
+      <Name>Synapsys_ADB</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Synapsys_SUB\Synapsys_SUB.csproj">
+      <Project>{b321691d-a856-46d3-925d-ea5046cded7d}</Project>
+      <Name>Synapsys_SUB</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

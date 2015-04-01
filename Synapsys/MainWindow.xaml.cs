@@ -6,6 +6,8 @@ using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using System;
 using System.Text.RegularExpressions;
+using System.Windows.Interop;
+using Synapsys_ADB;
 
 namespace Synapsys
 {
@@ -26,7 +28,51 @@ namespace Synapsys
 			btn_d2_start.IsEnabled = false;
 			btn_d2_stop.IsEnabled = false;
 
+			//KEYBOARD, MOUSE HOOK
+			KeyboardMouse kb = KeyboardMouse.getInstance();
+			kb.Activate();
+
+			Form1 form = new Form1();
+			form.Visible = false;
+			form.Execute += new Form1.execute(Clap);
+			form.Show();
         }
+
+
+		private void btn1_start(object sender, RoutedEventArgs e)
+		{
+			if (Synapsys_Values.Add_device[1].Equals(""))
+			{
+				Synapsys_Values.Buttons_Function.Synapsys_Start_Monitor(Synapsys_Values.Add_device[0]);
+			}
+			else
+			{
+				Synapsys_Values.Buttons_Function.Synapsys_Start_Monitor(Synapsys_Values.Add_device[0]);
+				Synapsys_Values.Buttons_Function.Synapsys_Start_Monitor(Synapsys_Values.Add_device[1]);
+			}
+			Synapsys_Values.Add_device[0] = "";
+			Synapsys_Values.Add_device[1] = "";
+		}
+
+		#region ADB
+
+		void Clap(object sender, ConnEvent e) // 이벤트 발생시 실행하고픈 함수. 델리게이트 선언의 파라미터를 따라갸아 한다.
+		{
+			Console.WriteLine("Clap");
+			Console.WriteLine(e.Device);
+			Console.WriteLine(e.Message);
+			btn_d1_start.Dispatcher.Invoke(new update1Callback(this.update3), "1");
+		}
+
+		private void update3(string s)
+		{
+			if (s.Equals("1"))
+			{
+				btn_d1_start.IsEnabled = true;
+			}
+		}
+
+		#endregion
 
 		private void Setting_Click(object sender, RoutedEventArgs e)
 		{
@@ -236,14 +282,91 @@ namespace Synapsys
 			//Hooker manager = new Hooker();
 			//manager.Add();
 
-			KeyboardMouse kb = KeyboardMouse.getInstance();
-			kb.Activate();
+			
 		}
 
 		private void btn_Close_Click(object sender, RoutedEventArgs e)
 		{
 			Popup_settings.IsOpen = false;
 		}
+
+		private void checkbox_handler(object sender, RoutedEventArgs e)
+		{
+			if(sender.Equals(checkbox1))
+			{
+				if (checkbox1.IsChecked.Value)
+				{
+					nowCollecting1 = true;
+					KeyboardMouse.m_KeyboardHookManager.KeyUp += HookManager_KeyUp1;
+					new Thread(Keyup_Collector1).Start();
+				}
+			}
+
+			if (sender.Equals(checkbox2))
+			{
+				if (checkbox2.IsChecked.Value)
+				{
+					nowCollecting2 = true;
+					KeyboardMouse.m_KeyboardHookManager.KeyUp += HookManager_KeyUp2;
+					new Thread(Keyup_Collector2).Start();
+				}
+			}
+		}
+
+		private void HookManager_KeyUp1(object sender, KeyEventArgs e)
+		{
+			if(nowCollecting1)
+			{
+				Keyup_Collector_string1 += e.KeyCode + " + ";
+			}
+				
+		}
+		private void HookManager_KeyUp2(object sender, KeyEventArgs e)
+		{
+			if (nowCollecting2)
+			{
+				Keyup_Collector_string2 += e.KeyCode + " + ";
+			}
+
+		}
+
+		private static string Keyup_Collector_string1;
+		private static string Keyup_Collector_string2;
+		private static bool nowCollecting1 = false;
+		private static bool nowCollecting2 = false;
+
+		public delegate void update1Callback(string s);
+
+		private void Keyup_Collector1()
+		{
+			Thread.Sleep(1500);
+			nowCollecting1 = false;
+			KeyboardMouse.m_KeyboardHookManager.KeyUp -= HookManager_KeyUp1;
+			
+			checkbox1.Dispatcher.Invoke(new update1Callback(this.update1), Keyup_Collector_string1);
+			Keyup_Collector_string1 = "";
+		}
+
+		private void update1(string s)
+		{
+			checkbox1.Content = s.Substring(0, s.Length - 3);
+		}
+
+		private void update2(string s)
+		{
+			checkbox2.Content = s.Substring(0, s.Length - 3);
+		}
+
+		private void Keyup_Collector2()
+		{
+			Thread.Sleep(1500);
+			nowCollecting2 = false;
+			KeyboardMouse.m_KeyboardHookManager.KeyUp -= HookManager_KeyUp2;
+
+			checkbox1.Dispatcher.Invoke(new update1Callback(this.update2), Keyup_Collector_string2);
+			Keyup_Collector_string2 = "";
+		}
+
 
 		
     }
