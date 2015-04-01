@@ -8,7 +8,7 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-import com.android.internal.telephony.MmiCode;
+import org.gbssm.synapsys.SynapsysManagerService.SynapsysHandler;
 
 import android.content.Context;
 import android.content.Intent;
@@ -29,20 +29,21 @@ import android.util.Slog;
  *
  */
 public class SynapsysManagerService extends ISynapsysManager.Stub {
-	
+
+	// *** CONSTANTS PART *** //
 	public static final int EVENT_ADB_ENABLE = 1;
 	public static final int EVENT_USB_CONNECT = 2;
 	
 	static final String TAG = "SynapsysManagerService";	
 	
-	final Context mContext;
 	
+	
+	// *** MEMBER PART *** //
+	final Context mContext;
 	
 	private boolean isServiceRunning;
 	
-	private Socket mControlSocket;
-	
-	private ConnectionFileDetector mConnectionDetector;
+	private ConnectionDetector mConnectionDetector;
 	private SynapsysControlThread mControlThread;
 	private SynapsysMediaThread mMediaThread;
 	
@@ -56,21 +57,21 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	}
 	
 	public int requestDisplayConnection() throws RemoteException {
-		Slog.i(TAG, "reqeustDisplayConnection()");
+		Slog.v(TAG, "reqeustDisplayConnection()");
 		if (mDisplayBox != null)
-			return mDisplayBox.port + 1;
+			return mDisplayBox.port;
 		
 		return -1; // Port Number
 	}
 	
 	public boolean invokeMouseEventFromTouch(int event_id, float event_x, float event_y) throws RemoteException {
 		// TODO : Windows PC로 Touch Event 전송.
-		Slog.i(TAG, "invokeMouseEventFromTouch : event=" + event_id + " / x=" + event_x + " / y=" + event_y);
+		Slog.v(TAG, "invokeMouseEventFromTouch : event=" + event_id + " / x=" + event_x + " / y=" + event_y);
 		return false;
 	}
 	
 	public boolean invokeKeyboardEvent(int event_id, int key_code) throws RemoteException {
-		Slog.i(TAG, "invokeKeyboardEvent : event=" + event_id + " / keyCode=" + key_code);
+		Slog.v(TAG, "invokeKeyboardEvent : event=" + event_id + " / keyCode=" + key_code);
 		return false;
 	}
 	
@@ -87,13 +88,13 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	
 	public boolean interpolateMouseEvent(int event_id, float event_x, float event_y) throws RemoteException { 
 		//  TODO : Windows PC로부터 Touch Event 받기.
-		Slog.i(TAG, "interpolateMouseEvent : event=" + event_id + " / x=" + event_x + " / y=" + event_y);
+		Slog.v(TAG, "interpolateMouseEvent : event=" + event_id + " / x=" + event_x + " / y=" + event_y);
 		return false;
 	}
 	
 	public boolean interpolateKeyboardEvent(int event_id, int key_code) throws RemoteException { 
 		//  TODO : Windows PC로부터 Keyboard Event 받기.
-		Slog.i(TAG, "interpolateKeyboardEvent : event=" + event_id + " / keyCode=" + key_code);
+		Slog.v(TAG, "interpolateKeyboardEvent : event=" + event_id + " / keyCode=" + key_code);
 		return false;
 	}
 	
@@ -116,7 +117,7 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	 * @param another 변화하지 않은 다른 이벤트 값
 	 */
 	public void dispatchUsbConnectionEvent(int event_id, boolean event, boolean another) {
-		Slog.d(TAG, "EventID : " + (event_id == 1 ? "ADB" : "CONN") + " / Event : " + event + " / Another : " + another);
+		Slog.v(TAG, "EventID : " + (event_id == 1 ? "ADB" : "CONN") + " / Event : " + event + " / Another : " + another);
 		
 		// 변화한 이벤트 타입에 따라 처리.
 		switch (event_id) {
@@ -138,21 +139,41 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	}
 	
 	/**
-	 * System Phase-1 Ready : {@link ConnectionFileDetector} start.
+	 * System Phase-1 Ready : {@link ConnectionDetector} start.
 	 */
 	void systemReady() {
-		mConnectionDetector = ConnectionFileDetector.getInstance(new SynapsysHandler());
+		isServiceRunning = true;
+		mConnectionDetector = ConnectionDetector.getInstance(new SynapsysHandler());
 		
 		if (mConnectionDetector != null)
 			mConnectionDetector.start();
 	}
 	
 	/**
-	 * System Phase-1 Stop : {@link ConnectionFileDetector} stop.
+	 * System Phase-1 Stop : {@link ConnectionDetector} stop.
 	 */
 	void systemStop() {
-		if (mConnectionDetector != null)
+		isServiceRunning = false;
+		if (mConnectionDetector != null) {
 			mConnectionDetector.stop();
+			mConnectionDetector = null;
+		}
+		
+		if (SynapsysControlThread.mListenSocket != null) {
+			try {
+				SynapsysControlThread.mListenSocket.close();
+				SynapsysControlThread.mListenSocket = null;
+				
+			} catch (IOException e) { ; }
+		}
+		
+		if (SynapsysMediaThread.mListenSocket != null) {
+			try {
+				SynapsysMediaThread.mListenSocket.close();
+				SynapsysMediaThread.mListenSocket = null;
+				
+			} catch (IOException e) { ; }
+		}
 		
 		broadcastSynapsysState(true, false, false);
 	}
@@ -169,7 +190,7 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
         intent.putExtra(SynapsysManager.BROADCAST_EXTRA_PC_READY, pc);
         intent.putExtra(SynapsysManager.BROADCAST_EXTRA_CONNECTION, connection);
 
-        mContext.sendStickyBroadcast(intent);
+        mContext.sendStickyBroadcastAsUser(intent, UserHandle.ALL);
 	}
 	
 	/**
@@ -179,84 +200,17 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	 * @since 2015.03.15
 	 *
 	 */
-	class SynapsysHandler extends Handler {
-		// *** Level C : Connection 관련 *** //
-		/**
-		 * Handler 메시지 : 데이터 소켓 오픈 및 진행.
-		 */
-		static final int MSG_PROCEED_CONTROL = 0xC100;
-		/**
-		 * Handler 메시지 : 데이터 소켓 연결 성립 알림.
-		 */
-		static final int MSG_CONNECTED_CONTROL = 0xC11C;
-		/**
-		 * Handler 메시지 : 미디어 연결 해제 및 재진행 명령.
-		 */
-		static final int MSG_EXIT_CONTROL = 0xC10E;
-		/**
-		 * Handler 메시지 : 데이터 연결 해제 명령.
-		 */
-		static final int MSG_DESTROY_CONTROL = 0xC10D;
-		/**
-		 * Handler 메시지 : 데이터 연결 해제 알림.
-		 */
-		static final int MSG_DESTROYED_CONTROL = 0xC11D;
-		
-		/**
-		 * Handler 메시지 : 미디어 소켓 오픈 및 진행.
-		 */
-		static final int MSG_PROCEED_MEDIA = 0xC200;
-		/**
-		 * Handler 메시지 : 미디어 소켓 연결 성립 알림.
-		 */
-		static final int MSG_CONNECTED_MEDIA = 0xC21C;
-		/**
-		 * Handler 메시지 : 미디어 연결 해제 명령.
-		 */
-		static final int MSG_EXIT_MEDIA = 0xC20E;
-		/**
-		 * Handler 메시지 : 미디어 연결 해제 명령.
-		 */
-		static final int MSG_DESTROY_MEDIA = 0xC20D;
-		/**
-		 * Handler 메시지 : 미디어 연결 해제 알림.
-		 */
-		static final int MSG_DESTROYED_MEDIA = 0xC21D;
-		
-		
-		/**
-		 * Handler 메시지 : 디스플레이 소켓.
-		 */
-		static final int MSG_PROCEED_DISPLAY = 0xC300;
-		
-		
-		
-		// *** LEVEL E : Event 관련 *** //
-		/**
-		 * 
-		 */
-		static final int MSG_PUSH_NOTIFICATION = 0x700;
-		/**
-		 * 
-		 */
-		static final int MSG_PULL_NOTIFICATION = 0x707;
-		/**
-		 * 
-		 */
-		static final int MSG_PUSH_TASKINFO = 0x800;
-		/**
-		 * 
-		 */
-		static final int MSG_PULL_TASKINFO = 0x808;
-		
+	class SynapsysHandler extends Handler implements MessageProtocol.Handler {
 		
 		@Override
 		public void handleMessage(Message msg) {
-			Slog.i(TAG, "handleMessage : " + msg.what);
+			if (!isServiceRunning)
+				return;
 			
 			switch (msg.what) {
 			// *** Level C : Connection 관련 *** //
 			case MSG_PROCEED_CONTROL:
+				Slog.v(TAG, "Handler_MSG_PROCEED_CONTROL : " + msg.what);
 				if (msg.obj != null) {
 					ConnectionBox box = (ConnectionBox) msg.obj;
 					
@@ -266,19 +220,22 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 						
 						broadcastSynapsysState(true, true, false);
 						
-					} else if (SynapsysControlThread.isRunning() || !box.equals(mConnectionBox))
+					} else if (!box.equals(mConnectionBox))
 						Message.obtain(this, MSG_EXIT_CONTROL, box).sendToTarget();
 				}
 				break;
 				
 			case MSG_CONNECTED_CONTROL:
+				Slog.v(TAG, "Handler_MSG_CONNECTED_CONTROL : " + msg.what);
 				broadcastSynapsysState(true, true, true);
 				break;
 				
 			case MSG_EXIT_CONTROL:
+				Slog.v(TAG, "Handler_MSG_EXIT_CONTROL : " + msg.what);
 				sendMessageDelayed(Message.obtain(this, MSG_PROCEED_CONTROL, msg.obj), 250);
 				
 			case MSG_DESTROY_CONTROL:
+				Slog.v(TAG, "Handler_MSG_DESTROY_CONTROL : " + msg.what);
 				if (mControlThread != null) {
 					try {
 						mControlThread.destroy();
@@ -291,11 +248,13 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 				break;
 				
 			case MSG_DESTROYED_CONTROL:
+				Slog.v(TAG, "Handler_MSG_DESTROYED_CONTROL : " + msg.what);
 				broadcastSynapsysState(true, true, false);
 				return;
 				
 				
 			case MSG_PROCEED_MEDIA:
+				Slog.v(TAG, "Handler_MSG_PROCEED_MEDIA : " + msg.what);
 				if (msg.obj != null) {
 					ConnectionBox box = (ConnectionBox) msg.obj;
 
@@ -303,19 +262,22 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 						mMediaThread = new SynapsysMediaThread(this, mMediaBox = box);
 						mMediaThread.start();
 						
-					} else if (SynapsysControlThread.isRunning() || !box.equals(mMediaBox)) 
+					} else if (!box.equals(mMediaBox)) 
 						Message.obtain(this, MSG_EXIT_MEDIA, box).sendToTarget();
 				}
 				break;
 				
 			case MSG_CONNECTED_MEDIA:
+				Slog.v(TAG, "Handler_MSG_CONNECTED_MEDIA : " + msg.what);
 				//
 				break;
 				
 			case MSG_EXIT_MEDIA:
+				Slog.v(TAG, "Handler_MSG_EXIT_MEDIA : " + msg.what);
 				sendMessageDelayed(Message.obtain(this, MSG_PROCEED_MEDIA, msg.obj), 250);
 				
 			case MSG_DESTROY_MEDIA:
+				Slog.v(TAG, "Handler_MSG_DESTROY_MEDIA : " + msg.what);
 				if (mMediaThread != null) {
 					try {
 						mMediaThread.destroy();
@@ -328,6 +290,7 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 				break;	
 				
 			case MSG_DESTROYED_MEDIA:
+				Slog.v(TAG, "Handler_MSG_DESTROYED_MEDIA : " + msg.what);
 				//
 				return;
 				
@@ -354,6 +317,8 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 				
 			case MSG_PULL_TASKINFO:
 				
+			default:
+				Slog.v(TAG, "handleMessage : " + msg.what);
 			}
 		}
 		
@@ -364,43 +329,45 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 }
 
 /**
+ * Synapsys 통신을 위한 Thread 기본 틀을 정의한다.
  * 
  * @author Yeonho.Kim
- * @since 2015.03.15
+ * @since 2015.03.26
  *
  */
-class ConnectionBox {
-	public static final int TYPE_CONTROL = 1;
-	public static final int TYPE_MEDIA = 2;
-	public static final int TYPE_DISPLAY = 3;
+abstract class SynapsysThread extends Thread {
 
-	final int type;
+	// *** CONSTANTS PART *** //
+	/**
+	 * Socket Timeout 값
+	 */
+	protected static final int TIMEOUT = 5000; 	// ms
 	
-	String deviceName;
-	int deviceId;
-	int port;
+	protected static final String TAG = "SynapsysThread";
+
 	
-	public ConnectionBox(int type) {
-		this.type = type;
+
+	// *** MEMBER PART *** //
+	/**
+	 * {@link SynapsysHanlder} 명령 전달 Handler.
+	 */
+	protected final SynapsysHandler mHandler;
+	
+	/**
+	 * Thread 파괴(중) 상태 여부
+	 */
+	protected boolean isDestroyed;
+	
+	
+	public SynapsysThread(SynapsysHandler handler) {
+		mHandler = handler;
 	}
 	
+	/**
+	 * Thread를 종료한다. 
+	 */
 	@Override
-	public boolean equals(Object obj) {
-		if (obj == null)
-			return false;
-		
-		return hashCode() == obj.hashCode();
-	}
-	
-	@Override
-	public int hashCode() {
-		StringBuilder builder = new StringBuilder(type);
-		builder.append(deviceName);
-		builder.append(deviceId);
-		builder.append(port);
-		
-		return builder.toString().hashCode();
-	}
+	public abstract void destroy();
 }
 
 
