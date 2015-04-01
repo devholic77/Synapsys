@@ -80,12 +80,14 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="CaptureScreen.cs" />
     <Compile Include="KeyboardMouse.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Protocol.cs" />
     <Compile Include="TaskbarPopup.cs">
       <SubType>Form</SubType>
     </Compile>
