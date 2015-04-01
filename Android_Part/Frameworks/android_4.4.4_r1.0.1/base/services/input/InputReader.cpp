@@ -64,19 +64,20 @@
 #define MOUSE_EVENT 	(1)
 
 //code define 
-#define MOUSE_MOVE  	(0)
+#define MOUSE_MOVE	(0)
 #define MOUSE_L_CLICK	(1)
-#define MOUSE_R_CLICK 	(2)
+#define MOUSE_R_CLICK	(2)
 #define MOUSE_L_UNCLICK	(3)
 #define MOUSE_R_UNCLICK	(4)
 #define MOUSE_DCLICK	(5)
 #define MOUSE_WHELL_UP	(6)
-#define MOUSE_WHELL_DOWN (7)
+#define MOUSE_WHELL_DOWN	(7)
 
 
 /* added */
 bool once = true;
 bool event_once = false;
+int click_once = 0;
 int32_t move_test = 0;
 float mouse_x = 20.0;
 float mouse_y = 20.0;
@@ -365,14 +366,15 @@ void InputReader::virtualDeviceEvent(int32_t event_type, int32_t event_code, flo
 	switch(event_type)
 	{
 		case KEYBOARD_EVENT:		
-			ALOGD("keyboard event");
+			ALOGD("native : keyboard event");
 		break;
 		
 		case MOUSE_EVENT:		
-			ALOGD("mouse event");
+			
 			
 			if(event_code == MOUSE_MOVE)	//when mouse move event
 			{
+				ALOGD("native : mouse event");
 				event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
 				event[0].deviceId = (int32_t)20;
 				event[0].type = 0x00000002;
@@ -397,6 +399,7 @@ void InputReader::virtualDeviceEvent(int32_t event_type, int32_t event_code, flo
 			}
 			else if(event_code == MOUSE_L_CLICK)	//when mouse left click event
 			{
+				ALOGD("native : mouse left click event");
 				event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
 				event[0].deviceId = (int32_t)20;
 				event[0].type = 0x00000004;
@@ -421,6 +424,7 @@ void InputReader::virtualDeviceEvent(int32_t event_type, int32_t event_code, flo
 			}
 			else if(event_code == MOUSE_R_CLICK)	//when mouse right click event
 			{
+				ALOGD("native : mouse right click event");
 				event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
 				event[0].deviceId = (int32_t)20;
 				event[0].type = 0x00000004;
@@ -444,7 +448,7 @@ void InputReader::virtualDeviceEvent(int32_t event_type, int32_t event_code, flo
 				device->process(event, 3);	
 			}
 			else if(event_code == MOUSE_L_UNCLICK)	//when mouse left unclick event
-			{
+			{•••••••
 				event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
 				event[0].deviceId = (int32_t)20;
 				event[0].type = 0x00000004;
@@ -555,54 +559,30 @@ void InputReader::processEventsLocked( RawEvent* rawEvents, size_t count) {
 #if DEBUG_RAW_EVENTS
             ALOGD("BatchSize: %d Count: %d", batchSize, count);
 #endif
-		  /* added =============================== 
-			
-			if(rawEvent[0].deviceId > (int32_t)6)
-			{
-				int cnt = 0;
-				while(count > cnt)
-				{
-					rawEvent[cnt].deviceId = (int32_t)20;
-					cnt++;
-				}		
-				rawEvent[0].deviceId = (int32_t)20;
-				deviceId = (int32_t)20;		
-			}*/
-			// 테스트를 위해 터치 이벤트 발생시 마우스 이동 이벤트 생성하여 실행 
-			if(rawEvent[0].deviceId == (int32_t)6 && rawEvent[0].type == 0x00000003)
-			{	
-					//make Rawevent 
-					
-					ssize_t deviceIndex = mDevices.indexOfKey((int32_t)20);
-					InputDevice* device = mDevices.valueAt(deviceIndex);
-					RawEvent event[3];
-					event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
-					event[0].deviceId = (int32_t)20;
-					event[0].type = 0x00000002;
-					event[0].code = 0x00000000;
-					event[0].value = 0xfffffffd;
-					
-					event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
-					event[1].deviceId = (int32_t)20;
-					event[1].type = 0x00000002;
-					event[1].code = 0x00000001;
-					event[1].value = 0xfffffffd;
-					
-					event[2].when = systemTime(SYSTEM_TIME_MONOTONIC);
-					event[2].deviceId = (int32_t)20;
-					event[2].type = 0x00000000;
-					event[2].code = 0x00000000;
-					event[2].value = 0x00000000;
-					
-				//	device->process(event, 3);	
 	
+			// 테스트를 위해 터치 이벤트 발생시 마우스 이동 이벤트 생성하여 실행 
+			if(rawEvent[0].deviceId == (int32_t)6 && rawEvent[0].type == 0x00000003 && rawEvent[0].code == 0x00000039 &&
+				rawEvent[1].deviceId == (int32_t)6 && rawEvent[1].type == 0x00000000 && rawEvent[1].code == 0x00000000)
+			{	
+				if(click_once > 100 )
+				{
+					virtualDeviceEvent(MOUSE_EVENT, MOUSE_L_CLICK, 300, 300);
+					//virtualDeviceEvent(MOUSE_EVENT, MOUSE_L_UNCLICK, 100, 100);
+					//click_once = false;
+				}
+				//virtualDeviceEvent(MOUSE_EVENT, MOUSE_L_CLICK, 100, 100);
+				
+				click_once ++;
 			}
+			
+				//	device->process(event, 3);			
 	
 			
 			 /*==================================== */
 			 
 
 			processEventsForDeviceLocked(deviceId, rawEvent, batchSize);
+			
         } else {
             switch (rawEvent->type) {
             case EventHubInterface::DEVICE_ADDED:

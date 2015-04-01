@@ -52,8 +52,7 @@ public class WindowsTouchListener implements OnGestureListener, OnDoubleTapListe
 		mGestureDetector.setIsLongpressEnabled(true);
 		mGestureDetector.setOnDoubleTapListener(this);		
 	    synapsysManager = (SynapsysManager)context.getSystemService(Context.SYNAPSYS_SERVICE);	 	  
-	    im = (InputManager)context.getSystemService(Context.INPUT_SERVICE);
-	   
+	    im = (InputManager)context.getSystemService(Context.INPUT_SERVICE);	   
 	}
 
 	public boolean onTouchEvent(MotionEvent e) {
