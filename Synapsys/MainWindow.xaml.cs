@@ -17,7 +17,7 @@ namespace Synapsys
     /// MainWindow.xaml에 대한 상호 작용 논리
     /// </summary>\
 	/// 
-	/// Daechan!
+	/// Daechan!!!!
 	/// 
     public partial class MainWindow : Elysium.Controls.Window
     {
