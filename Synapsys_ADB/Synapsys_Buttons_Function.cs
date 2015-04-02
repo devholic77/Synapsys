@@ -18,7 +18,7 @@ namespace Synapsys_ADB
             {
                 Synapsys_Values.ADB_Instruction.Port_Define(Synapsys_Values.port[0], Synapsys_Values.port[1], Synapsys_Values.port[2], Synapsys_Values.First_Device_Name);
                 Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[0]);
-                Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[1]);
+                Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[1]);//sdfdsf
                 Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[2]);
             }
             else if (Synapsys_Values.Current_Device_Num == 2)
