@@ -52,12 +52,12 @@ namespace Synapsys
 			KeyboardMouse.m_KeyboardHookManager.KeyUp += Hotkey;
 
 			cs = CaptureScreen.getInstance();
-			cs.Start();
+			//cs.Start();
 
-			//ADB_Form form = new ADB_Form();
-			//form.Visible = false;
-			//form.Execute += new ADB_Form.execute(Clap);
-			//form.Show();
+            ADB_Form form = new ADB_Form();
+            form.Visible = false;
+            form.Execute += new ADB_Form.execute(Clap);
+            form.Show();
 
         }
 

@@ -29,7 +29,7 @@ namespace Synapsys_ADB
         String ret;
 
         public bool Check_Device() // 존나수정 Search Button이랑 합쳐서 전부 수정하기. 
-                                    // win 함수로 usb 연결여부를 계속해서 확인 후 변화가 있을때마다 함수 호출. 내일마무리하기.
+        // win 함수로 usb 연결여부를 계속해서 확인 후 변화가 있을때마다 함수 호출. 내일마무리하기.
         {
             Console.WriteLine("");
             process = new Process();
@@ -127,7 +127,7 @@ namespace Synapsys_ADB
                             Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[4]);
                             Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[5]);
 
-                            
+
                             Synapsys_Values.Add_device[0] = result_msg[1];
                             Synapsys_Values.Add_device[1] = result_msg[3];
                             Console.WriteLine("2 device");
@@ -139,7 +139,7 @@ namespace Synapsys_ADB
                             {
                                 Synapsys_Values.Second_Device_Name = result_msg[3];
                                 Synapsys_Values.Second_Device_State = result_msg[4];
-                               
+
 
                                 Synapsys_Values.ADB_Instruction.Port_Define(Synapsys_Values.port[3], Synapsys_Values.port[4], Synapsys_Values.port[5], Synapsys_Values.Second_Device_Name);
                                 Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[3]);
@@ -293,11 +293,10 @@ namespace Synapsys_ADB
                 try
                 {
                     Get_Root_Permission(device_name);
-                    Thread.Sleep(2000);
 
                     String ret_buf;
-                    process.Start();                    
-                    process.StandardInput.Write(adb_msg + Environment.NewLine);                                                       
+                    process.Start();
+                    process.StandardInput.Write(adb_msg + Environment.NewLine);
                     process.StandardInput.Close();
                     ret = process.StandardOutput.ReadToEnd();
                     ret_buf = ret.Substring(ret.IndexOf(adb_msg) + adb_msg.Length);
@@ -336,7 +335,15 @@ namespace Synapsys_ADB
                 process.StandardInput.Close();
                 ret = process.StandardOutput.ReadToEnd();
                 String ret_buf = ret.Substring(ret.IndexOf(cmd_string) + cmd_string.Length);
+
+
+                int num = ret_buf.IndexOf("\r\n\r\n");
+                ret_buf = ret_buf.Substring(0, num);
+
+                if (!ret_buf.Equals("\r\nadbd is already running as root"))
+                    Thread.Sleep(2000);
                 Console.WriteLine(ret_buf);
+
                 //Console.Write(adb_msg);
 
                 //String msg = ret.Substring(ret.IndexOf(cmd_string) + cmd_string.Length);
@@ -385,7 +392,7 @@ namespace Synapsys_ADB
                 }
 
             }
-            */ 
+            */
         }
 
     }
