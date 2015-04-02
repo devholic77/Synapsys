@@ -1,24 +1,18 @@
 package org.gbssm.synapsys;
 
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.ServerSocket;
-import java.net.Socket;
 
 import org.gbssm.synapsys.SynapsysManagerService.SynapsysHandler;
 
 import android.content.Context;
 import android.content.Intent;
-import android.hardware.usb.UsbManager;
+import android.hardware.input.InputManager;
 import android.os.Handler;
 import android.os.Message;
 import android.os.RemoteException;
-import android.os.SystemProperties;
 import android.os.UserHandle;
 import android.util.Slog;
+
 
 /**
  * 
@@ -42,7 +36,8 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	final Context mContext;
 	
 	private boolean isServiceRunning;
-	
+
+	private InputManager mInputManager;
 	private ConnectionDetector mConnectionDetector;
 	private SynapsysControlThread mControlThread;
 	private SynapsysMediaThread mMediaThread;
@@ -54,6 +49,7 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	
 	public SynapsysManagerService(Context context) {
 		mContext = context; 
+		mInputManager = (InputManager)context.getSystemService(Context.INPUT_SERVICE);
 	}
 	
 	public int requestDisplayConnection() throws RemoteException {
@@ -97,11 +93,12 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 		//  TODO : Windows PC로부터 Keyboard Event 받기.
 		Slog.v(TAG, "interpolateKeyboardEvent : event=" + event_id + " / keyCode=" + key_code);
 		return false;
+	}
 
 	/* by dhuck. added */	
 	private void jnicall(int event_type,int event_code, float value_1, float value_2 ) {
 		Slog.i("SynapsysManagerService","framework : JNI CALL test ");
-		im.Event_Receive(event_type,event_code,value_1,value_2);
+		mInputManager.Event_Receive(event_type,event_code,value_1,value_2);
 	}
 	
 	public boolean interpolateNotificationEvent() throws RemoteException {
