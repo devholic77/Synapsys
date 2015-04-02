@@ -55,8 +55,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Synapsys_ADB_Instruction.cs" />
     <Compile Include="Synapsys_Buttons_Function.cs" />
-    <Compile Include="Synapsys_Data_Socket.cs" />
-    <Compile Include="Synapsys_Display_Socket.cs" />
     <Compile Include="Synapsys_Values.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
