@@ -25,4 +25,10 @@ interface ISynapsysManager {
 	 *
 	 */
 	boolean interpolateMouseEvent(int event_id, float event_x, float event_y);
+	
+	boolean invokeKeyboardEvent(int event_id, int key_code);
+	
+	boolean invokeNotificationEvent();
+	
+	boolean invokeTaskInfoEvents();
 }

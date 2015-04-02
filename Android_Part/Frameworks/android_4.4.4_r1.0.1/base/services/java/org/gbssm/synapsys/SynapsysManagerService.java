@@ -100,7 +100,7 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 
 	/* by dhuck. added */	
 	private void jnicall(int event_type,int event_code, float value_1, float value_2 ) {
-		//Slog.i("SynapsysManagerService","framework : JNI CALL test ");
+		Slog.i("SynapsysManagerService","framework : JNI CALL test ");
 		im.Event_Receive(event_type,event_code,value_1,value_2);
 	}
 	

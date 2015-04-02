@@ -647,7 +647,7 @@ public final class InputManager {
     public void Event_Receive(int event_type, int event_code, float value_1, float value_2 ){
 		
 		try {
-			//Log.w(TAG, "inputManager call");		
+			Log.w(TAG, "inputManager call");		
 			mIm.Event_Receive(event_type, event_code, value_1, value_2);
 		} catch (RemoteException ex) {
 			

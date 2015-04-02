@@ -274,7 +274,6 @@ LOCAL_SRC_FILES += \
 	packages/services/Proxy/com/android/net/IProxyCallback.aidl \
 	packages/services/Proxy/com/android/net/IProxyPortListener.aidl \
 	core/java/org/gbssm/synapsys/ISynapsysManager.aidl \
-	core/java/org/gbssm/synapsys/ITestManager.aidl \
 ## ADDED ##
 
 # FRAMEWORKS_BASE_JAVA_SRC_DIRS comes from build/core/pathmap.mk
