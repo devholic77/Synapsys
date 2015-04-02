@@ -59,33 +59,33 @@ namespace Synapsys
             form.Execute += new ADB_Form.execute(Clap);
             form.Show();
 
+			new Thread(new ThreadStart(hz)).Start();
+
         }
+
+		private void hz()
+		{
+			while(true)
+			{
+				Thread.Sleep(500);
+				HotkeyList.Clear();
+				if (tempHotkeyList.Count > 0)
+				{
+					foreach (string s in tempHotkeyList)
+					{
+						HotkeyList.Add(s);
+						Console.WriteLine("Collected : " + s);
+					}
+					HotkeyList.Clear();
+					tempHotkeyList.Clear();
+				}
+			}
+		}
 
 
 		private void Hotkey(object sender, KeyEventArgs e)
 		{
 			tempHotkeyList.Add(e.KeyCode + "");
-			if(!HotkeyFlag)
-			{
-				new Thread(new ThreadStart(Hotkey_Restarter)).Start();
-			}
-		}
-
-		private void Hotkey_Restarter()
-		{
-			if(tempHotkeyList.Count > 0)
-			{
-				foreach(string s in tempHotkeyList)
-				{
-					HotkeyList.Add(s);
-					Console.WriteLine("Collected : " + s);
-				}
-			}
-			HotkeyList.Clear();
-			tempHotkeyList.Clear();
-			HotkeyFlag = true;
-			Thread.Sleep(500);
-			HotkeyFlag = false;
 		}
 
 		void Exit(object sender, CancelEventArgs e)
@@ -136,37 +136,12 @@ namespace Synapsys
 
 		#endregion
 
-		private void Setting_Click(object sender, RoutedEventArgs e)
-		{
-			Popup_settings.IsOpen = true;
-		}
-
-		private void Show_Log(string s)
-		{
-			Listbox1.Items.Add(s);
-			Listbox1.Items.MoveCurrentToLast();
-			Listbox1.UpdateLayout();
-		}
-
-		private void Button_Click(object sender, RoutedEventArgs e)
-		{
-			
-		}
-
-		private void Button_Click2(object sender, RoutedEventArgs e)
-		{
-
-			//Console.WriteLine();
-
-			//
-			//new Thread(new ThreadStart(trackMouse)).Start();
-		}
-
-
 		
 
 		
 
+
+		#region Popup
 		public Popup popup = new Popup();
 
 		private void Button_Click_1(object sender, RoutedEventArgs e)
@@ -184,18 +159,21 @@ namespace Synapsys
 			popup.Gogo(title, message);
 
 		}
+		#endregion
 
-		private void Button_Click_2(object sender, RoutedEventArgs e)
+
+
+
+
+		#region Option
+
+		// Option Popup - Open
+		private void Setting_Click(object sender, RoutedEventArgs e)
 		{
-			//KeyboardHook key = KeyboardHook.getInstance();
-			//key.Run();
-
-			//Hooker manager = new Hooker();
-			//manager.Add();
-
-			
+			Popup_settings.IsOpen = true;
 		}
 
+		// Option Popup - Close
 		private void btn_Close_Click(object sender, RoutedEventArgs e)
 		{
 			Popup_settings.IsOpen = false;
@@ -278,8 +256,19 @@ namespace Synapsys
 			Keyup_Collector_string2 = "";
 		}
 
+		#endregion
 
-		
-    }
+
+
+		// Input Log to Listbox
+		private void Show_Log(string s)
+		{
+			Listbox1.Items.Add(s);
+			Listbox1.Items.MoveCurrentToLast();
+			Listbox1.UpdateLayout();
+		}
+
+
+	}
 	
 }
