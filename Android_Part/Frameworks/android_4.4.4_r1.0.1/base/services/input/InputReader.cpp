@@ -59,8 +59,25 @@
 #define INDENT5 "          "
 
 /* added */
+//event_define
+#define KEYBOARD_EVENT 	(0)
+#define MOUSE_EVENT 	(1)
+
+//code define 
+#define MOUSE_MOVE	(0)
+#define MOUSE_L_CLICK	(1)
+#define MOUSE_R_CLICK	(2)
+#define MOUSE_L_UNCLICK	(3)
+#define MOUSE_R_UNCLICK	(4)
+#define MOUSE_DCLICK	(5)
+#define MOUSE_WHELL_UP	(6)
+#define MOUSE_WHELL_DOWN	(7)
+
+
+/* added */
 bool once = true;
 bool event_once = false;
+int click_once = 0;
 int32_t move_test = 0;
 float mouse_x = 20.0;
 float mouse_y = 20.0;
@@ -283,8 +300,8 @@ void InputReader::loopOnce() {
         }
         /* added =============================================*/
         if (once){
-			// make Rawevent 
-			// Add 이벤트를 생성하여 실행시킨다. 
+			// 초기 부팅시 가상 디바이스 추가  
+			// Add 이벤트를 생성하여 가상 마우스 추가
 			RawEvent event[2];
 			event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
 			event[0].deviceId = (int32_t)20;
@@ -293,6 +310,17 @@ void InputReader::loopOnce() {
 			event[0].value = 0xffffffff;
 			
 			processEventsLocked(event,2);
+			
+			//Add 이벤트를 생성하여 가상 키보드 추가 
+			
+			event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
+			event[0].deviceId = (int32_t)21;
+			event[0].type = 0x10000000;
+			event[0].code = 0x0039;
+			event[0].value = 0xffffffff;
+			
+			processEventsLocked(event,2);
+			
 			once = false;
 		}		
 		/*====================================================*/
@@ -329,34 +357,187 @@ void InputReader::loopOnce() {
     mQueuedListener->flush();
 }
 /* added */
-void InputReader::virtualMouseEvent(int32_t event_id, float_t event_x, float_t event_y){
-	
-	ALOGD("native Test call");
+void InputReader::virtualDeviceEvent(int32_t event_type, int32_t event_code, float value_1, float value_2){
+	ALOGD("native Test call type = %d , code = %d , value_1 = %f, value_2 = %f",event_type,event_code,value_1,value_2);	
 	ssize_t deviceIndex = mDevices.indexOfKey((int32_t)20);
 	InputDevice* device = mDevices.valueAt(deviceIndex);
 	RawEvent event[3];
-	event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
-	event[0].deviceId = (int32_t)20;
-	event[0].type = 0x00000002;
-	event[0].code = 0x00000000;
-	event[0].value = 0xfffffffd;
-
-	event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
-	event[1].deviceId = (int32_t)20;
-	event[1].type = 0x00000002;
-	event[1].code = 0x00000001;
-	event[1].value = 0xfffffffd;
-
-	event[2].when = systemTime(SYSTEM_TIME_MONOTONIC);
-	event[2].deviceId = (int32_t)20;
-	event[2].type = 0x00000000;
-	event[2].code = 0x00000000;
-	event[2].value = 0x00000000;
 	
-	mouse_x = event_x;
-	mouse_y = event_y;
+	switch(event_type)
+	{
+		case KEYBOARD_EVENT:		
+			ALOGD("native : keyboard event");
+		break;
+		
+		case MOUSE_EVENT:		
+			
+			
+			if(event_code == MOUSE_MOVE)	//when mouse move event
+			{
+				ALOGD("native : mouse event");
+				event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
+				event[0].deviceId = (int32_t)20;
+				event[0].type = 0x00000002;
+				event[0].code = 0x00000000;
+				event[0].value = 0xfffffffd;
 
-	device->process(event, 3);	
+				event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
+				event[1].deviceId = (int32_t)20;
+				event[1].type = 0x00000002;
+				event[1].code = 0x00000001;
+				event[1].value = 0xfffffffd;
+
+				event[2].when = systemTime(SYSTEM_TIME_MONOTONIC);
+				event[2].deviceId = (int32_t)20;
+				event[2].type = 0x00000000;
+				event[2].code = 0x00000000;
+				event[2].value = 0x00000000;
+				
+				mouse_x = value_1;
+				mouse_y = value_2;
+				device->process(event, 3);	
+			}
+			else if(event_code == MOUSE_L_CLICK)	//when mouse left click event
+			{
+				ALOGD("native : mouse left click event");
+				event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
+				event[0].deviceId = (int32_t)20;
+				event[0].type = 0x00000004;
+				event[0].code = 0x00000004;
+				event[0].value = 0x00090001;
+
+				event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
+				event[1].deviceId = (int32_t)20;
+				event[1].type = 0x00000001;
+				event[1].code = 0x00000110;
+				event[1].value = 0x00000001;
+
+				event[2].when = systemTime(SYSTEM_TIME_MONOTONIC);
+				event[2].deviceId = (int32_t)20;
+				event[2].type = 0x00000000;
+				event[2].code = 0x00000000;
+				event[2].value = 0x00000000;
+				
+				mouse_x = value_1;
+				mouse_y = value_2;
+				device->process(event, 3);	
+			}
+			else if(event_code == MOUSE_R_CLICK)	//when mouse right click event
+			{
+				ALOGD("native : mouse right click event");
+				event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
+				event[0].deviceId = (int32_t)20;
+				event[0].type = 0x00000004;
+				event[0].code = 0x00000004;
+				event[0].value = 0x00090002;
+
+				event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
+				event[1].deviceId = (int32_t)20;
+				event[1].type = 0x00000001;
+				event[1].code = 0x00000111;
+				event[1].value = 0x00000001;
+
+				event[2].when = systemTime(SYSTEM_TIME_MONOTONIC);
+				event[2].deviceId = (int32_t)20;
+				event[2].type = 0x00000000;
+				event[2].code = 0x00000000;
+				event[2].value = 0x00000000;
+				
+				mouse_x = value_1;
+				mouse_y = value_2;
+				device->process(event, 3);	
+			}
+			else if(event_code == MOUSE_L_UNCLICK)	//when mouse left unclick event
+			{•••••••
+				event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
+				event[0].deviceId = (int32_t)20;
+				event[0].type = 0x00000004;
+				event[0].code = 0x00000004;
+				event[0].value = 0x00090001;
+
+				event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
+				event[1].deviceId = (int32_t)20;
+				event[1].type = 0x00000001;
+				event[1].code = 0x00000110;
+				event[1].value = 0x00000000;
+
+				event[2].when = systemTime(SYSTEM_TIME_MONOTONIC);
+				event[2].deviceId = (int32_t)20;
+				event[2].type = 0x00000000;
+				event[2].code = 0x00000000;
+				event[2].value = 0x00000000;
+				
+				mouse_x = value_1;
+				mouse_y = value_2;
+				device->process(event, 3);	
+			}
+			else if(event_code == MOUSE_R_UNCLICK)	//when mouse right unclick event
+			{
+				event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
+				event[0].deviceId = (int32_t)20;
+				event[0].type = 0x00000004;
+				event[0].code = 0x00000004;
+				event[0].value = 0x00090002;
+
+				event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
+				event[1].deviceId = (int32_t)20;
+				event[1].type = 0x00000001;
+				event[1].code = 0x00000111;
+				event[1].value = 0x00000000;
+
+				event[2].when = systemTime(SYSTEM_TIME_MONOTONIC);
+				event[2].deviceId = (int32_t)20;
+				event[2].type = 0x00000000;
+				event[2].code = 0x00000000;
+				event[2].value = 0x00000000;
+				
+				mouse_x = value_1;
+				mouse_y = value_2;
+				device->process(event, 3);	
+			}		
+			else if(event_code == MOUSE_WHELL_UP)	//when mouse wheel up event
+			{
+				event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
+				event[0].deviceId = (int32_t)20;
+				event[0].type = 0x00000002;
+				event[0].code = 0x00000008;
+				event[0].value = 0xffffffff;
+
+				event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
+				event[1].deviceId = (int32_t)20;
+				event[1].type = 0x00000000;
+				event[1].code = 0x00000000;
+				event[1].value = 0x00000000;
+				
+				mouse_x = value_1;
+				mouse_y = value_2;
+				device->process(event, 2);	
+			}		
+			else if(event_code == MOUSE_WHELL_DOWN)	//when mouse whell down event
+			{
+				event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
+				event[0].deviceId = (int32_t)20;
+				event[0].type = 0x00000002;
+				event[0].code = 0x00000008;
+				event[0].value = 0x00000001;
+
+				event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
+				event[1].deviceId = (int32_t)20;
+				event[1].type = 0x00000000;
+				event[1].code = 0x00000000;
+				event[1].value = 0x00000000;
+				
+				mouse_x = value_1;
+				mouse_y = value_2;
+				device->process(event, 2);	
+			}				
+		
+		break;		
+		
+		default:
+		
+		break;
+	}	
 }
 
 void InputReader::processEventsLocked( RawEvent* rawEvents, size_t count) {
@@ -378,54 +559,30 @@ void InputReader::processEventsLocked( RawEvent* rawEvents, size_t count) {
 #if DEBUG_RAW_EVENTS
             ALOGD("BatchSize: %d Count: %d", batchSize, count);
 #endif
-		  /* added =============================== 
-			
-			if(rawEvent[0].deviceId > (int32_t)6)
-			{
-				int cnt = 0;
-				while(count > cnt)
-				{
-					rawEvent[cnt].deviceId = (int32_t)20;
-					cnt++;
-				}		
-				rawEvent[0].deviceId = (int32_t)20;
-				deviceId = (int32_t)20;		
-			}*/
-			// 테스트를 위해 터치 이벤트 발생시 마우스 이동 이벤트 생성하여 실행 
-			if(rawEvent[0].deviceId == (int32_t)6 && rawEvent[0].type == 0x00000003)
-			{	
-					//make Rawevent 
-					
-					ssize_t deviceIndex = mDevices.indexOfKey((int32_t)20);
-					InputDevice* device = mDevices.valueAt(deviceIndex);
-					RawEvent event[3];
-					event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
-					event[0].deviceId = (int32_t)20;
-					event[0].type = 0x00000002;
-					event[0].code = 0x00000000;
-					event[0].value = 0xfffffffd;
-					
-					event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
-					event[1].deviceId = (int32_t)20;
-					event[1].type = 0x00000002;
-					event[1].code = 0x00000001;
-					event[1].value = 0xfffffffd;
-					
-					event[2].when = systemTime(SYSTEM_TIME_MONOTONIC);
-					event[2].deviceId = (int32_t)20;
-					event[2].type = 0x00000000;
-					event[2].code = 0x00000000;
-					event[2].value = 0x00000000;
-					
-				//	device->process(event, 3);	
 	
+			// 테스트를 위해 터치 이벤트 발생시 마우스 이동 이벤트 생성하여 실행 
+			if(rawEvent[0].deviceId == (int32_t)6 && rawEvent[0].type == 0x00000003 && rawEvent[0].code == 0x00000039 &&
+				rawEvent[1].deviceId == (int32_t)6 && rawEvent[1].type == 0x00000000 && rawEvent[1].code == 0x00000000)
+			{	
+				if(click_once > 100 )
+				{
+					virtualDeviceEvent(MOUSE_EVENT, MOUSE_L_CLICK, 300, 300);
+					//virtualDeviceEvent(MOUSE_EVENT, MOUSE_L_UNCLICK, 100, 100);
+					//click_once = false;
+				}
+				//virtualDeviceEvent(MOUSE_EVENT, MOUSE_L_CLICK, 100, 100);
+				
+				click_once ++;
 			}
+			
+				//	device->process(event, 3);			
 	
 			
 			 /*==================================== */
 			 
 
 			processEventsForDeviceLocked(deviceId, rawEvent, batchSize);
+			
         } else {
             switch (rawEvent->type) {
             case EventHubInterface::DEVICE_ADDED:
@@ -474,7 +631,12 @@ void InputReader::addDeviceLocked(nsecs_t when, int32_t deviceId) {
  // 가상 디바이스가 마우스 디바이스로 등록되도록 class를 변경하여 준다. 
 	if(deviceId == (int32_t)20)
 	{		  
-		classes = INPUT_DEVICE_CLASS_CURSOR;		    
+		classes = INPUT_DEVICE_CLASS_CURSOR;		//EventHub.h 참고 
+	}
+	
+	if(deviceId == (int32_t)21)
+	{		  
+		classes = INPUT_DEVICE_CLASS_KEYBOARD;		    
 	}
  /* ===================================== */
     InputDevice* device = createDeviceLocked(deviceId, controllerNumber, identifier, classes);

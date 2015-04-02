@@ -65,8 +65,9 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	}
 	
 	public boolean invokeMouseEventFromTouch(int event_id, float event_x, float event_y) throws RemoteException {
-		// TODO : Windows PC로 Touch Event 전송.
+		// Windows PC로 Touch Event 전송.
 		Slog.v(TAG, "invokeMouseEventFromTouch : event=" + event_id + " / x=" + event_x + " / y=" + event_y);
+		jnicall(1, 0, event_x, event_y );
 		return false;
 	}
 	
@@ -96,6 +97,11 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 		//  TODO : Windows PC로부터 Keyboard Event 받기.
 		Slog.v(TAG, "interpolateKeyboardEvent : event=" + event_id + " / keyCode=" + key_code);
 		return false;
+
+	/* by dhuck. added */	
+	private void jnicall(int event_type,int event_code, float value_1, float value_2 ) {
+		//Slog.i("SynapsysManagerService","framework : JNI CALL test ");
+		im.Event_Receive(event_type,event_code,value_1,value_2);
 	}
 	
 	public boolean interpolateNotificationEvent() throws RemoteException {

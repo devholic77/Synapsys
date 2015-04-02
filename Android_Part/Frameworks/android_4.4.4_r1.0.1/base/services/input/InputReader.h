@@ -339,7 +339,7 @@ public:
     virtual void cancelVibrate(int32_t deviceId, int32_t token) = 0;
     
     /* added */  
-    virtual void virtualMouseEvent(int32_t event_id, float_t event_x, float_t event_y) = 0;
+    virtual void virtualDeviceEvent(int32_t event_type, int32_t event_code, float_t value_1, float_t value_2) = 0;
 };
 
 
@@ -412,7 +412,8 @@ public:
     virtual void cancelVibrate(int32_t deviceId, int32_t token);
     
     /* added */  
-    virtual void virtualMouseEvent(int32_t event_id, float_t event_x, float_t event_y);
+    virtual void virtualDeviceEvent(int32_t event_type, int32_t event_code, float_t value_1, float_t value_2);
+    
 
 protected:
     // These members are protected so they can be instrumented by test cases.
