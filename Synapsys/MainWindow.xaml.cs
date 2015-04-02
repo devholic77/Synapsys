@@ -7,6 +7,9 @@ using System;
 using System.Text.RegularExpressions;
 using System.Windows.Interop;
 using Synapsys_ADB;
+using System.Collections;
+
+using System.ComponentModel;
 
 namespace Synapsys
 {
@@ -21,12 +24,20 @@ namespace Synapsys
 		private static KeyboardMouse kb = null;
 		private static CaptureScreen cs = null;
 
+		//HOTKEY
+		bool HotkeyFlag = false;
+		ArrayList tempHotkeyList, HotkeyList;
+
         public MainWindow()
         {
             InitializeComponent();
-			addItem_Listbox("Synapsys Started");
-			addItem_Listbox("Please Connect devices..");
 
+			Closing += new CancelEventHandler(Exit);
+
+			Show_Log("Synapsys Started");
+			Show_Log("Please Connect devices..");
+
+			// Deactivate Buttons
 			btn_d1_start.IsEnabled = false;
 			btn_d1_stop.IsEnabled = false;
 			btn_d2_start.IsEnabled = false;
@@ -36,14 +47,52 @@ namespace Synapsys
 			kb = KeyboardMouse.getInstance();
 			kb.Activate();
 
+			HotkeyList = new ArrayList();
+			tempHotkeyList = new ArrayList();
+			KeyboardMouse.m_KeyboardHookManager.KeyUp += Hotkey;
+
 			cs = CaptureScreen.getInstance();
 			cs.Start();
 
-			Form1 form = new Form1();
-			form.Visible = false;
-			form.Execute += new Form1.execute(Clap);
-			form.Show();
+			//ADB_Form form = new ADB_Form();
+			//form.Visible = false;
+			//form.Execute += new ADB_Form.execute(Clap);
+			//form.Show();
+
         }
+
+
+		private void Hotkey(object sender, KeyEventArgs e)
+		{
+			tempHotkeyList.Add(e.KeyCode + "");
+			if(!HotkeyFlag)
+			{
+				new Thread(new ThreadStart(Hotkey_Restarter)).Start();
+			}
+		}
+
+		private void Hotkey_Restarter()
+		{
+			if(tempHotkeyList.Count > 0)
+			{
+				foreach(string s in tempHotkeyList)
+				{
+					HotkeyList.Add(s);
+					Console.WriteLine("Collected : " + s);
+				}
+			}
+			HotkeyList.Clear();
+			tempHotkeyList.Clear();
+			HotkeyFlag = true;
+			Thread.Sleep(500);
+			HotkeyFlag = false;
+		}
+
+		void Exit(object sender, CancelEventArgs e)
+		{
+			cs.Stop();
+			kb.Deactivate();
+		}
 
 
 		private void btn1_start(object sender, RoutedEventArgs e)
@@ -86,7 +135,7 @@ namespace Synapsys
 			Popup_settings.IsOpen = true;
 		}
 
-		private void addItem_Listbox(string s)
+		private void Show_Log(string s)
 		{
 			Listbox1.Items.Add(s);
 			Listbox1.Items.MoveCurrentToLast();

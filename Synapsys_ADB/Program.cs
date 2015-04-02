@@ -16,7 +16,7 @@ namespace Synapsys_ADB
 		{
 			Application.EnableVisualStyles();
 			Application.SetCompatibleTextRenderingDefault(false);
-			Application.Run(new Form1());
+			Application.Run(new ADB_Form());
 		}
 	}
 }

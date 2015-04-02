@@ -58,6 +58,15 @@ namespace Synapsys
 			thread.Start();
 		}
 
+		public void Stop()
+		{
+			if (thread != null && thread.IsAlive)
+			{
+				thread.Interrupt();
+				thread = null;
+			}
+		}
+
 		// FPS를 정한다
 		public void setFPS(int a)
 		{
@@ -76,8 +85,13 @@ namespace Synapsys
 		{
 			while (true)
 			{
-				capture();
-				Thread.Sleep(FPS);
+				try
+				{
+					capture();
+					Thread.Sleep(FPS);
+				} catch(Exception e){
+					break;
+				}
 			}
 		}
 

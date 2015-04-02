@@ -13,9 +13,9 @@ using System.Diagnostics;
 
 namespace Synapsys_ADB
 {
-	public partial class Form1 : Form
+	public partial class ADB_Form : Form
 	{
-		public Form1()
+		public ADB_Form()
 		{
 			InitializeComponent();
 			Usb_Check();

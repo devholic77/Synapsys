@@ -1,6 +1,6 @@
 ﻿namespace Synapsys_ADB
 {
-	partial class Form1
+	partial class ADB_Form
 	{
 		/// <summary>
 		/// 필수 디자이너 변수입니다.
