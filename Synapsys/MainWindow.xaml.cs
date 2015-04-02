@@ -125,6 +125,12 @@ namespace Synapsys
 			if (s.Equals("1"))
 			{
 				btn_d1_start.IsEnabled = true;
+				Show_Log("Device 1 Connected!");
+			}
+			else if (s.Equals("2"))
+			{
+				btn_d2_start.IsEnabled = true;
+				Show_Log("Device 2 Connected!");
 			}
 		}
 
