@@ -112,7 +112,7 @@ namespace Synapsys
 
 		#region ADB
 
-		void Clap(object sender, ConnEvent e) // 이벤트 발생시 실행하고픈 함수. 델리게이트 선언의 파라미터를 따라갸아 한다.
+		void Clap(object sender, ConnEvent e) // 이벤트 발생시 실행하고픈 함수. 델리게이트 선언의 파라미터를 따라갸아 한다. //이네이블
 		{
 			Console.WriteLine("Clap");
 			Console.WriteLine(e.Device);
