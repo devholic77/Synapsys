@@ -136,7 +136,6 @@ namespace Synapsys_ADB
                                 Synapsys_Values.Second_Device_Name = result_msg[3];
                                 Synapsys_Values.Second_Device_State = result_msg[4];
 
-
                                 Synapsys_Values.ADB_Instruction.Port_Define(Synapsys_Values.port[3], Synapsys_Values.port[4], Synapsys_Values.port[5], Synapsys_Values.Second_Device_Name);
                                 Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[3]);
                                 Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[4]);
