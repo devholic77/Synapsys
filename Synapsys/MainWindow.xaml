@@ -38,10 +38,10 @@
             </TextBlock.Foreground>
         </TextBlock>
         <Button Content="START" VerticalAlignment="Top" Width="75" Margin="10,50,25,0" Name="btn_d1_start" Click="btn1_start"/>
-        <Button Content="STOP" VerticalAlignment="Top" Width="75" Margin="90,50,-55,0" Name="btn_d1_stop"/>
+        <Button Content="STOP" VerticalAlignment="Top" Width="75" Margin="90,50,-55,0" Name="btn_d1_stop" Click="btn1_stop"/>
 
-        <Button Content="START" VerticalAlignment="Top" Width="75" Margin="10,137,25,-36" Name="btn_d2_start"/>
-        <Button Content="STOP" VerticalAlignment="Top" Width="75" Margin="90,137,-55,-36" Name="btn_d2_stop"/>
+        <Button Content="START" VerticalAlignment="Top" Width="75" Margin="10,137,25,-36" Name="btn_d2_start" Click="btn2_start"/>
+        <Button Content="STOP" VerticalAlignment="Top" Width="75" Margin="90,137,-55,-36" Name="btn_d2_stop" Click="btn2_stop"/>
 
         <ListBox x:Name="Listbox1" HorizontalAlignment="Right" Height="252" Margin="0,0,-277,-130" VerticalAlignment="Bottom" Width="217" />
 

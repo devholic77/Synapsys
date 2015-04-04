@@ -107,9 +107,11 @@ namespace Synapsys
 			kb.Deactivate();
 		}
 
+		#region BUTTON EVENTS
 
 		private void btn1_start(object sender, RoutedEventArgs e)
 		{
+			Console.WriteLine("btn1_start");
 			if (Synapsys_Values.Add_device[1].Equals(""))
 			{
 				Synapsys_Values.Buttons_Function.Synapsys_Start_Monitor(Synapsys_Values.Add_device[0]);
@@ -122,6 +124,23 @@ namespace Synapsys
 			Synapsys_Values.Add_device[0] = "";
 			Synapsys_Values.Add_device[1] = "";
 		}
+
+		private void btn1_stop(object sender, RoutedEventArgs e)
+		{
+			Console.WriteLine("btn1_stop");
+		}
+
+		private void btn2_start(object sender, RoutedEventArgs e)
+		{
+			Console.WriteLine("btn2_start");
+		}
+
+		private void btn2_stop(object sender, RoutedEventArgs e)
+		{
+			Console.WriteLine("btn2_stop");
+		}
+
+		#endregion
 
 		#region ADB
 
