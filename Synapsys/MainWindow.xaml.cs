@@ -25,7 +25,7 @@ namespace Synapsys
 		private static CaptureScreen cs = null;
 
 		//HOTKEY
-		bool HotkeyFlag = false;
+		string collectedHotkey = "";
 		ArrayList tempHotkeyList, HotkeyList;
 
         public MainWindow()
@@ -59,33 +59,46 @@ namespace Synapsys
             form.Execute += new ADB_Form.execute(Clap);
             form.Show();
 
+			new Thread(new ThreadStart(hz)).Start();
+
         }
+
+		private void hz()
+		{
+			while(true)
+			{
+				Thread.Sleep(200);
+				HotkeyList.Clear();
+				if (tempHotkeyList.Count > 0)
+				{
+					foreach (string s in tempHotkeyList)
+					{
+						HotkeyList.Add(s);
+						Console.WriteLine("Collected : " + s);
+						collectedHotkey += s + "+";
+					}
+
+					collectedHotkey.Substring(0, collectedHotkey.Length - 1);
+					if (collectedHotkey.Equals(Keyup_Collector_string1))
+					{
+						Console.WriteLine("Device 1 changed");
+					}
+					else if (collectedHotkey.Equals(Keyup_Collector_string2))
+					{
+						Console.WriteLine("Device 2 changed");
+					}
+					collectedHotkey = "";
+
+					HotkeyList.Clear();
+					tempHotkeyList.Clear();
+				}
+			}
+		}
 
 
 		private void Hotkey(object sender, KeyEventArgs e)
 		{
 			tempHotkeyList.Add(e.KeyCode + "");
-			if(!HotkeyFlag)
-			{
-				new Thread(new ThreadStart(Hotkey_Restarter)).Start();
-			}
-		}
-
-		private void Hotkey_Restarter()
-		{
-			if(tempHotkeyList.Count > 0)
-			{
-				foreach(string s in tempHotkeyList)
-				{
-					HotkeyList.Add(s);
-					Console.WriteLine("Collected : " + s);
-				}
-			}
-			HotkeyList.Clear();
-			tempHotkeyList.Clear();
-			HotkeyFlag = true;
-			Thread.Sleep(500);
-			HotkeyFlag = false;
 		}
 
 		void Exit(object sender, CancelEventArgs e)
@@ -94,9 +107,11 @@ namespace Synapsys
 			kb.Deactivate();
 		}
 
+		#region BUTTON EVENTS
 
 		private void btn1_start(object sender, RoutedEventArgs e)
 		{
+			Console.WriteLine("btn1_start");
 			if (Synapsys_Values.Add_device[1].Equals(""))
 			{
 				Synapsys_Values.Buttons_Function.Synapsys_Start_Monitor(Synapsys_Values.Add_device[0]);
@@ -110,9 +125,26 @@ namespace Synapsys
 			Synapsys_Values.Add_device[1] = "";
 		}
 
+		private void btn1_stop(object sender, RoutedEventArgs e)
+		{
+			Console.WriteLine("btn1_stop");
+		}
+
+		private void btn2_start(object sender, RoutedEventArgs e)
+		{
+			Console.WriteLine("btn2_start");
+		}
+
+		private void btn2_stop(object sender, RoutedEventArgs e)
+		{
+			Console.WriteLine("btn2_stop");
+		}
+
+		#endregion
+
 		#region ADB
 
-		void Clap(object sender, ConnEvent e) // 이벤트 발생시 실행하고픈 함수. 델리게이트 선언의 파라미터를 따라갸아 한다. //이네이블
+		void Clap(object sender, ConnEvent e) // 이벤트 발생시 실행하고픈 함수. 델리게이트 선언의 파라미터를 따라갸아 한다.
 		{
 			Console.WriteLine("Clap");
 			Console.WriteLine(e.Device);
@@ -125,42 +157,23 @@ namespace Synapsys
 			if (s.Equals("1"))
 			{
 				btn_d1_start.IsEnabled = true;
+				Show_Log("Device 1 Connected!");
+			}
+			else if (s.Equals("2"))
+			{
+				btn_d2_start.IsEnabled = true;
+				Show_Log("Device 2 Connected!");
 			}
 		}
 
 		#endregion
 
-		private void Setting_Click(object sender, RoutedEventArgs e)
-		{
-			Popup_settings.IsOpen = true;
-		}
-
-		private void Show_Log(string s)
-		{
-			Listbox1.Items.Add(s);
-			Listbox1.Items.MoveCurrentToLast();
-			Listbox1.UpdateLayout();
-		}
-
-		private void Button_Click(object sender, RoutedEventArgs e)
-		{
-			
-		}
-
-		private void Button_Click2(object sender, RoutedEventArgs e)
-		{
-
-			//Console.WriteLine();
-
-			//
-			//new Thread(new ThreadStart(trackMouse)).Start();
-		}
-
-
 		
 
 		
 
+
+		#region Popup
 		public Popup popup = new Popup();
 
 		private void Button_Click_1(object sender, RoutedEventArgs e)
@@ -178,18 +191,21 @@ namespace Synapsys
 			popup.Gogo(title, message);
 
 		}
+		#endregion
 
-		private void Button_Click_2(object sender, RoutedEventArgs e)
+
+
+
+
+		#region Option
+
+		// Option Popup - Open
+		private void Setting_Click(object sender, RoutedEventArgs e)
 		{
-			//KeyboardHook key = KeyboardHook.getInstance();
-			//key.Run();
-
-			//Hooker manager = new Hooker();
-			//manager.Add();
-
-			
+			Popup_settings.IsOpen = true;
 		}
 
+		// Option Popup - Close
 		private void btn_Close_Click(object sender, RoutedEventArgs e)
 		{
 			Popup_settings.IsOpen = false;
@@ -222,7 +238,7 @@ namespace Synapsys
 		{
 			if(nowCollecting1)
 			{
-				Keyup_Collector_string1 += e.KeyCode + " + ";
+				Keyup_Collector_string1 += e.KeyCode + "+";
 			}
 				
 		}
@@ -230,7 +246,7 @@ namespace Synapsys
 		{
 			if (nowCollecting2)
 			{
-				Keyup_Collector_string2 += e.KeyCode + " + ";
+				Keyup_Collector_string2 += e.KeyCode + "+";
 			}
 
 		}
@@ -245,21 +261,21 @@ namespace Synapsys
 		private void Keyup_Collector1()
 		{
 			Thread.Sleep(1500);
-			nowCollecting1 = false;
 			KeyboardMouse.m_KeyboardHookManager.KeyUp -= HookManager_KeyUp1;
 			
 			checkbox1.Dispatcher.Invoke(new update1Callback(this.update1), Keyup_Collector_string1);
+			nowCollecting1 = false;
 			Keyup_Collector_string1 = "";
 		}
 
 		private void update1(string s)
 		{
-			checkbox1.Content = s.Substring(0, s.Length - 3);
+			checkbox1.Content = s.Substring(0, s.Length - 1);
 		}
 
 		private void update2(string s)
 		{
-			checkbox2.Content = s.Substring(0, s.Length - 3);
+			checkbox2.Content = s.Substring(0, s.Length - 1);
 		}
 
 		private void Keyup_Collector2()
@@ -272,8 +288,19 @@ namespace Synapsys
 			Keyup_Collector_string2 = "";
 		}
 
+		#endregion
 
-		
-    }
+
+
+		// Input Log to Listbox
+		private void Show_Log(string s)
+		{
+			Listbox1.Items.Add(s);
+			Listbox1.Items.MoveCurrentToLast();
+			Listbox1.UpdateLayout();
+		}
+
+
+	}
 	
 }

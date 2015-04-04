@@ -89,7 +89,7 @@ namespace Synapsys
 				{
 					capture();
 					Thread.Sleep(FPS);
-				} catch(Exception e){
+				} catch(Exception){
 					break;
 				}
 			}
