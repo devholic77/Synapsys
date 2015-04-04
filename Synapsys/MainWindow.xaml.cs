@@ -25,7 +25,7 @@ namespace Synapsys
 		private static CaptureScreen cs = null;
 
 		//HOTKEY
-		bool HotkeyFlag = false;
+		string collectedHotkey = "";
 		ArrayList tempHotkeyList, HotkeyList;
 
         public MainWindow()
@@ -67,7 +67,7 @@ namespace Synapsys
 		{
 			while(true)
 			{
-				Thread.Sleep(500);
+				Thread.Sleep(200);
 				HotkeyList.Clear();
 				if (tempHotkeyList.Count > 0)
 				{
@@ -75,7 +75,20 @@ namespace Synapsys
 					{
 						HotkeyList.Add(s);
 						Console.WriteLine("Collected : " + s);
+						collectedHotkey += s + "+";
 					}
+
+					collectedHotkey.Substring(0, collectedHotkey.Length - 1);
+					if (collectedHotkey.Equals(Keyup_Collector_string1))
+					{
+						Console.WriteLine("Device 1 changed");
+					}
+					else if (collectedHotkey.Equals(Keyup_Collector_string2))
+					{
+						Console.WriteLine("Device 2 changed");
+					}
+					collectedHotkey = "";
+
 					HotkeyList.Clear();
 					tempHotkeyList.Clear();
 				}
@@ -206,7 +219,7 @@ namespace Synapsys
 		{
 			if(nowCollecting1)
 			{
-				Keyup_Collector_string1 += e.KeyCode + " + ";
+				Keyup_Collector_string1 += e.KeyCode + "+";
 			}
 				
 		}
@@ -214,7 +227,7 @@ namespace Synapsys
 		{
 			if (nowCollecting2)
 			{
-				Keyup_Collector_string2 += e.KeyCode + " + ";
+				Keyup_Collector_string2 += e.KeyCode + "+";
 			}
 
 		}
@@ -229,21 +242,21 @@ namespace Synapsys
 		private void Keyup_Collector1()
 		{
 			Thread.Sleep(1500);
-			nowCollecting1 = false;
 			KeyboardMouse.m_KeyboardHookManager.KeyUp -= HookManager_KeyUp1;
 			
 			checkbox1.Dispatcher.Invoke(new update1Callback(this.update1), Keyup_Collector_string1);
+			nowCollecting1 = false;
 			Keyup_Collector_string1 = "";
 		}
 
 		private void update1(string s)
 		{
-			checkbox1.Content = s.Substring(0, s.Length - 3);
+			checkbox1.Content = s.Substring(0, s.Length - 1);
 		}
 
 		private void update2(string s)
 		{
-			checkbox2.Content = s.Substring(0, s.Length - 3);
+			checkbox2.Content = s.Substring(0, s.Length - 1);
 		}
 
 		private void Keyup_Collector2()
