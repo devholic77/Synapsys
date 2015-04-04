@@ -1,11 +1,8 @@
 ﻿using System.Windows;
 using System.Threading;
 
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using System;
-using System.Text.RegularExpressions;
-using System.Windows.Interop;
 using Synapsys_ADB;
 using System.Collections;
 
