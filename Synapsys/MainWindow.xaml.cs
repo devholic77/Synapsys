@@ -1,14 +1,9 @@
 ﻿using System.Windows;
 using System.Threading;
 
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using System;
-using System.Text.RegularExpressions;
-using System.Windows.Interop;
 using Synapsys_ADB;
-using Synapsys_SUB;
-
 using System.Collections;
 
 using System.ComponentModel;
@@ -60,12 +55,6 @@ namespace Synapsys
             form.Visible = false;
             form.Execute += new ADB_Form.execute(Clap);
             form.Show();
-
-
-            /*
-            Form1 asdf= new Form1();
-            asdf.Show();
-            */
 
 			new Thread(new ThreadStart(hz)).Start();
 
