@@ -26,26 +26,28 @@ public class MainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main_activity);
 		
-		
 		mApplication = (SynapsysApplication) getApplication();	
-		mStreamingView = (StreamingView) findViewById(R.id.streamingView);
 		mTouchListener = new WindowsTouchListener(this);	
 	}
 
 	@Override
 	protected void onStart() {
-		// TODO Auto-generated method stub
 		super.onStart();
+		
+		mStreamingView = (StreamingView) findViewById(R.id.streamingView);
 	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
 		
+		mApplication.notifyStreamingView(mStreamingView);
+		mApplication.startStreaming();
 	}
 
 	@Override
 	protected void onPause() {
+		mApplication.notifyStreamingView(null);
 		
 		super.onPause();
 	}
@@ -63,7 +65,7 @@ public class MainActivity extends Activity {
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 		if (mTouchListener != null && mStreamingView != null)
-			if (mApplication.isSynapsysConnected())
+			if (mApplication.isControllerConnected())
 				return mTouchListener.onTouchEvent(event);
 		
 		return false;

@@ -27,6 +27,8 @@ import android.widget.Toast;
  */
 public class StreamingView extends SurfaceView implements SurfaceHolder.Callback {
 
+	private final static String TAG = "Synapsys_StreamingView";
+	
 	private final SynapsysApplication mApplication;
 	
 	private SurfaceThread mSurfaceThread;
@@ -52,44 +54,46 @@ public class StreamingView extends SurfaceView implements SurfaceHolder.Callback
 		init();
 	}
 
-	private void init() {
-		mHolder = getHolder();
-		mHolder.addCallback(this);
-		
-		if (mSurfaceThread != null)
-			mSurfaceThread.destroy();
-		
-		mStreamingImage = BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher);
-		mSurfaceImage = BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher);
-		
-		mSurfaceThread = new SurfaceThread();	
-	}
-
-	
-	@Override
-	public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-		Toast.makeText(getContext(), "Surface Changed!", Toast.LENGTH_SHORT).show();
-		if (mSurfaceThread != null)
-			mSurfaceThread.setDisplaySize(width, height);
-	}
-
 	@Override
 	public void surfaceCreated(SurfaceHolder holder) {
-		Toast.makeText(getContext(), "Surface Created!", Toast.LENGTH_SHORT).show();
 		init();
 		if (mSurfaceThread != null)
 			mSurfaceThread.start();
 	}
 
 	@Override
+	public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+		if (mSurfaceThread != null)
+			mSurfaceThread.setDisplaySize(width, height);
+	}
+
+	@Override
 	public void surfaceDestroyed(SurfaceHolder holder) {
-		Toast.makeText(getContext(), "Surface Destroyed!", Toast.LENGTH_SHORT).show();
 		if (mSurfaceThread != null)
 			mSurfaceThread.destroy();
 	}
 
+	private void init() {
+		mHolder = getHolder();
+		mHolder.addCallback(this);
+		
+		if (mSurfaceThread != null)
+			mSurfaceThread.destroy();
+		mSurfaceThread = new SurfaceThread();	
+		
+		// Dummy
+		mStreamingImage = BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher2);
+		mSurfaceImage = BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher);
+	}
+
 	synchronized void switchSurfaceImage() {
-		mSurfaceImage = mStreamingImage;
+		if (mStreamingImage == null) {
+			Log.d(TAG, "Streaming Image NULL!");
+			return;
+		}
+
+		Log.d(TAG, "SurfaceImage is switched!");
+		mSurfaceImage = Bitmap.createBitmap(mStreamingImage);
 		mStreamingImage = null;
 	}
 	
@@ -99,14 +103,14 @@ public class StreamingView extends SurfaceView implements SurfaceHolder.Callback
 	 * @since 2013.03.05
 	 *
 	 */
-	class SurfaceThread extends Thread {
+	private class SurfaceThread extends Thread {
 
 		private boolean isRunning;
 
 		private Paint mPaint;
 		private Rect mRect;
 		
-		SurfaceThread() {
+		private SurfaceThread() {
 			init();
 		}
 
@@ -119,7 +123,7 @@ public class StreamingView extends SurfaceView implements SurfaceHolder.Callback
 			mPaint = new Paint();
 		}
 		
-		void setDisplaySize(int width, int height) {
+		private void setDisplaySize(int width, int height) {
 			if (mRect != null) {
 				mRect.right = width;
 				mRect.bottom = height;
@@ -128,33 +132,36 @@ public class StreamingView extends SurfaceView implements SurfaceHolder.Callback
 		
 		@Override
 		public void run() {
-			Log.d("SynapsysApp_SurfaceThread", "SurfaceThread is running.");
+			Log.d(TAG, "SurfaceThread is running.");
+			
 			try {
 				while (mSurfaceThread.isRunning) {
-
-					Canvas c = mHolder.lockCanvas();
+					final Canvas canvas = mHolder.lockCanvas();
 					try {
 						synchronized (mHolder) {
-							c.drawColor(Color.BLACK);
-							c.drawBitmap(mSurfaceImage, null, mRect, mPaint);
+							canvas.drawColor(Color.BLACK);
+							canvas.drawBitmap(mSurfaceImage, null, mRect, mPaint);
 						}
 					} finally {
-						mHolder.unlockCanvasAndPost(c);
+						mHolder.unlockCanvasAndPost(canvas);
 					}
-					
 				}
-			} catch (NullPointerException e) { ; }
-			Log.d("SynapsysApp_SurfaceThread", "SurfaceThread is dead.");
+			} catch (NullPointerException e) { 
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+			Log.d(TAG, "SurfaceThread is dead.");
 		}
 
 		@Override
 		public synchronized void start() {
-			isRunning = true;
+			this.isRunning = true;
 			super.start();
 		}
 		
-		public void destroy() {
-			isRunning = false;
+		public synchronized void destroy() {
+			this.isRunning = false;
 			mSurfaceThread = null;
 		}
 	}

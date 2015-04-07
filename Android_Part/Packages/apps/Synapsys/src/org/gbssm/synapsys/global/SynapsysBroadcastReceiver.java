@@ -15,24 +15,35 @@ import android.widget.Toast;
  *
  */
 public class SynapsysBroadcastReceiver extends BroadcastReceiver {
-
+	
+	private Toast mToast;
+	
 	@Override
 	public void onReceive(Context context, Intent intent) {
+		if (mToast == null)
+			mToast = Toast.makeText(context, null, Toast.LENGTH_LONG);
+		
 		Bundle bundle = intent.getExtras();
 		
 		boolean isUSBready = bundle.getBoolean(SynapsysManager.BROADCAST_EXTRA_USB_READY);
 		boolean isPCready = bundle.getBoolean(SynapsysManager.BROADCAST_EXTRA_PC_READY);
 		boolean isConnected = bundle.getBoolean(SynapsysManager.BROADCAST_EXTRA_CONNECTION);
-		
+
 		SynapsysApplication mApplication = (SynapsysApplication) context.getApplicationContext();
-		if (isConnected) {
-			mApplication.startStreaming();
+		if (isUSBready && isPCready) {
+			mApplication.setControllerConnected(isConnected);
 			
-		} else {
+			if (!isConnected)
+				mApplication.startStreaming();
+			
+		} else if (!isUSBready || !isPCready) {
+			mApplication.setControllerConnected(false);
 			mApplication.stopStreaming();
 		}
 		
-		Toast.makeText(context, "USB : " + isUSBready + ", PC : " + isPCready +", Connected : " + isConnected, Toast.LENGTH_SHORT).show();
+		String message = (isUSBready? "USB! " : "")  + (isPCready? "PC! " : "") + (isConnected? "All Connected!" : "");
+		mToast.setText(message);
+		mToast.show();
 	}
 
 }

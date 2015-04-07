@@ -1,7 +1,5 @@
 package org.gbssm.synapsys.global;
 
-import java.net.Socket;
-
 import org.gbssm.synapsys.SynapsysManager;
 import org.gbssm.synapsys.streaming.StreamingThread;
 import org.gbssm.synapsys.streaming.StreamingView;
@@ -16,14 +14,13 @@ import android.content.res.Configuration;
  */
 public class SynapsysApplication extends Application {
 	
-	static boolean DEBUG = true;
-
 	protected SynapsysManager mSynapsysManager;
 	
 	protected StreamingView mStreamingView;
 	
 	protected StreamingThread mStreamingThread;
 	
+	private boolean isControllerConnected;
 	
 	@Override
 	public void onCreate() {
@@ -39,6 +36,18 @@ public class SynapsysApplication extends Application {
 	
 	@Override
 	public void onTerminate() {
+		stopStreaming();
+		super.onTerminate();
+	}
+
+	public void startStreaming() {
+		if (!isStreamerConnected()) {
+			mStreamingThread = new StreamingThread(this);
+			mStreamingThread.start();
+		}
+	}
+	
+	public void stopStreaming() {
 		if (mStreamingThread != null) {
 			try {
 				mStreamingThread.destroy();
@@ -46,27 +55,21 @@ public class SynapsysApplication extends Application {
 			
 			} catch (InterruptedException e) {
 				e.printStackTrace();
+				
+			} finally {
+				mStreamingThread = null;
 			}
 		}
-		
-		super.onTerminate();
-	}
-
-	public void startStreaming() {
-		if (mStreamingThread == null)
-			mStreamingThread = new StreamingThread(this);
-			
-		mStreamingThread.start();
 	}
 	
-	public void stopStreaming() {
-		if (mStreamingThread != null)
-			mStreamingThread.destroy();
+	public void setControllerConnected(boolean connected) {
+		isControllerConnected = connected;
 	}
 	
 	public void notifyStreamingView(StreamingView view) {
 		mStreamingView = view;
 	}
+	
 	
 	public SynapsysManager getSynapsysManager() {
 		if (mSynapsysManager == null)
@@ -79,13 +82,14 @@ public class SynapsysApplication extends Application {
 		return mStreamingView;
 	}
 	
-	public boolean isSynapsysConnected() {
-		if (DEBUG)
-			return true;
-		
+	public boolean isStreamerConnected() {
 		if (mStreamingThread != null)
 			return mStreamingThread.isConnected();
 		
 		return false;
+	}
+	
+	public boolean isControllerConnected() {
+		return isControllerConnected;
 	}
 }

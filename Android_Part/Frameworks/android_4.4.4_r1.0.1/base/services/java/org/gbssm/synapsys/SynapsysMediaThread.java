@@ -13,9 +13,14 @@ import java.util.concurrent.RejectedExecutionException;
 
 import org.gbssm.synapsys.SynapsysManagerService.SynapsysHandler;
 
+import android.content.Context;
 import android.os.Message;
+import android.os.ServiceManager;
 import android.util.Log;
 import android.util.Slog;
+
+import com.android.server.am.ActivityManagerService;
+import com.android.server.pm.PackageManagerService;
 
 /**
  * Media-Thumbnail SynapsysThread.
@@ -31,6 +36,9 @@ public class SynapsysMediaThread extends SynapsysThread {
 	private Socket mMediaSocket;
 	private DataInputStream mDIS;
 	private DataOutputStream mDOS;
+
+	private ActivityManagerService mActivityService;
+	private PackageManagerService mPackageService;
 	
 	public SynapsysMediaThread(SynapsysHandler handler, ConnectionBox box) {
 		super(handler);
@@ -56,6 +64,8 @@ public class SynapsysMediaThread extends SynapsysThread {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		
+		mActivityService = (ActivityManagerService) ServiceManager.getService(Context.ACTIVITY_SERVICE);
 	}
 	
 	@Override
@@ -128,20 +138,24 @@ public class SynapsysMediaThread extends SynapsysThread {
 		running(true);
 		mHandler.sendEmptyMessage(SynapsysHandler.MSG_CONNECTED_MEDIA);
 		try {
+			transferAllTasks();
+			
 			while(!isDestroyed && mDIS != null) {
-				byte[] bytes = new byte[MediaProtocol.MSG_SIZE];
-				try {
-					mDIS.read(bytes);
-					Log.d(TAG, "MediaThread_Received! : " + new String(bytes, "UTF-8"));
-					
-				} catch (SocketException e) {
-					if (!isDestroyed) 
-						mHandler.sendMessageDelayed(Message.obtain(mHandler, SynapsysHandler.MSG_EXIT_MEDIA, mBox), 1000);
-					break;
-				
-				} catch (IOException e) {
-					// Reading Errors occur.
-				} 
+//				byte[] bytes = new byte[MediaProtocol.MSG_SIZE];
+//				try {
+//					mDIS.read(bytes);
+//					Log.d(TAG, "MediaThread_Received! : " + new String(bytes, "UTF-8"));
+//					
+//				} catch (SocketException e) {
+//					if (!isDestroyed) 
+//						mHandler.sendMessageDelayed(Message.obtain(mHandler, SynapsysHandler.MSG_EXIT_MEDIA, mBox), 1000);
+//					break;
+//				
+//				} catch (IOException e) {
+//					// Reading Errors occur.
+//				} 
+				send(new MediaProtocol());
+				Thread.sleep(1000);
 			}
 		} catch (Exception e) {
 			
@@ -171,6 +185,16 @@ public class SynapsysMediaThread extends SynapsysThread {
 			e.printStackTrace();
 		}
 	}
+	
+	private void transferAllTasks() {
+		mHandler.getService();
+
+		MediaProtocol media = new MediaProtocol();
+		media.state = MediaProtocol.STATE_PREVIOUS_TOP;
+		
+		
+	}
+	
 	
 
 	

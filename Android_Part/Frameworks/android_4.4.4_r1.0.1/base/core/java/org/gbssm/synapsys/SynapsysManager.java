@@ -62,46 +62,17 @@ public class SynapsysManager {
 	private Socket mDisplaySocket;
 	
 	/**
-	 * Display 연결을 요청하고, 연결된 Socket을 전달받는다.
-	 * Socket 연결 과정에서 Thread 대기가 발생할 수 있기 때문에, MainThread에서 호출하지 않는 것이 좋다.
 	 * 
 	 * @return
 	 */
-	public Socket requestDisplayConnection() {
-		final int Timeout = 3000;
-		
+	public int requestDisplayConnection() {
 		try {
-			int port = mService.requestDisplayConnection();
+			return mService.requestDisplayConnection();
 			
-			final int portF = port;
-			Thread thread = new Thread() {
-				@Override
-				public void run() {
-					try {
-						ServerSocket server = new ServerSocket(portF);
-						server.setSoTimeout(Timeout);
-						mDisplaySocket = server.accept();
-						mDisplaySocket.setReuseAddress(true);
-						mDisplaySocket.setTcpNoDelay(true);
-						
-					} catch (Exception e) {
-						e.printStackTrace();
-						mDisplaySocket = null;
-					}
-				}
-			};
-			thread.start();
-			thread.join(Timeout);
-			
-			return mDisplaySocket;
-			
-		} catch (RemoteException e) {
-			
-		} catch (InterruptedException e) {
-			// TODO : 제한된 연결시간을 초과.
+		} catch (Exception e) {
+			e.printStackTrace();
+			return -1;
 		}
-		
-		return null;
 	}
 	
 	

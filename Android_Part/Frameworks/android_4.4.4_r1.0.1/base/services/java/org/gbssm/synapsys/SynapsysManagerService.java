@@ -4,12 +4,16 @@ import java.io.IOException;
 
 import org.gbssm.synapsys.SynapsysManagerService.SynapsysHandler;
 
+import com.android.server.am.ActivityManagerService;
+import com.android.server.pm.PackageManagerService;
+
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.input.InputManager;
 import android.os.Handler;
 import android.os.Message;
 import android.os.RemoteException;
+import android.os.ServiceManager;
 import android.os.UserHandle;
 import android.util.Slog;
 
@@ -38,6 +42,9 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	private boolean isServiceRunning;
 
 	private InputManager mInputManager;
+	private PackageManagerService mPackage;
+	private ActivityManagerService mActivityService;
+	
 	private ConnectionDetector mConnectionDetector;
 	private SynapsysControlThread mControlThread;
 	private SynapsysMediaThread mMediaThread;
@@ -49,7 +56,6 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	
 	public SynapsysManagerService(Context context) {
 		mContext = context; 
-		mInputManager = (InputManager)context.getSystemService(Context.INPUT_SERVICE);
 	}
 	
 	public int requestDisplayConnection() throws RemoteException {
@@ -74,6 +80,15 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	
 	public boolean invokeNotificationEvent() throws RemoteException {
 		// TODO : Windows PC로 Notification Event 전송.
+		return false;
+	}
+	
+	public boolean invokeAllTaskInfo() {
+		
+		
+		MediaProtocol message = new MediaProtocol();
+		
+		mMediaThread.send(message);
 		return false;
 	}
 	
@@ -140,11 +155,21 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 		systemStop();
 		broadcastSynapsysState(false, false, false);
 	}
+
+	void init() {
+		mInputManager = (InputManager) mContext.getSystemService(Context.INPUT_SERVICE);
+		
+		
+		mActivityService = (ActivityManagerService) ServiceManager.getService(Context.ACTIVITY_SERVICE);
+		
+	}
 	
 	/**
 	 * System Phase-1 Ready : {@link ConnectionDetector} start.
 	 */
 	void systemReady() {
+		init();
+		
 		isServiceRunning = true;
 		mConnectionDetector = ConnectionDetector.getInstance(new SynapsysHandler());
 		
