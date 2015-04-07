@@ -111,6 +111,7 @@ namespace Synapsys
 			Console.WriteLine("btn1_start");
 			if (Synapsys_Values.Add_device[1].Equals(""))
 			{
+
 				Synapsys_Values.Buttons_Function.Synapsys_Start_Monitor(Synapsys_Values.Add_device[0]);
 			}
 			else
