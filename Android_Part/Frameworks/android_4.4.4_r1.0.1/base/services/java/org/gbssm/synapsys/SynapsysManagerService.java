@@ -19,6 +19,7 @@ import android.os.RemoteException;
 import android.os.SystemProperties;
 import android.os.UserHandle;
 import android.util.Slog;
+import android.hardware.input.InputManager;
 
 /**
  * 
@@ -33,10 +34,11 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	// *** CONSTANTS PART *** //
 	public static final int EVENT_ADB_ENABLE = 1;
 	public static final int EVENT_USB_CONNECT = 2;
-	
+	public static final int TYPE_KEYBOARD = 0;
+	public static final int TYPE_MOUSE= 1;
 	static final String TAG = "SynapsysManagerService";	
 	
-	
+	InputManager im;
 	
 	// *** MEMBER PART *** //
 	final Context mContext;
@@ -54,6 +56,7 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	
 	public SynapsysManagerService(Context context) {
 		mContext = context; 
+		im = (InputManager)context.getSystemService(Context.INPUT_SERVICE);	
 	}
 	
 	public int requestDisplayConnection() throws RemoteException {
@@ -67,7 +70,7 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	public boolean invokeMouseEventFromTouch(int event_id, float event_x, float event_y) throws RemoteException {
 		// Windows PC로 Touch Event 전송.
 		Slog.v(TAG, "invokeMouseEventFromTouch : event=" + event_id + " / x=" + event_x + " / y=" + event_y);
-		jnicall(1, 0, event_x, event_y );
+		//jnicall(1, 0, event_x, event_y );
 		return false;
 	}
 	
@@ -90,6 +93,8 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	public boolean interpolateMouseEvent(int event_id, float event_x, float event_y) throws RemoteException { 
 		//  TODO : Windows PC로부터 Touch Event 받기.
 		Slog.v(TAG, "interpolateMouseEvent : event=" + event_id + " / x=" + event_x + " / y=" + event_y);
+		// 윈도우에서 받는 이벤트 전달 함수 호출 
+		jnicall(TYPE_MOUSE, event_id, event_x, event_y );
 		return false;
 	}
 	
@@ -97,7 +102,7 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 		//  TODO : Windows PC로부터 Keyboard Event 받기.
 		Slog.v(TAG, "interpolateKeyboardEvent : event=" + event_id + " / keyCode=" + key_code);
 		return false;
-
+	}
 	/* by dhuck. added */	
 	private void jnicall(int event_type,int event_code, float value_1, float value_2 ) {
 		Slog.i("SynapsysManagerService","framework : JNI CALL test ");
@@ -196,6 +201,12 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
         intent.putExtra(SynapsysManager.BROADCAST_EXTRA_PC_READY, pc);
         intent.putExtra(SynapsysManager.BROADCAST_EXTRA_CONNECTION, connection);
 
+	/* added by dhuck	*/
+		jnicall(0, 0, 0, 0 );
+	//	jnicall(0, 1, 0, 0 );
+		//jnicall(1, 1, 100, 100 );
+		//jnicall(1, 3, 100, 100 );
+	/* ==================================== */
         mContext.sendStickyBroadcastAsUser(intent, UserHandle.ALL);
 	}
 	
