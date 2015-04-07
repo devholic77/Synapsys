@@ -27,7 +27,6 @@ namespace Synapsys
 		//HOTKEY
 		string collectedHotkey = "";
 		ArrayList tempHotkeyList, HotkeyList;
-		Synapsys_Data_Socket sds;
 
         public MainWindow()
         {
@@ -39,14 +38,14 @@ namespace Synapsys
 			Show_Log("Please Connect devices..");
 
 			// Deactivate Buttons
-			btn_d1_start.IsEnabled = false;
-			btn_d1_stop.IsEnabled = false;
+			btn_d1_start.IsEnabled = true;
+			btn_d1_stop.IsEnabled = true;
 			btn_d2_start.IsEnabled = false;
 			btn_d2_stop.IsEnabled = false;
 
 			//KEYBOARD, MOUSE HOOK
 			kb = KeyboardMouse.getInstance();
-			kb.Activate();
+			//kb.Activate();
 
 			HotkeyList = new ArrayList();
 			tempHotkeyList = new ArrayList();
@@ -55,39 +54,14 @@ namespace Synapsys
 			cs = CaptureScreen.getInstance();
 			//cs.Start();
 
-            ADB_Form form = new ADB_Form();
-            form.Visible = false;
-            form.Execute += new ADB_Form.execute(Clap);
-            form.Show();
+			ADB_Form form = new ADB_Form();
+			form.Visible = false;
+			form.Execute += new ADB_Form.execute(Clap);
+			form.Show();
 
-			new Thread(new ThreadStart(hz)).Start();
+			//new Thread(new ThreadStart(hz)).Start();
 
         }
-
-		private void socketTest()
-		{
-			Thread.Sleep(5000);
-			sds.Synapsys_Write("Socket Count D-3");
-
-			Thread.Sleep(1000);
-			sds.Synapsys_Write("Socket Count D-2");
-
-			Thread.Sleep(1000);
-			sds.Synapsys_Write("Socket Count D-1");
-
-			sds.sendFile("C:\\1.jpg");
-
-			Thread.Sleep(1000);
-			sds.Synapsys_Write("Socket Count D-3");
-
-			Thread.Sleep(1000);
-			sds.Synapsys_Write("Socket Count D-2");
-
-			Thread.Sleep(1000);
-			sds.Synapsys_Write("Socket Count D-1");
-
-			sds.sendFile("C:\\2.jpg");
-		}
 
 		private void hz()
 		{
@@ -135,15 +109,29 @@ namespace Synapsys
 
 		#region BUTTON EVENTS
 
+		int tempSwitcher = 1;
+		public static SynapsysSocket socket = null;
 		private void btn1_start(object sender, RoutedEventArgs e)
 		{
-			sds = new Synapsys_Data_Socket("1234", "1");
-			new Thread(new ThreadStart(socketTest)).Start();
+			socket = new SynapsysSocket("1234", "1");
+			socket.DoInit();
 		}
 
 		private void btn1_stop(object sender, RoutedEventArgs e)
 		{
-			Console.WriteLine("btn1_stop");
+			//Console.WriteLine("btn1_stop");
+
+			//if (tempSwitcher == 1)
+			//{
+			//	tempSwitcher = 2;
+			//}
+			//else if (tempSwitcher == 2)
+			//{
+			//	tempSwitcher = 1;
+			//}
+			//	socket.Synapsys_SendIMG("c:\\" + tempSwitcher + ".jpg");
+			cs.Start();
+
 		}
 
 		private void btn2_start(object sender, RoutedEventArgs e)

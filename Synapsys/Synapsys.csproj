@@ -89,6 +89,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="Protocol.cs" />
+    <Compile Include="SynapsysSocket.cs" />
     <Compile Include="TaskbarPopup.cs">
       <SubType>Form</SubType>
     </Compile>

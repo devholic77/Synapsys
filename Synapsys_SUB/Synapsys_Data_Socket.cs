@@ -66,6 +66,7 @@ namespace Synapsys_Sub_Program
 
 		public void sendFile(string file)
 		{
+			Console.WriteLine("Sendfile >> " + file);
 			socket.SendFile(file);
 		}
 
@@ -80,7 +81,8 @@ namespace Synapsys_Sub_Program
                 if (WriteMsg != String.Empty)
                 {
                     //setbyte = Encoding.UTF8.GetBytes(WriteMsg);
-                    sw.Write(WriteMsg);
+					Console.WriteLine("SendMsg >> " + WriteMsg);
+                    sw.Write(WriteMsg + "\n");
                     sw.Flush();
                 }
             }
