@@ -64,8 +64,13 @@ namespace Synapsys_Sub_Program
             return true;
         }
 
+		public void sendFile(string file)
+		{
+			socket.SendFile(file);
+		}
 
-        public void Synaposys_Write(String WriteMsg)
+
+        public void Synapsys_Write(String WriteMsg)
         {
             NetworkStream ns = new NetworkStream(socket);
             StreamWriter sw = new StreamWriter(ns);
