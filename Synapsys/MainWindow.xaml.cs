@@ -8,6 +8,9 @@ using System.Collections;
 
 using System.ComponentModel;
 
+using Synapsys_SUB;
+using Synapsys_Sub_Program;
+
 namespace Synapsys
 {
     /// <summary>
@@ -24,6 +27,7 @@ namespace Synapsys
 		//HOTKEY
 		string collectedHotkey = "";
 		ArrayList tempHotkeyList, HotkeyList;
+		Synapsys_Data_Socket sds;
 
         public MainWindow()
         {
@@ -59,6 +63,31 @@ namespace Synapsys
 			new Thread(new ThreadStart(hz)).Start();
 
         }
+
+		private void socketTest()
+		{
+			Thread.Sleep(5000);
+			sds.Synapsys_Write("Socket Count D-3");
+
+			Thread.Sleep(1000);
+			sds.Synapsys_Write("Socket Count D-2");
+
+			Thread.Sleep(1000);
+			sds.Synapsys_Write("Socket Count D-1");
+
+			sds.sendFile("C:\\1.jpg");
+
+			Thread.Sleep(1000);
+			sds.Synapsys_Write("Socket Count D-3");
+
+			Thread.Sleep(1000);
+			sds.Synapsys_Write("Socket Count D-2");
+
+			Thread.Sleep(1000);
+			sds.Synapsys_Write("Socket Count D-1");
+
+			sds.sendFile("C:\\2.jpg");
+		}
 
 		private void hz()
 		{
@@ -108,19 +137,8 @@ namespace Synapsys
 
 		private void btn1_start(object sender, RoutedEventArgs e)
 		{
-			Console.WriteLine("btn1_start");
-			if (Synapsys_Values.Add_device[1].Equals(""))
-			{
-
-				Synapsys_Values.Buttons_Function.Synapsys_Start_Monitor(Synapsys_Values.Add_device[0]);
-			}
-			else
-			{
-				Synapsys_Values.Buttons_Function.Synapsys_Start_Monitor(Synapsys_Values.Add_device[0]);
-				Synapsys_Values.Buttons_Function.Synapsys_Start_Monitor(Synapsys_Values.Add_device[1]);
-			}
-			Synapsys_Values.Add_device[0] = "";
-			Synapsys_Values.Add_device[1] = "";
+			sds = new Synapsys_Data_Socket("1234", "1");
+			new Thread(new ThreadStart(socketTest)).Start();
 		}
 
 		private void btn1_stop(object sender, RoutedEventArgs e)
