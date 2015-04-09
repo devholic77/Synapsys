@@ -85,10 +85,6 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	
 	public boolean invokeAllTaskInfo() {
 		
-		
-		MediaProtocol message = new MediaProtocol();
-		
-		mMediaThread.send(message);
 		return false;
 	}
 	
@@ -161,7 +157,6 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 		
 		
 		mActivityService = (ActivityManagerService) ServiceManager.getService(Context.ACTIVITY_SERVICE);
-		
 	}
 	
 	/**

@@ -4,6 +4,8 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -13,7 +15,12 @@ import java.util.concurrent.RejectedExecutionException;
 
 import org.gbssm.synapsys.SynapsysManagerService.SynapsysHandler;
 
+import android.app.ActivityManager;
+import android.app.ActivityManager.RunningTaskInfo;
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.os.Message;
 import android.os.ServiceManager;
 import android.util.Log;
@@ -141,28 +148,43 @@ public class SynapsysMediaThread extends SynapsysThread {
 			transferAllTasks();
 			
 			while(!isDestroyed && mDIS != null) {
-//				byte[] bytes = new byte[MediaProtocol.MSG_SIZE];
-//				try {
-//					mDIS.read(bytes);
-//					Log.d(TAG, "MediaThread_Received! : " + new String(bytes, "UTF-8"));
+				byte[] bytes = new byte[MediaProtocol.MSG_SIZE];
+				try {
+					int read = mDIS.read(bytes);
+					
+					if (read != -1)
+						Log.d(TAG, "ControlThread_Received!" + read);
+					//Log.d(TAG, "ControlThread_Message = " + new String(bytes, "UTF-8"));
+	
+					// TODO:
+//					ControlProtocol<?, ?, ?>[] protocols = ControlProtocol.decode(bytes);
 //					
-//				} catch (SocketException e) {
-//					if (!isDestroyed) 
-//						mHandler.sendMessageDelayed(Message.obtain(mHandler, SynapsysHandler.MSG_EXIT_MEDIA, mBox), 1000);
-//					break;
-//				
-//				} catch (IOException e) {
-//					// Reading Errors occur.
-//				} 
-				send(new MediaProtocol());
-				Thread.sleep(1000);
+//					for (ControlProtocol<?, ?, ?> protocol : protocols)
+//						protocol.process(mHandler.getService());
+					
+				} catch (SocketException e) { 
+					if (!isDestroyed) 
+						Message.obtain(mHandler, SynapsysHandler.MSG_EXIT_MEDIA, mBox).sendToTarget();
+					break;
+				
+				} catch (IOException e) {
+					
+				} finally {
+					
+				}
 			}
-		} catch (Exception e) {
 			
+			
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 			
 		
-		running(false);
+		running(false);	
+		
+		// TEST
+		mHandler.sendMessageDelayed(Message.obtain(mHandler, SynapsysHandler.MSG_EXIT_MEDIA, mBox), 1000);
+		
 		mHandler.sendEmptyMessage(SynapsysHandler.MSG_DESTROYED_MEDIA);
 	}
 
@@ -172,12 +194,19 @@ public class SynapsysMediaThread extends SynapsysThread {
 				mDOS.write(message.encode());
 				mDOS.flush();
 				
+				// TEST
+				File file = new File("/data/synapsys/", message.appName+ "/data.dat");
+				file.createNewFile();
+				FileOutputStream fos = new FileOutputStream(file);
+				fos.write(message.encode());
+				fos.close();
+				
 				Log.d(TAG, "MediaThread_Send! : " + message.toString());
 			}
 			
 		} catch (SocketException e) {
 			if (!isDestroyed) 
-				Message.obtain(mHandler, SynapsysHandler.MSG_EXIT_CONTROL, mBox).sendToTarget();
+				Message.obtain(mHandler, SynapsysHandler.MSG_EXIT_MEDIA, mBox).sendToTarget();
 		
 			throw new RejectedExecutionException("Connection Socket is closed.");
 			
@@ -187,12 +216,34 @@ public class SynapsysMediaThread extends SynapsysThread {
 	}
 	
 	private void transferAllTasks() {
-		mHandler.getService();
-
-		MediaProtocol media = new MediaProtocol();
-		media.state = MediaProtocol.STATE_PREVIOUS_TOP;
+		Slog.d(TAG, "TransferAllTasks");
 		
+		Context context = mHandler.getService().mContext;
 		
+		ActivityManager am = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+		PackageManager pm = context.getPackageManager();
+		
+		for (RunningTaskInfo rti : am.getRunningTasks(10)) {
+			try {
+				ComponentName baseComponent = rti.baseActivity;
+				if (baseComponent == null)
+					continue;
+				
+				ApplicationInfo appInfo = pm.getApplicationInfo(baseComponent.getPackageName(), PackageManager.GET_META_DATA);
+				
+				MediaProtocol media = new MediaProtocol(MediaProtocol.STATE_PREVIOUS_TOP);
+				media.appID = rti.id;
+				media.appName = (String) pm.getApplicationLabel(appInfo);
+				media.putIcon(appInfo.loadIcon(pm));
+				media.putThumbnail(am.getTaskTopThumbnail(rti.id));
+				
+				Slog.i(TAG, "RunningTaskInfo : " + media.toString());
+				send(media);
+				
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 	}
 	
 	
