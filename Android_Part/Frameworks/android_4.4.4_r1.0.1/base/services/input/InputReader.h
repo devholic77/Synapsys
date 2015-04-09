@@ -41,6 +41,8 @@
 // Maximum allowable delay value in a vibration pattern before
 // which the delay will be truncated.
 #define MAX_VIBRATE_PATTERN_DELAY_NSECS (1000000 * 1000000000LL)
+/* added */
+
 
 namespace android {
 
@@ -455,7 +457,7 @@ private:
     // The event queue.
     static const int EVENT_BUFFER_SIZE = 256;
     RawEvent mEventBuffer[EVENT_BUFFER_SIZE];
-
+	RawEvent virtual_event[5];
     KeyedVector<int32_t, InputDevice*> mDevices;
 
     // low-level input event decoding and device management

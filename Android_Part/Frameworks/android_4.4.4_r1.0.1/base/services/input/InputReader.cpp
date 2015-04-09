@@ -81,9 +81,13 @@ bool once = true;
 bool event_once = false;
 bool keyboard_once = true;
 int click_once = 0;
+int click_count = 0;
+int32_t dev_number = (int32_t)1;
 int32_t move_test = 0;
+int32_t char_num = 2;
 float mouse_x = 20.0;
 float mouse_y = 20.0;
+
 
 namespace android {
 
@@ -302,7 +306,8 @@ void InputReader::loopOnce() {
             processEventsLocked(mEventBuffer, count);
         }
         /* added =============================================*/
-        if (once){
+      
+		if (once){
 			// 초기 부팅시 가상 디바이스 추가  
 			// Add 이벤트를 생성하여 가상 마우스 추가
 			RawEvent event[2];
@@ -313,27 +318,37 @@ void InputReader::loopOnce() {
 			event[0].code = 0x0039;
 			event[0].value = 0xffffffff;
 			
-			processEventsLocked(event,2);
+			processEventsLocked(event,1);
 			//Add 이벤트를 생성하여 가상 키보드 추가 
 			
 			event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
 			event[0].deviceId = (int32_t)21;
 			event[0].type = 0x10000000;
-			event[0].code = 0x0039;
-			event[0].value = 0xffffffff;
+			event[0].code = 0x00000039;
+			event[0].value = 0x000000a2;
+			event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
+			event[1].deviceId = (int32_t)6;
+			event[1].type = 0x30000000;
+			event[1].code = 0x00000000;
+			event[1].value = 0x00000000;
 			
 			processEventsLocked(event,2);
 			
 			event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
 			event[0].deviceId = (int32_t)22;
 			event[0].type = 0x10000000;
-			event[0].code = 0x0039;
-			event[0].value = 0xffffffff;
+			event[0].code = 0x00000000;
+			event[0].value = 0x00000000;
+			event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
+			event[1].deviceId = (int32_t)6;
+			event[1].type = 0x30000000;
+			event[1].code = 0x00000000;
+			event[1].value = 0x00000000;
 			
 			processEventsLocked(event,2);
-		
+			
 			once = false;
-		}		
+		}
 		/*====================================================*/
 
         if (mNextTimeout != LLONG_MAX) {
@@ -369,100 +384,113 @@ void InputReader::loopOnce() {
 }
 /* added */
 void InputReader::virtualDeviceEvent(int32_t event_type, int32_t event_code, float value_1, float value_2){
-	ALOGD("native Test call type = %d , code = %d , value_1 = %f, value_2 = %f",event_type,event_code,value_1,value_2);	
+	//ALOGD("native Test call type = %d , code = %d , value_1 = %f, value_2 = %f",event_type,event_code,value_1,value_2);	
 	ssize_t deviceIndex ;
 	InputDevice* device ;
 	RawEvent event[5];
+	int32_t Key_number = (int32_t)value_1; 
 	
 	switch(event_type)
 	{
 		case KEYBOARD_EVENT:		
-			ALOGD("native : keyboard event");
-			deviceIndex = mDevices.indexOfKey((int32_t)21);
+			//ALOGD("native : keyboard event");
+			deviceIndex = mDevices.indexOfKey((int32_t)dev_number);
 			device = mDevices.valueAt(deviceIndex);
 				
 			if(event_code == KEYBOARD_KEY)
 			{
 				if(keyboard_once)
-				{
+				{					
+					/* device change event */
+			
 					event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
-					event[0].deviceId = (int32_t)21;
-					event[0].type = 0x00000014;
+					event[0].deviceId = (int32_t)6;
+					event[0].type = 0x30000000;
 					event[0].code = 0x00000000;
 					event[0].value = 0x00000000;
+					
+					processEventsLocked(event,1);						
+										
+					virtual_event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
+					virtual_event[0].deviceId = (int32_t)dev_number;
+					virtual_event[0].type = 0x00000014;
+					virtual_event[0].code = 0x00000000;
+					virtual_event[0].value = 0x00000000;
 
-					event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
-					event[1].deviceId = (int32_t)21;
-					event[1].type = 0x00000014;
-					event[1].code = 0x00000001;
-					event[1].value = 0x00000000;
+					virtual_event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
+					virtual_event[1].deviceId = (int32_t)dev_number;
+					virtual_event[1].type = 0x00000014;
+					virtual_event[1].code = 0x00000001;
+					virtual_event[1].value = 0x00000000;
 
-					event[2].when = systemTime(SYSTEM_TIME_MONOTONIC);
-					event[2].deviceId = (int32_t)21;
-					event[2].type = 0x00000004;
-					event[2].code = 0x00000004;
-					event[2].value = 0x00070009;
+					virtual_event[2].when = systemTime(SYSTEM_TIME_MONOTONIC);
+					virtual_event[2].deviceId = (int32_t)dev_number;
+					virtual_event[2].type = 0x00000004;
+					virtual_event[2].code = 0x00000004;
+					virtual_event[2].value = 0x00070004;
 					
-					event[3].when = systemTime(SYSTEM_TIME_MONOTONIC);
-					event[3].deviceId = (int32_t)21;
-					event[3].type = 0x00000001;
-					event[3].code = 0x00000021;
-					event[3].value = 0x00000001;
+					virtual_event[3].when = systemTime(SYSTEM_TIME_MONOTONIC);
+					virtual_event[3].deviceId = (int32_t)dev_number;
+					virtual_event[3].type = 0x00000001;
+					virtual_event[3].code = Key_number;
+					virtual_event[3].value = 0x00000001;
 					
-					event[4].when = systemTime(SYSTEM_TIME_MONOTONIC);
-					event[4].deviceId = (int32_t)21;
-					event[4].type = 0x00000000;
-					event[4].code = 0x00000000;
-					event[4].value = 0x00000000;
+					virtual_event[4].when = systemTime(SYSTEM_TIME_MONOTONIC);
+					virtual_event[4].deviceId = (int32_t)dev_number;
+					virtual_event[4].type = 0x00000000;
+					virtual_event[4].code = 0x00000000;
+					virtual_event[4].value = 0x00000000;
 					
-				
-					device->process(event, 5);	
+					processEventsLocked(&virtual_event[0] ,5);
+					//device.process(event, 5);	
 					keyboard_once = false;
 				}				
 				else {
-					event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
-					event[0].deviceId = (int32_t)21;
-					event[0].type = 0x00000004;
-					event[0].code = 0x00000004;
-					event[0].value = 0x00070009;
+					virtual_event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
+					virtual_event[0].deviceId = (int32_t)dev_number;
+					virtual_event[0].type = 0x00000004;
+					virtual_event[0].code = 0x00000004;
+					virtual_event[0].value = 0x00070004;
 					
-					event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
-					event[1].deviceId = (int32_t)21;
-					event[1].type = 0x00000001;
-					event[1].code = 0x00000021;
-					event[1].value = 0x00000001;
+					virtual_event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
+					virtual_event[1].deviceId = (int32_t)dev_number;
+					virtual_event[1].type = 0x00000001;
+					virtual_event[1].code = Key_number;
+					virtual_event[1].value = 0x00000001;
 					
-					event[2].when = systemTime(SYSTEM_TIME_MONOTONIC);
-					event[2].deviceId = (int32_t)21;
-					event[2].type = 0x00000000;
-					event[2].code = 0x00000000;
-					event[2].value = 0x00000000;
+					virtual_event[2].when = systemTime(SYSTEM_TIME_MONOTONIC);
+					virtual_event[2].deviceId = (int32_t)dev_number;
+					virtual_event[2].type = 0x00000000;
+					virtual_event[2].code = 0x00000000;
+					virtual_event[2].value = 0x00000000;
 		
-					device->process(event, 3);	
-				
+					processEventsLocked(&virtual_event[0] ,3);
+					//device.process(event, 3);					
 				}
 			}
 			else if(event_code == KEYBOARD_UNKEY)
 			{
-				event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
-				event[0].deviceId = (int32_t)21;
-				event[0].type = 0x00000004;
-				event[0].code = 0x00000004;
-				event[0].value = 0x00070009;
+				virtual_event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
+				virtual_event[0].deviceId = (int32_t)dev_number;
+				virtual_event[0].type = 0x00000004;
+				virtual_event[0].code = 0x00000004;
+				virtual_event[0].value = 0x00070004;
 				
-				event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
-				event[1].deviceId = (int32_t)21;
-				event[1].type = 0x00000001;
-				event[1].code = 0x00000021;
-				event[1].value = 0x00000000;
+				virtual_event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
+				virtual_event[1].deviceId = (int32_t)dev_number;
+				virtual_event[1].type = 0x00000001;
+				virtual_event[1].code = Key_number;
+				virtual_event[1].value = 0x00000000;
 				
-				event[2].when = systemTime(SYSTEM_TIME_MONOTONIC);
-				event[2].deviceId = (int32_t)21;
-				event[2].type = 0x00000000;
-				event[2].code = 0x00000000;
-				event[2].value = 0x00000000;
+				
+				virtual_event[2].when = systemTime(SYSTEM_TIME_MONOTONIC);
+				virtual_event[2].deviceId = (int32_t)dev_number;
+				virtual_event[2].type = 0x00000000;
+				virtual_event[2].code = 0x00000000;
+				virtual_event[2].value = 0x00000000;
 	
-				device->process(event, 3);	
+				processEventsLocked(&virtual_event[0] ,3);
+				//device->process(event, 3);	
 			}
 			
 			
@@ -474,7 +502,7 @@ void InputReader::virtualDeviceEvent(int32_t event_type, int32_t event_code, flo
 			
 			if(event_code == MOUSE_MOVE)	//when mouse move event
 			{
-				ALOGD("native : mouse event");
+				//ALOGD("native : mouse event");
 				event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
 				event[0].deviceId = (int32_t)20;
 				event[0].type = 0x00000002;
@@ -499,7 +527,7 @@ void InputReader::virtualDeviceEvent(int32_t event_type, int32_t event_code, flo
 			}
 			else if(event_code == MOUSE_L_CLICK)	//when mouse left click event
 			{
-				ALOGD("native : mouse left click event");
+			//	ALOGD("native : mouse left click event");
 				event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
 				event[0].deviceId = (int32_t)20;
 				event[0].type = 0x00000004;
@@ -524,7 +552,7 @@ void InputReader::virtualDeviceEvent(int32_t event_type, int32_t event_code, flo
 			}
 			else if(event_code == MOUSE_R_CLICK)	//when mouse right click event
 			{
-				ALOGD("native : mouse right click event");
+				//ALOGD("native : mouse right click event");
 				event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
 				event[0].deviceId = (int32_t)20;
 				event[0].type = 0x00000004;
@@ -659,31 +687,29 @@ void InputReader::processEventsLocked( RawEvent* rawEvents, size_t count) {
 #if DEBUG_RAW_EVENTS
             ALOGD("BatchSize: %d Count: %d", batchSize, count);
 #endif
-	
+			
+			/* ADDED  dhuck*/
 			// 테스트를 위해 터치 이벤트 발생시 마우스 이동 이벤트 생성하여 실행 
 			if(rawEvent[0].deviceId == (int32_t)6 && rawEvent[0].type == 0x00000003 && rawEvent[0].code == 0x00000039 &&
 				rawEvent[1].deviceId == (int32_t)6 && rawEvent[1].type == 0x00000000 && rawEvent[1].code == 0x00000000)
 			{	
-				/*
-				if(click_once > 100 )
-				{
-					// (MOUSE_EVENT, MOUSE_L_CLICK, 300, 300);
-					//virtualDeviceEvent(MOUSE_EVENT, MOUSE_L_UNCLICK, 100, 100);
-					//click_once = false;
-				}
-				//virtualDeviceEvent(MOUSE_EVENT, MOUSE_L_CLICK, 100, 100);
 				
-				click_once ++;
-				*/
-				//virtualDeviceEvent(KEYBOARD_EVENT, KEYBOARD_KEY, 300, 300);
-				//virtualDeviceEvent(KEYBOARD_EVENT, KEYBOARD_UNKEY, 300, 300);
-			}
+				if(click_count == 10)
+				{
+					
+					
+								
+				}
+				else if(click_count >10)
+				{			
+				   ALOGD("call keyboard");
+					virtualDeviceEvent(KEYBOARD_EVENT, KEYBOARD_KEY, char_num, 300);
+					virtualDeviceEvent(KEYBOARD_EVENT, KEYBOARD_UNKEY, char_num++, 300);	
+				}
 			
-				//	device->process(event, 3);			
-	
-			
-			 /*==================================== */
-			 
+				click_count++;
+				
+			}		 
 
 			processEventsForDeviceLocked(deviceId, rawEvent, batchSize);
 			
@@ -697,6 +723,15 @@ void InputReader::processEventsLocked( RawEvent* rawEvents, size_t count) {
                  ALOGD("**************** ADD event: device=%d type=0x%04x code=0x%04x value=0x%08x when=%lld",
                 rawEvent->deviceId, rawEvent->type, rawEvent->code, rawEvent->value,
                 rawEvent->when);
+                 ALOGD("**************** ADD event[0]: device=%d type=0x%04x code=0x%04x value=0x%08x when=%lld",
+                rawEvent[0].deviceId, rawEvent[0].type, rawEvent[0].code, rawEvent[0].value,
+                rawEvent[0].when);
+                ALOGD("**************** ADD event[1]: device=%d type=0x%04x code=0x%04x value=0x%08x when=%lld",
+                rawEvent[1].deviceId, rawEvent[1].type, rawEvent[1].code, rawEvent[1].value,
+                rawEvent[1].when);
+                ALOGD("**************** ADD event[2]: device=%d type=0x%04x code=0x%04x value=0x%08x when=%lld",
+                rawEvent[2].deviceId, rawEvent[2].type, rawEvent[2].code, rawEvent[2].value,
+                rawEvent[2].when);
                  /* ==================================== */
                 break;
             case EventHubInterface::DEVICE_REMOVED:
@@ -2446,6 +2481,8 @@ void KeyboardInputMapper::reset(nsecs_t when) {
     InputMapper::reset(when);
 }
 
+//작업중
+
 void KeyboardInputMapper::process(const RawEvent* rawEvent) {
     switch (rawEvent->type) {
     case EV_KEY: {
@@ -2460,6 +2497,8 @@ void KeyboardInputMapper::process(const RawEvent* rawEvent) {
                 keyCode = AKEYCODE_UNKNOWN;
                 flags = 0;
             }
+            ALOGI("flag -----> %d",flags);
+ //           keyCode = AKEYCODE_A;
             processKey(rawEvent->when, rawEvent->value != 0, keyCode, scanCode, flags);
         }
         break;
@@ -2487,6 +2526,7 @@ bool KeyboardInputMapper::isKeyboardOrGamepadKey(int32_t scanCode) {
 
 void KeyboardInputMapper::processKey(nsecs_t when, bool down, int32_t keyCode,
         int32_t scanCode, uint32_t policyFlags) {
+ 
 
     if (down) {
         // Rotate key codes according to orientation if needed.
@@ -2557,10 +2597,16 @@ void KeyboardInputMapper::processKey(nsecs_t when, bool down, int32_t keyCode,
     if (down && !isMetaKey(keyCode)) {
         getContext()->fadePointer();
     }
-
+    
+    /* added */
+	ALOGI("Arguments  "
+                    "deviceId = %d, source = %d, policyflags = %d, action = %d, keyCode=%d, scanCode=%d, newMetaState = %d",
+                     getDeviceId(), mSource, policyFlags,  down ? AKEY_EVENT_ACTION_DOWN : AKEY_EVENT_ACTION_UP, keyCode, scanCode, newMetaState);
     NotifyKeyArgs args(when, getDeviceId(), mSource, policyFlags,
             down ? AKEY_EVENT_ACTION_DOWN : AKEY_EVENT_ACTION_UP,
             AKEY_EVENT_FLAG_FROM_SYSTEM, keyCode, scanCode, newMetaState, downTime);
+            
+
     getListener()->notifyKey(&args);
 }
 

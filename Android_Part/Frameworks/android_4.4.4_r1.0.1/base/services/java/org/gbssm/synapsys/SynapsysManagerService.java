@@ -199,14 +199,7 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
         Intent intent = new Intent(SynapsysManager.BROADCAST_ACTION_SYNAPSYS);
         intent.putExtra(SynapsysManager.BROADCAST_EXTRA_USB_READY, usb);
         intent.putExtra(SynapsysManager.BROADCAST_EXTRA_PC_READY, pc);
-        intent.putExtra(SynapsysManager.BROADCAST_EXTRA_CONNECTION, connection);
-
-	/* added by dhuck	*/
-		jnicall(0, 0, 0, 0 );
-	//	jnicall(0, 1, 0, 0 );
-		//jnicall(1, 1, 100, 100 );
-		//jnicall(1, 3, 100, 100 );
-	/* ==================================== */
+        intent.putExtra(SynapsysManager.BROADCAST_EXTRA_CONNECTION, connection);	
         mContext.sendStickyBroadcastAsUser(intent, UserHandle.ALL);
 	}
 	
