@@ -1,22 +1,19 @@
 package org.gbssm.synapsys;
 
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.ServerSocket;
-import java.net.Socket;
 
 import org.gbssm.synapsys.SynapsysManagerService.SynapsysHandler;
 
+import com.android.server.am.ActivityManagerService;
+import com.android.server.pm.PackageManagerService;
+
 import android.content.Context;
 import android.content.Intent;
-import android.hardware.usb.UsbManager;
+import android.hardware.input.InputManager;
 import android.os.Handler;
 import android.os.Message;
 import android.os.RemoteException;
-import android.os.SystemProperties;
+import android.os.ServiceManager;
 import android.os.UserHandle;
 import android.util.Slog;
 import android.hardware.input.InputManager;
@@ -44,6 +41,10 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	final Context mContext;
 	
 	private boolean isServiceRunning;
+
+	private InputManager mInputManager;
+	private PackageManagerService mPackage;
+	private ActivityManagerService mActivityService;
 	
 	private ConnectionDetector mConnectionDetector;
 	private SynapsysControlThread mControlThread;
@@ -84,6 +85,15 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 		return false;
 	}
 	
+	public boolean invokeAllTaskInfo() {
+		
+		
+		MediaProtocol message = new MediaProtocol();
+		
+		mMediaThread.send(message);
+		return false;
+	}
+	
 	public boolean invokeTaskInfoEvents() throws RemoteException {
 		// TODO : WIndows PC로 Task-Info Event 전송.
 		return false;
@@ -103,10 +113,14 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 		Slog.v(TAG, "interpolateKeyboardEvent : event=" + event_id + " / keyCode=" + key_code);
 		return false;
 	}
+<<<<<<< HEAD
+=======
+
+>>>>>>> refs/remotes/origin/yeonho
 	/* by dhuck. added */	
 	private void jnicall(int event_type,int event_code, float value_1, float value_2 ) {
 		Slog.i("SynapsysManagerService","framework : JNI CALL test ");
-		im.Event_Receive(event_type,event_code,value_1,value_2);
+		mInputManager.Event_Receive(event_type,event_code,value_1,value_2);
 	}
 	
 	public boolean interpolateNotificationEvent() throws RemoteException {
@@ -148,11 +162,21 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 		systemStop();
 		broadcastSynapsysState(false, false, false);
 	}
+
+	void init() {
+		mInputManager = (InputManager) mContext.getSystemService(Context.INPUT_SERVICE);
+		
+		
+		mActivityService = (ActivityManagerService) ServiceManager.getService(Context.ACTIVITY_SERVICE);
+		
+	}
 	
 	/**
 	 * System Phase-1 Ready : {@link ConnectionDetector} start.
 	 */
 	void systemReady() {
+		init();
+		
 		isServiceRunning = true;
 		mConnectionDetector = ConnectionDetector.getInstance(new SynapsysHandler());
 		

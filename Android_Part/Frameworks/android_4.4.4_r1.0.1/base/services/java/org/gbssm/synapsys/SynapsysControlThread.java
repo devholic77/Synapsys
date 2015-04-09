@@ -132,6 +132,7 @@ public class SynapsysControlThread extends SynapsysThread {
 				byte[] bytes = new byte[ControlProtocol.MSG_SIZE];
 				try {
 					Log.d(TAG, "ControlThread_Received!" + mDIS.read(bytes));
+					Log.d(TAG, "ControlThread_Message = " + new String(bytes, "UTF-8"));
 	
 					ControlProtocol<?, ?, ?>[] protocols = ControlProtocol.decode(bytes);
 					

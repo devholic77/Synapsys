@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 import org.gbssm.synapsys.SynapsysManagerService.SynapsysHandler;
 
+import android.graphics.Bitmap;
 import android.os.RemoteException;
 import android.util.Slog;
 
@@ -331,21 +332,93 @@ class ControlProtocol<V1, V2, V3> extends MessageProtocol {
  *
  */
 class MediaProtocol extends MessageProtocol {
-	// TODO Auto-generated constructor stub
 
 	// *** CONSTANTS PART *** //
 	public static final int MSG_SIZE = 128;
 
+	public static final String START = "#";
 	
+	public static final String SPLITTER = ":";
+	
+	public static final String COMMA = ",";
+	
+	public static final String END = "$";
+	
+	
+	public static final int STATE_FINISHED = 0;
+	
+	public static final int STATE_TOP = 1;
+	
+	public static final int STATE_PREVIOUS_TOP = 2;
+
 	
 	// *** MEMBER PART *** //
+	int state;
+	
+	int appID;
+	
+	String appName;
+	
+	Bitmap icon;
+	
+	int iconFrom = 0;
+	
+	int iconTo;
+	
+	Bitmap thumbnail;
+	
+	int thumbnailFrom;
+	
+	int thumbnailTo;
+	
+	
 	MediaProtocol() {
+		
+		// DUMMY TEST DATA
+		state = 1;
+		appID = 2;
+		appName = "TestSynapsys";
+		iconFrom = 0;
+		iconTo = "icon".length() -1;
+		thumbnailFrom = "icon".length();
+		thumbnailTo = thumbnailFrom + "thumbnail".length() -1;
+		
+	}
+	
+	public void putIcon(Bitmap icon) {
+		if (icon == null)
+			return ;
+		
+		this.icon = icon;
+		this.iconTo = icon.getByteCount()-1;
+		this.thumbnailFrom = icon.getByteCount();
+		this.thumbnailTo += thumbnailFrom;
+	}
+	
+	public void putThumbnail(Bitmap thumbnail) {
+		if (thumbnail == null)
+			return;
+		
+		this.thumbnail = thumbnail;
+		this.thumbnailTo = thumbnailFrom + thumbnail.getByteCount()-1;
 	}
 	
 	@Override
 	public byte[] encode() {
+		StringBuilder builder = new StringBuilder(START);
+		builder.append(state).append(SPLITTER);
+		builder.append(appID).append(SPLITTER);
+		builder.append(appName).append(SPLITTER);
+		builder.append(iconFrom).append(COMMA).append(iconTo).append(SPLITTER);
+		builder.append(thumbnailFrom).append(COMMA).append(thumbnailTo);
+		builder.append(END);
 		
-		return null;
+		byte[] header = builder.toString().getBytes();
+		
+		return ByteBuffer.allocate(header.length + thumbnailTo + 1)
+					.put(header)
+					.put("icon".getBytes())
+					.put("thumbnail".getBytes()).array();
 	}
 
 	
