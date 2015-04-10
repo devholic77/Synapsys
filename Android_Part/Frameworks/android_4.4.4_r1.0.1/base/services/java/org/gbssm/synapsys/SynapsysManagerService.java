@@ -70,12 +70,12 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	
 	public boolean invokeMouseEventFromTouch(int event_id, float event_x, float event_y) throws RemoteException {
 		// Windows PC로 Touch Event 전송.
-		Slog.v(TAG, "invokeMouseEventFromTouch : event=" + event_id + " / x=" + event_x + " / y=" + event_y);
-		//jnicall(1, 0, event_x, event_y );
+		Slog.v(TAG, "invokeMouseEventFromTouch : event=" + event_id + " / x=" + event_x + " / y=" + event_y);	
 		return false;
 	}
 	
 	public boolean invokeKeyboardEvent(int event_id, int key_code) throws RemoteException {
+		//	TODO: nputmanager의 Event_Receive 함수를 통해 Native level로 이벤트 전달 			
 		Slog.v(TAG, "invokeKeyboardEvent : event=" + event_id + " / keyCode=" + key_code);
 		return false;
 	}
@@ -111,16 +111,16 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	public boolean interpolateKeyboardEvent(int event_id, int key_code) throws RemoteException { 
 		//  TODO : Windows PC로부터 Keyboard Event 받기.
 		Slog.v(TAG, "interpolateKeyboardEvent : event=" + event_id + " / keyCode=" + key_code);
+		// 윈도우에서 받는 이벤트 전달 함수 호출 
+		jnicall(TYPE_KEYBOARD,key_code, event_x, event_y );
 		return false;
 	}
-<<<<<<< HEAD
-=======
-
->>>>>>> refs/remotes/origin/yeonho
-	/* by dhuck. added */	
+	
 	private void jnicall(int event_type,int event_code, float value_1, float value_2 ) {
+		//	TODO: nputmanager의 Event_Receive 함수를 통해 Native level로 이벤트 전달 
 		Slog.i("SynapsysManagerService","framework : JNI CALL test ");
-		mInputManager.Event_Receive(event_type,event_code,value_1,value_2);
+		// InputManager 이벤트 전달 함수 호출 
+		mInputManager.Event_Receive(event_type,event_code,value_1,value_2);		
 	}
 	
 	public boolean interpolateNotificationEvent() throws RemoteException {
