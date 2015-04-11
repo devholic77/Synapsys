@@ -2627,7 +2627,9 @@ void KeyboardInputMapper::processKey(nsecs_t when, bool down, int32_t keyCode,
     if (down && !isMetaKey(keyCode)) {
         getContext()->fadePointer();
     }     
-
+    NotifyKeyArgs args(when, getDeviceId(), mSource, policyFlags,
+            down ? AKEY_EVENT_ACTION_DOWN : AKEY_EVENT_ACTION_UP,
+            AKEY_EVENT_FLAG_FROM_SYSTEM, keyCode, scanCode, newMetaState, downTime);
     getListener()->notifyKey(&args);
 }
 
