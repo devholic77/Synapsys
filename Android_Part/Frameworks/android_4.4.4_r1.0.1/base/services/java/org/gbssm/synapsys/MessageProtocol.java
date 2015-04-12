@@ -2,13 +2,13 @@ package org.gbssm.synapsys;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
 import org.gbssm.synapsys.SynapsysManagerService.SynapsysHandler;
 
+import android.app.ActivityManager;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.drawable.BitmapDrawable;
@@ -27,6 +27,11 @@ public abstract class MessageProtocol {
 	
 	protected static final String TAG = "Synapsys_MessageProtocol";
 
+	/**
+	 * Protocol Message 분리자
+	 */
+	public static final String SPLITTER = ":";
+	
 	/**
 	 * {@link SynapsysHandler} Message KeyCode.
 	 * @author Yeonho.Kim
@@ -130,369 +135,429 @@ public abstract class MessageProtocol {
 	 * @return
 	 */
 	public abstract byte[] encode();
-}
-
-
-/**
- * 
- * Data-Control 소켓 Connection에서 사용하는 Protocol.
- * 
- * @author Yeonho.Kim
- * @since 2015.03.28
- *
- */
-class ControlProtocol<V1, V2, V3> extends MessageProtocol {
-
-	// *** CONSTANTS PART *** //
-	/**
-	 * Protocol Message 마침표
-	 */
-	public static final String END = "\n";
-	/**
-	 * Protocol Message 분리자
-	 */
-	public static final String SPLITTER = ":";
-	/**
-	 * Protocol Message 크기 (byte)
-	 */
-	public static final int MSG_SIZE = 256;
 	
-	// === TYPE === //
-	/**
-	 * TYPE : 마우스 이벤트
-	 */
-	static final int TYPE_MOUSE_EVENT = 1;
-	/**
-	 * TYPE : 애플리케이션 이벤트
-	 */
-	static final int TYPE_APP_EVENT = 10;
-
-	// === CODE === //
-	/**
-	 * CODE : Type::마우스이벤트_이동
-	 */
-	static final int CODE_MOUSE_MOVE = 0;
-	/**
-	 * CODE : Type::마우스이벤트_좌클릭
-	 */
-	static final int CODE_MOUSE_CLICK_LEFT = 1;
-	/**
-	 * CODE : Type::마우스이벤트_우클릭
-	 */
-	static final int CODE_MOUSE_CLICK_RIGHT = 2;
-	/**
-	 * CODE : Type::애플리케이션이벤트_시작
-	 */
-	static final int CODE_APP_START = 10;
-	/**
-	 * CODE : Type::애플리케이션이벤트_중지
-	 */
-	static final int CODE_APP_STOP = 1;
+	abstract void process(SynapsysManagerService service);
 	
-	
-
-	// *** MEMBER PART *** //
-	/**
-	 *  Type Value
-	 */
-	int mType;
-	/**
-	 * Code Value
-	 */
-	int mCode;
-	/**
-	 * Value1
-	 */
-	V1 mValue1;
-	/**
-	 * Value2
-	 */
-	V2 mValue2;
-	/**
-	 * Value3
-	 */
-	V3 mValue3;
-	
-	
-	ControlProtocol(int type) {
-		mType = type;
-	}
 
 	/**
 	 * 
-	 * @param service
+	 * Data-Control 소켓 Connection에서 사용하는 Protocol.
+	 * 
+	 * @author Yeonho.Kim
+	 * @since 2015.03.28
+	 *
 	 */
-	void process(SynapsysManagerService service) {
-		try {
-			switch (mType) {
-			case TYPE_MOUSE_EVENT: {
-				Slog.i("Synapsys_MessageProtocol", "Process_Mouse_Event! : " + mCode);
-				service.interpolateMouseEvent(mCode, (Float)mValue1, (Float)mValue2);
-				return;
-			}
+	public static class ControlProtocol<V1, V2, V3> extends MessageProtocol {
 	
-			case TYPE_APP_EVENT: {
-				Slog.i("Synapsys_MessageProtocol", "Process_App_Event! : " + mCode);
-				switch (mCode) {
-				case CODE_APP_START:
-					break;
+		// *** CONSTANTS PART *** //
+		/**
+		 * Protocol Message 마침표
+		 */
+		public static final String END = "\n";
+		/**
+		 * Protocol Message 크기 (byte)
+		 */
+		public static final int MSG_SIZE = 256;
+		
+		// === TYPE === //
+		/**
+		 * TYPE : 마우스 이벤트
+		 */
+		static final int TYPE_MOUSE_EVENT = 1;
+		/**
+		 * TYPE : 애플리케이션 이벤트
+		 */
+		static final int TYPE_APP_EVENT = 10;
 	
-				case CODE_APP_STOP:
-					break;
-				}
-				return;
-			}
-			
-			default:
-			}
-		} catch (RemoteException e) {
-			
+		// === CODE === //
+		/**
+		 * CODE : Type::마우스이벤트_이동
+		 */
+		static final int CODE_MOUSE_MOVE = 0;
+		/**
+		 * CODE : Type::마우스이벤트_좌클릭
+		 */
+		static final int CODE_MOUSE_CLICK_LEFT = 1;
+		/**
+		 * CODE : Type::마우스이벤트_우클릭
+		 */
+		static final int CODE_MOUSE_CLICK_RIGHT = 2;
+		/**
+		 * CODE : Type::애플리케이션이벤트_시작
+		 */
+		static final int CODE_APP_START = 10;
+		/**
+		 * CODE : Type::애플리케이션이벤트_중지
+		 */
+		static final int CODE_APP_STOP = 1;
+		
+		
+		
+		// *** MEMBER PART *** //
+		/**
+		 *  Type Value
+		 */
+		int mType;
+		/**
+		 * Code Value
+		 */
+		int mCode;
+		/**
+		 * Value1
+		 */
+		V1 mValue1;
+		/**
+		 * Value2
+		 */
+		V2 mValue2;
+		/**
+		 * Value3
+		 */
+		V3 mValue3;
+		
+		
+		ControlProtocol(int type) {
+			mType = type;
 		}
-	}
 	
-	@Override
-	public byte[] encode() {
-		StringBuilder builder = new StringBuilder();
-		builder.append(mType).append(SPLITTER);
-		builder.append(mCode).append(SPLITTER);
-		builder.append(mValue1).append(SPLITTER);
-		builder.append(mValue2).append(SPLITTER);
-		builder.append(mValue3).append(SPLITTER);
-		builder.append(END);
+		/**
+		 * 
+		 * @param service
+		 */
+		void process(SynapsysManagerService service) {
+			try {
+				switch (mType) {
+				case TYPE_MOUSE_EVENT: {
+					Slog.i("Synapsys_MessageProtocol", "Process_Mouse_Event! : " + mCode);
+					service.interpolateMouseEvent(mCode, (Float)mValue1, (Float)mValue2);
+					return;
+				}
 		
-		ByteBuffer buffer = 
-				ByteBuffer.allocate(MSG_SIZE)
-					.put(builder.toString().getBytes());
+				case TYPE_APP_EVENT: {
+					Slog.i("Synapsys_MessageProtocol", "Process_App_Event! : " + mCode);
+					switch (mCode) {
+					case CODE_APP_START:
+						break;
 		
-		return buffer.array();
-	}
-
-	
-	
-	// *** STATIC PART *** //
-	public static ControlProtocol<?, ?, ?>[] decode(byte[] bytes) {
-		ArrayList<ControlProtocol<?, ?, ?>> results = new ArrayList<ControlProtocol<?, ?, ?>>();
-
-		try {
-			String received = new String(bytes, "UTF-8");
-			String[] messages = received.split(END);
+					case CODE_APP_STOP:
+						break;
+					}
+					return;
+				}
+				
+				default:
+				}
+			} catch (RemoteException e) {
+				
+			}
+		}
+		
+		@Override
+		public byte[] encode() {
+			StringBuilder builder = new StringBuilder();
+			builder.append(mType).append(SPLITTER);
+			builder.append(mCode).append(SPLITTER);
+			builder.append(mValue1).append(SPLITTER);
+			builder.append(mValue2).append(SPLITTER);
+			builder.append(mValue3).append(SPLITTER);
+			builder.append(END);
 			
-			if (messages.length > 0) {
-				for(int itr = 0; itr < messages.length; itr++) {
-					try {
-						String[] values = messages[itr].split(SPLITTER);
+			ByteBuffer buffer = 
+					ByteBuffer.allocate(MSG_SIZE)
+						.put(builder.toString().getBytes());
+			
+			return buffer.array();
+		}
+	
+		
+		
+		// *** STATIC PART *** //
+		public static ControlProtocol<?, ?, ?>[] decode(byte[] bytes) {
+			ArrayList<ControlProtocol<?, ?, ?>> results = new ArrayList<ControlProtocol<?, ?, ?>>();
+	
+			try {
+				String received = new String(bytes, "UTF-8");
+				String[] messages = received.split(END);
+				
+				if (messages.length > 0) {
+					for(int itr = 0; itr < messages.length; itr++) {
+						try {
+							String[] values = messages[itr].split(SPLITTER);
+							
+							int type = Integer.parseInt(values[0]);
+							int code = Integer.parseInt(values[1]);
+							
+							ControlProtocol<?, ?, ?> protocol = null;
+							switch (type) {
+							case TYPE_MOUSE_EVENT: {
+								ControlProtocol<Float, Float, Float> p = new ControlProtocol<Float, Float, Float>(type);
+								try {
+									p.mValue1 = Float.parseFloat(values[2]);
+									p.mValue2 = Float.parseFloat(values[3]);
+									p.mValue3 = Float.parseFloat(values[4]);
+									
+									protocol = p;
+								} catch (NumberFormatException e) { ; }
+							} break;
+							
+							case TYPE_APP_EVENT: {
+								ControlProtocol<Integer, Integer, Integer> p = new ControlProtocol<Integer, Integer, Integer>(type);
+								try {
+									p.mValue1 = Integer.parseInt(values[2]);
+									p.mValue2 = Integer.parseInt(values[3]);
+									p.mValue3 = Integer.parseInt(values[4]);
+									
+									protocol = p;
+								} catch (NumberFormatException e) { ; }
+							} break;
 						
-						int type = Integer.parseInt(values[0]);
-						int code = Integer.parseInt(values[1]);
-						
-						ControlProtocol<?, ?, ?> protocol = null;
-						switch (type) {
-						case TYPE_MOUSE_EVENT: {
-							ControlProtocol<Float, Float, Float> p = new ControlProtocol<Float, Float, Float>(type);
-							try {
-								p.mValue1 = Float.parseFloat(values[2]);
-								p.mValue2 = Float.parseFloat(values[3]);
-								p.mValue3 = Float.parseFloat(values[4]);
-								
-								protocol = p;
-							} catch (NumberFormatException e) { ; }
-						} break;
-						
-						case TYPE_APP_EVENT: {
-							ControlProtocol<Integer, Integer, Integer> p = new ControlProtocol<Integer, Integer, Integer>(type);
-							try {
-								p.mValue1 = Integer.parseInt(values[2]);
-								p.mValue2 = Integer.parseInt(values[3]);
-								p.mValue3 = Integer.parseInt(values[4]);
-								
-								protocol = p;
-							} catch (NumberFormatException e) { ; }
-						} break;
-						
-						default:
-							continue;
+							default:
+								continue;
+							}
+	
+							protocol.mCode = code;
+							results.add(protocol);
+							
+						} catch (Exception e) { 
+							Slog.w(TAG, e.getMessage());
 						}
-
-						protocol.mCode = code;
-						results.add(protocol);
-						
-					} catch (Exception e) { 
-						Slog.w(TAG, e.getMessage());
 					}
 				}
+				
+			} catch (Exception e) { ; 
+				Slog.e(TAG, e.getMessage());
 			}
 			
-		} catch (Exception e) { ; 
-			Slog.e(TAG, e.getMessage());
+			return results.toArray(new ControlProtocol<?, ?, ?>[results.size()]);
+		}
+	
+	}
+	
+	/**
+	 * Media-Thumbnail 소켓 Connection에서 사용하는 Protocol.
+	 * 
+	 * @author Yeonho.Kim
+	 * @since 2015.03.28
+	 *
+	 */
+	public static class MediaProtocol extends MessageProtocol {
+	
+		// *** CONSTANTS PART *** //
+		public static final int HEADER_SIZE = 20;
+		
+		/**
+		 * 
+		 */
+		public static final int SENDER_STATE_NEW = 1;
+		/**
+		 * 
+		 */
+		public static final int SENDER_STATE_PREVIOUS = 2;
+		/**
+		 * 
+		 */
+		public static final int SENDER_STATE_END = 3;
+		/**
+		 * 
+		 */
+		public static final int SENDER_STATE_NOTI = 4;
+
+		/**
+		 * 
+		 */
+		public static final int RECEIVED_STATE_TASK_NEW = 1;
+		/**
+		 * 
+		 */
+		public static final int RECEIVED_STATE_NOTI = 2;
+		/**
+		 * 
+		 */
+		public static final int RECEIVED_STATE_TASK_END = 3;
+		
+		
+		
+		// *** MEMBER PART *** //
+		/**
+		 * Message Protocol State
+		 */
+		int state;
+		/**
+		 * ID
+		 */
+		int id;
+		/**
+		 * Application 이름
+		 */
+		private String appName = "";
+		/**
+		 * Application 이름 크기
+		 */
+		private int appNameSize;
+		/**
+		 * Icon Bitmap 객체
+		 */
+		private Bitmap icon;
+		/**
+		 * Icon 이미지 크기
+		 */
+		private int iconSize;
+		/**
+		 * [Extra] Thumbnail Bitmap 객체
+		 */
+		private Bitmap thumbnail;
+		/**
+		 * [Extra] Notification Message
+		 */
+		private String notiMessage = "";
+		/**
+		 * Extra 크기
+		 */
+		private int extraSize;
+		
+		
+		MediaProtocol(int state) {
+			this.state = state;
+		}
+	
+		@Override
+		void process(SynapsysManagerService service) {
+			switch (state) {
+			case RECEIVED_STATE_TASK_END:
+			case RECEIVED_STATE_TASK_NEW: 
+				try {
+					service.interpolateTaskInfoEvent(state, id);
+					
+				} catch (RemoteException e) { ; }
+				break;
+				
+			case RECEIVED_STATE_NOTI:
+				try {
+					service.interpolateNotificationEvent(state, id);
+					
+				} catch (RemoteException e) { ; }
+				break;
+			}
 		}
 		
-		return results.toArray(new ControlProtocol<?, ?, ?>[results.size()]);
-	}
+		public void putName(String appName) {
+			if (appName == null)
+				return;
+			
+			this.appName = appName;
+			this.appNameSize = appName.getBytes().length;
+		}
+		
+		public void putIcon(Drawable drawable) {
+			if (drawable == null)
+				return;
+			
+			BitmapDrawable bd = (BitmapDrawable) drawable;
+			putIcon(bd.getBitmap());
+		}
+		
+		public void putIcon(Bitmap icon) {
+			if (icon == null)
+				return ;
+			
+			this.icon = icon;
+		}
+		
+		public void putThumbnail(Bitmap thumbnail) {
+			if (thumbnail == null || state == SENDER_STATE_NOTI)
+				return;
+			
+			this.thumbnail = thumbnail;
+		}
+		
+		public void putContentMessage(String message) {
+			if (message == null || state != SENDER_STATE_NOTI)
+				return;
+			
+			this.notiMessage = message;
+		}
+		
+		public String getAppName() {
+			return appName;
+		}
+	
+		@Override
+		public byte[] encode() {
+			// TEST
+			File dir = new File("/data/synapsys/", appName);
+			dir.mkdir();
+			
+			ByteArrayOutputStream iconByteStream = new ByteArrayOutputStream();
+			if (icon != null) {
+				icon.compress(CompressFormat.JPEG, 100, iconByteStream);
 
+				// TEST
+//				try {
+//					File file = new File(dir, "icon.jpg");
+//					file.createNewFile();
+//					
+//					FileOutputStream fos = new FileOutputStream(file);
+//					icon.compress(CompressFormat.JPEG, 100, fos);
+//					fos.close();
+//				} catch (IOException e) { ; }
+			}
+			iconSize = iconByteStream.size();
+	
+			byte[] extra = null;
+			if (state == SENDER_STATE_NOTI) {
+				extra = notiMessage.getBytes();
+				extraSize = extra.length;
+				
+			} else {
+				ByteArrayOutputStream thumbnailByteStream = new ByteArrayOutputStream();
+				if (thumbnail != null) {
+					thumbnail.compress(CompressFormat.JPEG, 100, thumbnailByteStream);
+					
+				// TEST
+//				try {
+//					File file = new File(dir, "thumbnail.jpg");
+//					file.createNewFile();
+//					
+//					FileOutputStream fos = new FileOutputStream(file);
+//					thumbnail.compress(CompressFormat.JPEG, 100, fos);
+//					fos.close();
+//				} catch (IOException e) { ; }
+				}
+				extra = thumbnailByteStream.toByteArray();
+				extraSize = thumbnailByteStream.size();
+			}
+	
+			return ByteBuffer.allocate(HEADER_SIZE + appNameSize + iconSize + extraSize)
+						.putInt(state)
+						.putInt(id)
+						.putInt(appNameSize)
+						.putInt(iconSize)
+						.putInt(extraSize)
+						.put(appName.getBytes())
+						.put(iconByteStream.toByteArray())
+						.put(extra)
+						.array();
+		}
+		
+		@Override
+		public String toString() {
+			StringBuilder builder = new StringBuilder();
+			builder.append(state).append(SPLITTER);
+			builder.append(id).append(SPLITTER);
+			builder.append(appName).append(SPLITTER);
+			builder.append(iconSize).append(SPLITTER);
+			builder.append(extraSize);
+			
+			return builder.toString();
+		}
+	
+		// *** STATIC PART *** //
+		public static MediaProtocol decode(int state, int id) {
+			MediaProtocol protocol = new MediaProtocol(state);
+			protocol.id = id;
+			
+			return protocol;
+		}
+	}
 }
 
-/**
- * Media-Thumbnail 소켓 Connection에서 사용하는 Protocol.
- * 
- * @author Yeonho.Kim
- * @since 2015.03.28
- *
- */
-class MediaProtocol extends MessageProtocol {
-
-	// *** CONSTANTS PART *** //
-	public static final int MSG_SIZE = 128;
-
-	public static final String START = "#";
-	public static final String SPLITTER = ":";
-	public static final String COMMA = ",";
-	public static final String END = "$";
-	
-	/**
-	 * 
-	 */
-	public static final int STATE_FINISHED = 0;
-	/**
-	 * 
-	 */
-	public static final int STATE_TOP = 1;
-	/**
-	 * 
-	 */
-	public static final int STATE_PREVIOUS_TOP = 2;
-
-	
-	// *** MEMBER PART *** //
-	/**
-	 * Message Protocol State
-	 */
-	int state;
-	/**
-	 * Application ID
-	 */
-	int appID;
-	/**
-	 * Application 이름
-	 */
-	String appName;
-	/**
-	 * Icon Bitmap 객체
-	 */
-	private Bitmap icon;
-	/**
-	 * Icon 이미지 시작 포인트
-	 */
-	private final int iconFrom = 0;
-	/**
-	 * Icon 이미지 크기
-	 */
-	private int iconSize;
-	/**
-	 * Thumbnail Bitmap 객체
-	 */
-	private Bitmap thumbnail;
-	/**
-	 * Thumbnail 이미지 시작 포인트
-	 */
-	private int thumbnailFrom = 0;
-	/**
-	 * Thumbnail 이미지 크기
-	 */
-	private int thumbnailSize;
-	
-	
-	MediaProtocol(int state) {
-		this.state = state;
-	}
-	
-	public void putIcon(Drawable drawable) {
-		if (drawable == null)
-			return;
-		
-		BitmapDrawable bd = (BitmapDrawable) drawable;
-		putIcon(bd.getBitmap());
-	}
-	
-	public void putIcon(Bitmap icon) {
-		if (icon == null)
-			return ;
-		
-		this.icon = icon;
-	}
-	
-	public void putThumbnail(Bitmap thumbnail) {
-		if (thumbnail == null)
-			return;
-		
-		this.thumbnail = thumbnail;
-	}
-	
-	@Override
-	public byte[] encode() {
-		// TEST
-		File dir = new File("/data/synapsys/", appName);
-		dir.mkdir();
-		
-		ByteArrayOutputStream iconByteStream = new ByteArrayOutputStream();
-		if (icon != null) {
-			icon.compress(CompressFormat.JPEG, 100, iconByteStream);
-			
-			// TEST
-			try {
-				File file = new File(dir, "icon.jpg");
-				file.createNewFile();
-				
-				FileOutputStream fos = new FileOutputStream(file);
-				icon.compress(CompressFormat.JPEG, 100, fos);
-				fos.close();
-			} catch (IOException e) { ; }
-		}
-		iconSize = iconByteStream.size();
-
-		ByteArrayOutputStream thumbnailByteStream = new ByteArrayOutputStream();
-		if (thumbnail != null) {
-			thumbnail.compress(CompressFormat.JPEG, 100, thumbnailByteStream);
-			
-			// TEST
-			try {
-				File file = new File(dir, "thumbnail.jpg");
-				file.createNewFile();
-				
-				FileOutputStream fos = new FileOutputStream(file);
-				thumbnail.compress(CompressFormat.JPEG, 100, fos);
-				fos.close();
-			} catch (IOException e) { ; }
-		}
-		thumbnailFrom = iconSize;
-		thumbnailSize = thumbnailByteStream.size();
-
-		byte[] header = toString().getBytes();
-		return ByteBuffer.allocate(header.length + iconSize + thumbnailSize)
-					.put(header)
-					.put(iconByteStream.toByteArray())
-					.put(thumbnailByteStream.toByteArray())
-					.array();
-	}
-
-	
-	@Override
-	public String toString() {
-		StringBuilder builder = new StringBuilder(START);
-		builder.append(state).append(SPLITTER);
-		builder.append(appID).append(SPLITTER);
-		builder.append(appName).append(SPLITTER);
-		builder.append(iconFrom).append(COMMA).append(iconSize).append(SPLITTER);
-		builder.append(thumbnailFrom).append(COMMA).append(thumbnailSize);
-		builder.append(END);
-		
-		return builder.toString();
-	}
-	
-	// *** STATIC PART *** //
-	public static MediaProtocol[] decode(byte[] bytes) {
-		
-		MediaProtocol[] protocols = new MediaProtocol[1];
-		
-		return protocols;
-	}
-}

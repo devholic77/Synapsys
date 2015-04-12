@@ -2,18 +2,19 @@ package org.gbssm.synapsys;
 
 import java.io.IOException;
 
+import org.gbssm.synapsys.MessageProtocol.MediaProtocol;
 import org.gbssm.synapsys.SynapsysManagerService.SynapsysHandler;
 
-import com.android.server.am.ActivityManagerService;
-import com.android.server.pm.PackageManagerService;
-
+import android.app.ActivityManager;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.hardware.input.InputManager;
 import android.os.Handler;
 import android.os.Message;
 import android.os.RemoteException;
-import android.os.ServiceManager;
 import android.os.UserHandle;
 import android.util.Slog;
 
@@ -34,6 +35,8 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	
 	static final String TAG = "SynapsysManagerService";	
 	
+	static int SHADOW_TASK_STATE = -1;
+	static int SHADOW_TASK_ID = -1;
 	
 	
 	// *** MEMBER PART *** //
@@ -41,9 +44,9 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	
 	private boolean isServiceRunning;
 
+	private ActivityManager mActivityManager;
+	private PackageManager mPackageManager;
 	private InputManager mInputManager;
-	private PackageManagerService mPackage;
-	private ActivityManagerService mActivityService;
 	
 	private ConnectionDetector mConnectionDetector;
 	private SynapsysControlThread mControlThread;
@@ -78,21 +81,59 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 		return false;
 	}
 	
-	public boolean invokeNotificationEvent() throws RemoteException {
-		// TODO : Windows PC로 Notification Event 전송.
-		return false;
-	}
-	
-	public boolean invokeAllTaskInfo() {
+	public boolean invokeNotificationEvent(int notificationId, String packageName, String message) throws RemoteException {
+		// Windows PC로 Notification Event 전송.
+		Slog.d(TAG, "invokeNotificationEvents :  Noti_ID = " + notificationId + " / Package = " + packageName + " / Message : " + message);
+		
+		if (mMediaThread != null) {
+			try {
+				ApplicationInfo info = mPackageManager.getApplicationInfo(packageName, PackageManager.GET_META_DATA);
+				
+				MediaProtocol protocol = new MediaProtocol(MediaProtocol.SENDER_STATE_NOTI);
+				protocol.id = notificationId;
+				protocol.putName((String) mPackageManager.getApplicationLabel(info));
+				protocol.putIcon(mPackageManager.getApplicationIcon(info));
+				protocol.putContentMessage(message);
+				
+				mMediaThread.send(protocol);
+				return true;
+				
+			} catch (Exception e) { ; }
+		}
 		
 		return false;
 	}
 	
-	public boolean invokeTaskInfoEvents() throws RemoteException {
-		// TODO : WIndows PC로 Task-Info Event 전송.
+	public boolean invokeTaskInfoEvents(int state, int taskId, String packageName) throws RemoteException {
+		// Windows PC로 Task-Info Event 전송.
+		Slog.d(TAG, "invokeTaskInfoEvents : state = " + state + " / task = " + taskId + " / package = " + packageName);
+		
+		if (SHADOW_TASK_STATE == state && SHADOW_TASK_ID == taskId) {
+			// 중복 메시지 전달 방지
+			return false;
+		}
+		
+		SHADOW_TASK_STATE = state;
+		SHADOW_TASK_ID = taskId;
+		
+		if (mMediaThread != null) {
+			try {
+				ApplicationInfo info = mPackageManager.getApplicationInfo(packageName, PackageManager.GET_META_DATA);
+				
+				MediaProtocol protocol = new MediaProtocol(state);
+				protocol.id = taskId;
+				protocol.putName((String) mPackageManager.getApplicationLabel(info));
+				protocol.putIcon(mPackageManager.getApplicationIcon(info));
+				protocol.putThumbnail(mActivityManager.getTaskTopThumbnail(taskId));
+				 
+				mMediaThread.send(protocol);
+				return true;
+				
+			} catch (Exception e) {; }
+		}
+		
 		return false;
 	}
-	
 	
 	public boolean interpolateMouseEvent(int event_id, float event_x, float event_y) throws RemoteException { 
 		//  TODO : Windows PC로부터 Touch Event 받기.
@@ -106,19 +147,30 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 		return false;
 	}
 
-	/* by dhuck. added */	
-	private void jnicall(int event_type,int event_code, float value_1, float value_2 ) {
-		Slog.i("SynapsysManagerService","framework : JNI CALL test ");
-		mInputManager.Event_Receive(event_type,event_code,value_1,value_2);
-	}
-	
-	public boolean interpolateNotificationEvent() throws RemoteException {
-		//  TODO : Windows PC로부터 Notification Event 받기. 
+	public boolean interpolateNotificationEvent(int state, int notificationId) throws RemoteException {
+		//  Windows PC로부터 Notification Event 받기. 
+		
+		switch (state) {
+		case MediaProtocol.RECEIVED_STATE_NOTI:
+			
+			return true;
+		}
 		return false;
 	}
 	
-	public boolean interpolateTaskInfoEvent() throws RemoteException {
-		// TODO : Windows PC로부터 Task-Info Event 받기.
+	public boolean interpolateTaskInfoEvent(int state, int taskId) throws RemoteException {
+		// Windows PC로부터 Task-Info Event 받기.
+		
+		switch (state) {
+		case MediaProtocol.RECEIVED_STATE_TASK_NEW:
+			mActivityManager.moveTaskToFront(taskId, ActivityManager.MOVE_TASK_WITH_HOME);
+			return true;
+			
+		case MediaProtocol.RECEIVED_STATE_TASK_END:
+			mActivityManager.removeTask(taskId, ActivityManager.REMOVE_TASK_KILL_PROCESS);
+			return true;
+		}
+		
 		return false;
 	}
 	
@@ -152,11 +204,16 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 		broadcastSynapsysState(false, false, false);
 	}
 
+	/* by dhuck. added */	
+	private void jnicall(int event_type,int event_code, float value_1, float value_2 ) {
+		Slog.i("SynapsysManagerService","framework : JNI CALL test ");
+		mInputManager.Event_Receive(event_type,event_code,value_1,value_2);
+	}
+	
 	void init() {
+		mActivityManager = (ActivityManager) mContext.getSystemService(Context.ACTIVITY_SERVICE);
+		mPackageManager = mContext.getPackageManager();
 		mInputManager = (InputManager) mContext.getSystemService(Context.INPUT_SERVICE);
-		
-		
-		mActivityService = (ActivityManagerService) ServiceManager.getService(Context.ACTIVITY_SERVICE);
 	}
 	
 	/**
@@ -182,6 +239,7 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 			mConnectionDetector = null;
 		}
 		
+		SynapsysControlThread.reset();
 		if (SynapsysControlThread.mListenSocket != null) {
 			try {
 				SynapsysControlThread.mListenSocket.close();
@@ -189,7 +247,8 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 				
 			} catch (IOException e) { ; }
 		}
-		
+
+		SynapsysMediaThread.reset();
 		if (SynapsysMediaThread.mListenSocket != null) {
 			try {
 				SynapsysMediaThread.mListenSocket.close();
@@ -215,6 +274,7 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 
         mContext.sendStickyBroadcastAsUser(intent, UserHandle.ALL);
 	}
+	
 	
 	/**
 	 * SynapsysManagerService에서 기능의 일괄 처리를 위한 Handler. 
@@ -333,11 +393,8 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 
 			// *** LEVEL E : Event 관련 *** //
 			case MSG_PUSH_NOTIFICATION:
-				
 			case MSG_PUSH_TASKINFO:
-				
 			case MSG_PULL_NOTIFICATION:
-				
 			case MSG_PULL_TASKINFO:
 				
 			default:
