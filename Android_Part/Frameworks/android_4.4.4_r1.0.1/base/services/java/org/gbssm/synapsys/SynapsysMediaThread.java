@@ -208,7 +208,7 @@ public class SynapsysMediaThread extends SynapsysThread {
 		for(RecentTaskInfo rti : am.getRecentTasks(10, ActivityManager.RECENT_IGNORE_UNAVAILABLE)) {
 			try {
 				//ComponentName baseComponent = rti.baseActivity;
-				ComponentName baseComponent = rti.origActivity;
+				ComponentName baseComponent = rti.baseIntent.getComponent();
 				if (baseComponent == null)
 					continue;
 				
@@ -221,7 +221,7 @@ public class SynapsysMediaThread extends SynapsysThread {
 				media.putThumbnail(am.getTaskTopThumbnail(rti.id));
 				
 				//Slog.i(TAG, "RunningTaskInfo : " + media.toString());
-				Slog.i(TAG, "RecentTaskInfo : " + media.toString());
+				Slog.i(TAG, "RecentTaskInfo : " + media.toString() + " / ComponentName : " + baseComponent.toShortString());
 				send(media);
 				
 			} catch (Exception e) {

@@ -12,10 +12,12 @@ import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.hardware.input.InputManager;
+import android.os.BatteryManager;
 import android.os.Handler;
 import android.os.Message;
 import android.os.RemoteException;
 import android.os.UserHandle;
+import android.provider.Settings;
 import android.util.Slog;
 
 
@@ -55,12 +57,27 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	private ConnectionBox mConnectionBox;
 	private ConnectionBox mMediaBox;
 	private ConnectionBox mDisplayBox;
+
+	private String currentTopTaskPackageName = null;
+	private int currentTopTaskID = -1;
+	private boolean isInterpolatedTopTask = false;
+	
 	
 	
 	public SynapsysManagerService(Context context) {
 		mContext = context; 
+		
+		Settings.Global.putInt(context.getContentResolver(),
+                Settings.Global.STAY_ON_WHILE_PLUGGED_IN,
+                (BatteryManager.BATTERY_PLUGGED_AC | BatteryManager.BATTERY_PLUGGED_USB));
 	}
 	
+	
+	/**
+	 * 
+	 * @return
+	 * @throws RemoteException
+	 */
 	public int requestDisplayConnection() throws RemoteException {
 		Slog.v(TAG, "reqeustDisplayConnection()");
 		if (mDisplayBox != null)
@@ -69,6 +86,14 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 		return -1; // Port Number
 	}
 	
+	/**
+	 * 
+	 * @param event_id
+	 * @param event_x
+	 * @param event_y
+	 * @return
+	 * @throws RemoteException
+	 */
 	public boolean invokeMouseEventFromTouch(int event_id, float event_x, float event_y) throws RemoteException {
 		// Windows PC로 Touch Event 전송.
 		Slog.v(TAG, "invokeMouseEventFromTouch : event=" + event_id + " / x=" + event_x + " / y=" + event_y);
@@ -76,11 +101,26 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 		return false;
 	}
 	
+	/**
+	 * 
+	 * @param event_id
+	 * @param key_code
+	 * @return
+	 * @throws RemoteException
+	 */
 	public boolean invokeKeyboardEvent(int event_id, int key_code) throws RemoteException {
 		Slog.v(TAG, "invokeKeyboardEvent : event=" + event_id + " / keyCode=" + key_code);
 		return false;
 	}
 	
+	/**
+	 * 
+	 * @param notificationId
+	 * @param packageName
+	 * @param message
+	 * @return
+	 * @throws RemoteException
+	 */
 	public boolean invokeNotificationEvent(int notificationId, String packageName, String message) throws RemoteException {
 		// Windows PC로 Notification Event 전송.
 		Slog.d(TAG, "invokeNotificationEvents :  Noti_ID = " + notificationId + " / Package = " + packageName + " / Message : " + message);
@@ -104,27 +144,77 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 		return false;
 	}
 	
+	/**
+	 * 
+	 * @param state
+	 * @param taskId
+	 * @param packageName
+	 * @return
+	 * @throws RemoteException
+	 */
 	public boolean invokeTaskInfoEvents(int state, int taskId, String packageName) throws RemoteException {
 		// Windows PC로 Task-Info Event 전송.
-		Slog.d(TAG, "invokeTaskInfoEvents : state = " + state + " / task = " + taskId + " / package = " + packageName);
+		Slog.v(TAG, "invokeTaskInfoEvents : state = " + state + " / task = " + taskId + " / package = " + packageName);
 		
+		// *** Task Filtering *** //
 		if (SHADOW_TASK_STATE == state && SHADOW_TASK_ID == taskId) {
 			// 중복 메시지 전달 방지
 			return false;
-		}
+			
+		} else 
+			if (packageName.startsWith("com.android.system")) {
+				// System UI 전달 방지.
+				return false;
+			}
+		
+		Slog.i(TAG, "invokeTaskInfoEvents : Survived!  " + taskId + " / " + packageName);
 		
 		SHADOW_TASK_STATE = state;
 		SHADOW_TASK_ID = taskId;
 		
+		if (MediaProtocol.SENDER_STATE_NEW == state) {
+			// Temporary Fields...
+			int  previousTopTaskId = currentTopTaskID;
+			String previousTopTaskPackageName = currentTopTaskPackageName;
+			
+			// Save New TopTask Info.
+			currentTopTaskID = taskId;
+			currentTopTaskPackageName = packageName;
+			
+			// PC로부터 Task 전환 명령을 받았을 경우, 
+			if (isInterpolatedTopTask) {
+				if (mMediaThread != null) {
+					try {
+						ApplicationInfo info = mPackageManager.getApplicationInfo(previousTopTaskPackageName, PackageManager.GET_META_DATA);
+						
+						MediaProtocol protocol = new MediaProtocol(MediaProtocol.SENDER_STATE_PREVIOUS);
+						protocol.id = previousTopTaskId;
+						protocol.putName((String) mPackageManager.getApplicationLabel(info));
+						protocol.putIcon(mPackageManager.getApplicationIcon(info));
+						protocol.putThumbnail(mActivityManager.getTaskTopThumbnail(previousTopTaskId));
+						 
+						mMediaThread.send(protocol);
+						return true;
+						
+					} catch (Exception e) {; }
+				}
+				return !(isInterpolatedTopTask = false);
+			}
+		}
+		
+		// New Task by itself.
 		if (mMediaThread != null) {
 			try {
 				ApplicationInfo info = mPackageManager.getApplicationInfo(packageName, PackageManager.GET_META_DATA);
 				
 				MediaProtocol protocol = new MediaProtocol(state);
 				protocol.id = taskId;
-				protocol.putName((String) mPackageManager.getApplicationLabel(info));
-				protocol.putIcon(mPackageManager.getApplicationIcon(info));
-				protocol.putThumbnail(mActivityManager.getTaskTopThumbnail(taskId));
+				
+				if (MediaProtocol.SENDER_STATE_END != state) {
+					protocol.putName((String) mPackageManager.getApplicationLabel(info));
+					protocol.putIcon(mPackageManager.getApplicationIcon(info));
+					protocol.putThumbnail(mActivityManager.getTaskTopThumbnail(taskId));
+				}
 				 
 				mMediaThread.send(protocol);
 				return true;
@@ -135,18 +225,40 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 		return false;
 	}
 	
+	/**
+	 * 
+	 * @param event_id
+	 * @param event_x
+	 * @param event_y
+	 * @return
+	 * @throws RemoteException
+	 */
 	public boolean interpolateMouseEvent(int event_id, float event_x, float event_y) throws RemoteException { 
 		//  TODO : Windows PC로부터 Touch Event 받기.
 		Slog.v(TAG, "interpolateMouseEvent : event=" + event_id + " / x=" + event_x + " / y=" + event_y);
 		return false;
 	}
 	
+	/**
+	 * 
+	 * @param event_id
+	 * @param key_code
+	 * @return
+	 * @throws RemoteException
+	 */
 	public boolean interpolateKeyboardEvent(int event_id, int key_code) throws RemoteException { 
 		//  TODO : Windows PC로부터 Keyboard Event 받기.
 		Slog.v(TAG, "interpolateKeyboardEvent : event=" + event_id + " / keyCode=" + key_code);
 		return false;
 	}
 
+	/**
+	 * 
+	 * @param state
+	 * @param notificationId
+	 * @return
+	 * @throws RemoteException
+	 */
 	public boolean interpolateNotificationEvent(int state, int notificationId) throws RemoteException {
 		//  Windows PC로부터 Notification Event 받기. 
 		
@@ -155,16 +267,24 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 			
 			return true;
 		}
+		
 		return false;
 	}
 	
+	/**
+	 * 
+	 * @param state
+	 * @param taskId
+	 * @return
+	 * @throws RemoteException
+	 */
 	public boolean interpolateTaskInfoEvent(int state, int taskId) throws RemoteException {
 		// Windows PC로부터 Task-Info Event 받기.
 		
 		switch (state) {
 		case MediaProtocol.RECEIVED_STATE_TASK_NEW:
 			mActivityManager.moveTaskToFront(taskId, ActivityManager.MOVE_TASK_WITH_HOME);
-			return true;
+			return (isInterpolatedTopTask = true);
 			
 		case MediaProtocol.RECEIVED_STATE_TASK_END:
 			mActivityManager.removeTask(taskId, ActivityManager.REMOVE_TASK_KILL_PROCESS);
@@ -210,6 +330,9 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 		mInputManager.Event_Receive(event_type,event_code,value_1,value_2);
 	}
 	
+	/**
+	 * 
+	 */
 	void init() {
 		mActivityManager = (ActivityManager) mContext.getSystemService(Context.ACTIVITY_SERVICE);
 		mPackageManager = mContext.getPackageManager();
