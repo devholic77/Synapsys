@@ -8,7 +8,7 @@ using System.Net.Sockets;
 using System.Threading;
 using System.IO;
 
-namespace Synapsys_Sub_Program
+namespace Synapsys
 {
 
 	public class SynapsysSocket
@@ -129,14 +129,22 @@ namespace Synapsys_Sub_Program
 			}
 		}
 
-		public void SendFile(string file)
+		byte[] imgArray;
+
+		public void SendFile(byte[] array)
 		{
 			try
 			{
 				/* 연결 성공시 */
 				if (clientSock.Connected)
 				{
-					clientSock.BeginSendFile(file, new AsyncCallback(SendCallBack), file);
+					imgArray = array;
+					byte[] buffer = BitConverter.GetBytes(array.Length);
+					Array.Reverse(buffer);
+					Console.WriteLine("Send :" + buffer.Length);
+					clientSock.BeginSend(buffer, 0, buffer.Length, SocketFlags.None,
+										  new AsyncCallback(SendCallBack), filesize.ToString());
+					
 				}
 			}
 			catch (SocketException e)
@@ -181,7 +189,8 @@ namespace Synapsys_Sub_Program
 					message = message.Trim();
 					if ("OK".Equals(message))
 					{
-						SendFile(file);
+						clientSock.BeginSend(imgArray, 0, imgArray.Length, SocketFlags.None,
+										  new AsyncCallback(SendCallBack), "image");
 					}
 
 				}

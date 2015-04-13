@@ -5,6 +5,7 @@ using System.Windows.Forms;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
+using System.IO;
 
 namespace Synapsys
 {
@@ -14,7 +15,7 @@ namespace Synapsys
 		private static CaptureScreen captureScreen = null;
 
 		private static Thread thread = null;
-		private static int FPS = 33;
+		private static int FPS = 30;
 
 		private Bitmap[,] bitmapArray = new Bitmap[MAX_MONITOR, 2];
 		private bool captSwitch = true;
@@ -97,7 +98,7 @@ namespace Synapsys
 
 		// 화면을 캡쳐
 		
-
+		
 		private void capture()
 		{
 
@@ -109,6 +110,9 @@ namespace Synapsys
 					continue;
 
 				currentMonitor = Regex.Replace(scr.DeviceName, @"[^\d]", string.Empty);
+
+				if (currentMonitor.Equals("1"))
+					continue;
 
 				try
 				{
@@ -134,13 +138,31 @@ namespace Synapsys
 						{
 							// 바뀌었다
 							Console.WriteLine(currentMonitor + ": Changed");
-							//bmpScreenShot.Save(stream, System.Drawing.Imaging.ImageFormat.Jpeg);
+							//bmpScreenShot.Save("c:\\" + currentMonitor + ".jpg", ImageFormat.Jpeg);
+
+							if(currentMonitor.Equals("2"))
+							{
+								
+								//CURSORINFO pci;
+								//pci.cbSize = System.Runtime.InteropServices.Marshal.SizeOf(typeof(CURSORINFO));
+
+								//if (GetCursorInfo(out pci))
+								//{
+								//	if (pci.flags == CURSOR_SHOWING)
+								//	{
+								//		DrawIcon(g.GetHdc(), pci.ptScreenPos.x, pci.ptScreenPos.y, pci.hCursor);
+								//		g.ReleaseHdc();
+								//	}
+								//}
+
+								//MainWindow.socket.SendFile(ImageToByte2(bmpScreenShot));
+							}
 						}
 					}
 
 
 
-					// 현재 모니터에 마우스 드로잉
+					//// 현재 모니터에 마우스 드로잉
 					if (currentMonitor.Equals(getCurrentMonitor()))
 					{
 						CURSORINFO pci;
@@ -157,6 +179,9 @@ namespace Synapsys
 					}
 
 					//bmpScreenShot.Save("c:\\" + currentMonitor + ".jpg", ImageFormat.Jpeg);
+
+					MainWindow.socket.SendFile(ImageToByte2(bmpScreenShot));
+
 				}
 				catch { }
 			}
@@ -203,6 +228,19 @@ namespace Synapsys
 			bmp2.UnlockBits(bmpData2);
 
 			return equals;
+		}
+
+		public static byte[] ImageToByte2(Image img)
+		{
+			byte[] byteArray = new byte[0];
+			using (MemoryStream stream = new MemoryStream())
+			{
+				img.Save(stream, System.Drawing.Imaging.ImageFormat.Jpeg);
+				stream.Close();
+
+				byteArray = stream.ToArray();
+			}
+			return byteArray;
 		}
 
 		[StructLayout(LayoutKind.Sequential)]
