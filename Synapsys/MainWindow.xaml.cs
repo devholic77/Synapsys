@@ -10,6 +10,7 @@ using System.ComponentModel;
 
 using Synapsys_SUB;
 using Synapsys_Sub_Program;
+using Synapsys_ADB;
 
 namespace Synapsys
 {
@@ -29,8 +30,17 @@ namespace Synapsys
 		ArrayList tempHotkeyList, HotkeyList;
 		Synapsys_Data_Socket sds;
 
+
+        //Form
+        ADB_Form form;
+   
+        
+        
+        // Minhwan
+
         public MainWindow()
         {
+            
             InitializeComponent();
 
 			Closing += new CancelEventHandler(Exit);
@@ -55,12 +65,18 @@ namespace Synapsys
 			cs = CaptureScreen.getInstance();
 			//cs.Start();
 
-            ADB_Form form = new ADB_Form();
-            form.Visible = false;
+            form = new ADB_Form();
             form.Execute += new ADB_Form.execute(Clap);
+            form.Usb_Check();            
+            form.Visible = false;
             form.Show();
 
-			new Thread(new ThreadStart(hz)).Start();
+            
+            
+
+            //monitor
+
+			//new Thread(new ThreadStart(hz)).Start();
 
         }
 
@@ -137,22 +153,27 @@ namespace Synapsys
 
 		private void btn1_start(object sender, RoutedEventArgs e)
 		{
-			sds = new Synapsys_Data_Socket("1234", "1");
-			new Thread(new ThreadStart(socketTest)).Start();
+            //Button_Function.Synapsys_Start_Monitor(Synapsys_Values.First_Device_Name); // sub program start
+            Synapsys_Values.Buttons_Function.Synapsys_Start_Monitor(Synapsys_Values.First_Device_Name);
+
 		}
 
 		private void btn1_stop(object sender, RoutedEventArgs e)
 		{
 			Console.WriteLine("btn1_stop");
+            Synapsys_Values.Buttons_Function.Synapsys_Stop_Monitor(Synapsys_Values.First_Device_Name);
 		}
 
 		private void btn2_start(object sender, RoutedEventArgs e)
 		{
+            Synapsys_Values.Buttons_Function.Synapsys_Start_Monitor(Synapsys_Values.Second_Device_Name);
 			Console.WriteLine("btn2_start");
 		}
 
 		private void btn2_stop(object sender, RoutedEventArgs e)
 		{
+            Synapsys_Values.Buttons_Function.Synapsys_Stop_Monitor(Synapsys_Values.Second_Device_Name);
+
 			Console.WriteLine("btn2_stop");
 		}
 
@@ -162,9 +183,24 @@ namespace Synapsys
 
 		void Clap(object sender, ConnEvent e) // 이벤트 발생시 실행하고픈 함수. 델리게이트 선언의 파라미터를 따라갸아 한다.
 		{
-			Console.WriteLine("Clap");
-			Console.WriteLine(e.Device);
-			Console.WriteLine(e.Message);
+			//Console.WriteLine("Clap");
+			//Console.WriteLine(e.Device);
+			//Console.WriteLine(e.Message);
+            Console.WriteLine(e.Check_Deivce_Msg + " : " + e.Check_Device_Flag);
+            //Console.WriteLine(e.Check_Device_Flag);
+
+            // public  String Check_Deivce_Msg { get; set; } //Add, Remove
+            //public  int Check_Device_Flag { get; set; } // 1, 2, 3
+
+            //(Check_Deivce_Msg 에 따라서)
+            // 1 - First Monitor가 추가 또는 제거됨 
+            // 2 - Second Monitor가 추가 또는 제거됨 
+            // 3 - 두개의 Monitor가 동시에 추가 또는 제거됨
+            // 4 - remove인데 flag가 4인경우 1,2 모니터가 다 연결되있는 상태에서 1번모니터가 제거되서 2번 모니터가 1번모니터로 이동
+            //     연결되는 포트가 port[0],port[1],port[2]로 변경되야됨
+            //      Android에서도 서버를 다시 열어야됨 포트를 변경해서 <- 아마될거임
+
+
 			btn_d1_start.Dispatcher.Invoke(new update1Callback(this.update3), "1");
 		}
 

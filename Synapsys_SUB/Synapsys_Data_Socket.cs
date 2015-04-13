@@ -80,7 +80,7 @@ namespace Synapsys_Sub_Program
                 if (WriteMsg != String.Empty)
                 {
                     //setbyte = Encoding.UTF8.GetBytes(WriteMsg);
-                    sw.Write(WriteMsg);
+                    sw.Write("01:02:03:04\n");
                     sw.Flush();
                 }
             }
