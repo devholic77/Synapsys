@@ -2082,14 +2082,15 @@ public class NotificationManagerService extends INotificationManager.Stub
      * Cancels a notification ONLY if it has all of the {@code mustHaveFlags}
      * and none of the {@code mustNotHaveFlags}.
      */
-    private void cancelNotification(final String pkg, final String tag, final int id,
+    public void cancelNotification(final String pkg, final String tag, final int id,
             final int mustHaveFlags, final int mustNotHaveFlags, final boolean sendDelete,
             final int userId) {
         // In enqueueNotificationInternal notifications are added by scheduling the
         // work on the worker handler. Hence, we also schedule the cancel on this
         // handler to avoid a scenario where an add notification call followed by a
         // remove notification call ends up in not removing the notification.
-        		/* added */
+        
+        /* added */
 		Slog.w(TAG, "cancelNotification() call pkg:"+pkg+" tag:"+tag+" id:"+id+" mustHaveFlags:"+mustHaveFlags
 		+" mustNotHaveFlags:"+mustNotHaveFlags+" sendDelete:"+sendDelete+" userId:"+userId);
         mHandler.post(new Runnable() {
