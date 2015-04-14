@@ -259,220 +259,6 @@ namespace Synapsys_ADB
 
                     }
 
-
-
-                    /*
-
-
-                    if (result_msg.Length == 1)
-                    {
-                        Synapsys_Values.First_Device_Name = "";
-                        Synapsys_Values.First_Device_State = "";
-                        Synapsys_Values.Second_Device_Name = "";
-                        Synapsys_Values.Second_Device_State = "";
-                        Synapsys_Values.Current_Device_Num = 0;
-                        Console.WriteLine("not device");
-                    }
-                    else if (result_msg.Length == 3) //device가 한개 연결되었을때
-                    {
-                        if (Synapsys_Values.First_Device_Connect == false && Synapsys_Values.Second_Deivce_Connect == false)
-                        {
-                            Synapsys_Values.First_Device_Name = result_msg[1];
-                            Synapsys_Values.First_Device_State = result_msg[2];
-                            Synapsys_Values.First_Device_Connect = true;
-
-                            Synapsys_Values.Monitor_Num = 1;
-
-                            Synapsys_Values.Add_device[0] = result_msg[1];
-                            Synapsys_Values.Add_device[1] = "";
-                            Synapsys_Values.Add_Device_Num = 1;
-
-                            Synapsys_Values.ADB_Instruction.Port_Define(Synapsys_Values.port[0], Synapsys_Values.port[1], Synapsys_Values.port[2], Synapsys_Values.First_Device_Name);
-                            Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[0]);
-                            Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[1]);
-                            Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[2]);
-
-                            Synapsys_Values.Current_Connect_Device_Num = 1;
-                            flag = true;
-                            Console.WriteLine("");
-                            Console.WriteLine("1 device");
-                        }
-                        else if (Synapsys_Values.First_Device_Connect == false && Synapsys_Values.Second_Deivce_Connect == true)
-                        {
-
-                        }
-                    }
-                    else if (result_msg.Length == 5) //device가 두개 연결되었을때 
-                    {
-
-                    }
-
-                    if (result_msg.Length == 1)
-                    {
-                        Synapsys_Values.First_Device_Name = "";
-                        Synapsys_Values.First_Device_State = "";
-                        Synapsys_Values.Second_Device_Name = "";
-                        Synapsys_Values.Second_Device_State = "";
-                        Synapsys_Values.Current_Device_Num = 0;
-                        Console.WriteLine("not device");
-                    }
-                    else if (result_msg.Length == 3) //device가 한개 연결되었을때
-                    {
-                        if (Synapsys_Values.First_Device_Use.Equals("Disuse") && Synapsys_Values.Second_Device_Use.Equals("Disuse"))
-                        {
-                            Synapsys_Values.First_Device_Name = result_msg[1];
-                            Synapsys_Values.First_Device_State = result_msg[2];
-                            Synapsys_Values.First_Device_Connect = true;
-
-                            Synapsys_Values.Monitor_Num = 1;
-
-
-                            Synapsys_Values.Add_device[0] = result_msg[1];
-                            Synapsys_Values.Add_device[1] = "";
-                            Synapsys_Values.Add_Device_Num = 1;
-
-                            Synapsys_Values.ADB_Instruction.Port_Define(Synapsys_Values.port[0], Synapsys_Values.port[1], Synapsys_Values.port[2], Synapsys_Values.First_Device_Name);
-                            Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[0]);
-                            Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[1]);
-                            Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[2]);
-
-                            Synapsys_Values.Current_Connect_Device_Num = 1;
-                            flag = true;
-                            Console.WriteLine("");
-                            Console.WriteLine("1 device");
-                        }
-                        else if (Synapsys_Values.First_Device_Use.Equals("Disuse") && Synapsys_Values.Second_Device_Use.Equals("Use"))
-                        {
-                            Synapsys_Values.First_Device_Name = "";
-                            Synapsys_Values.First_Device_State = "";
-                            Synapsys_Values.Add_device[0] = "";
-                            Synapsys_Values.Add_device[1] = "";
-                            Synapsys_Values.Add_Device_Num = 0;
-                        }
-                        else if (Synapsys_Values.First_Device_Use.Equals("Use"))
-                        {
-                            Synapsys_Values.Second_Device_Name = "";
-                            Synapsys_Values.Second_Device_State = "";
-                            Synapsys_Values.Add_device[0] = "";
-                            Synapsys_Values.Add_device[1] = "";
-                            Synapsys_Values.Add_Device_Num = 0;
-                        }
-                        Synapsys_Values.Current_Device_Num = 1;
-                    }
-
-                    else if (result_msg.Length == 5) //device가 2개 연결되었을때
-                    {
-                        if (Synapsys_Values.First_Device_Use.Equals("Disuse") && Synapsys_Values.Second_Device_Use.Equals("Disuse"))
-                        {
-                            Synapsys_Values.First_Device_Name = result_msg[1];
-                            Synapsys_Values.First_Device_State = result_msg[2];
-                            Synapsys_Values.First_Device_Connect = true;
-
-                            Synapsys_Values.Second_Device_Name = result_msg[3];
-                            Synapsys_Values.Second_Device_State = result_msg[4];
-                            Synapsys_Values.Second_Deivce_Connect = true;
-
-                            Synapsys_Values.Monitor_Num = 3;
-
-                            Synapsys_Values.ADB_Instruction.Port_Define(Synapsys_Values.port[0], Synapsys_Values.port[1], Synapsys_Values.port[2], Synapsys_Values.First_Device_Name);
-                            Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[0]);
-                            Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[1]);
-                            Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[2]);
-
-                            Synapsys_Values.ADB_Instruction.Port_Define(Synapsys_Values.port[3], Synapsys_Values.port[4], Synapsys_Values.port[5], Synapsys_Values.Second_Device_Name);
-                            Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[3]);
-                            Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[4]);
-                            Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[5]);
-
-                            Synapsys_Values.Add_device[0] = result_msg[1];
-                            Synapsys_Values.Add_device[1] = result_msg[3];
-                            Synapsys_Values.Add_Device_Num = 2;
-
-                            Synapsys_Values.Current_Connect_Device_Num = 2;
-
-                            Console.WriteLine("2 device");
-                            flag = true;
-                        }
-                        else if (Synapsys_Values.First_Device_Use.Equals("Use") && Synapsys_Values.Second_Device_Use.Equals("Disuse"))
-                        {
-                            if (Synapsys_Values.First_Device_Name.Equals(result_msg[1]))
-                            {
-                                Synapsys_Values.Second_Device_Name = result_msg[3];
-                                Synapsys_Values.Second_Device_State = result_msg[4];
-                                Synapsys_Values.Second_Deivce_Connect = true;
-                                Synapsys_Values.Monitor_Num = 2;
-
-                                Synapsys_Values.ADB_Instruction.Port_Define(Synapsys_Values.port[3], Synapsys_Values.port[4], Synapsys_Values.port[5], Synapsys_Values.Second_Device_Name);
-                                Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[3]);
-                                Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[4]);
-                                Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[5]);
-                                Synapsys_Values.Add_device[0] = result_msg[3];
-                                Synapsys_Values.Add_device[1] = "";
-                                Synapsys_Values.Add_Device_Num = 1;
-                            }
-                            else
-                            {
-                                Synapsys_Values.Second_Device_Name = result_msg[1];
-                                Synapsys_Values.Second_Device_State = result_msg[2];
-                                Synapsys_Values.Second_Deivce_Connect = true;
-
-                                Synapsys_Values.Monitor_Num = 2;
-
-                                Synapsys_Values.ADB_Instruction.Port_Define(Synapsys_Values.port[3], Synapsys_Values.port[4], Synapsys_Values.port[5], Synapsys_Values.Second_Device_Name);
-                                Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[3]);
-                                Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[4]);
-                                Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[5]);
-                                Synapsys_Values.Add_device[0] = result_msg[1];
-                                Synapsys_Values.Add_device[1] = "";
-                                Synapsys_Values.Add_Device_Num = 1;
-                            }
-                            Synapsys_Values.Current_Connect_Device_Num = 2;
-                            Console.WriteLine("");
-                            Console.WriteLine("2 device");
-                            flag = true;
-                        }
-                        else if (Synapsys_Values.First_Device_Use.Equals("Disuse") && Synapsys_Values.Second_Device_Use.Equals("Use"))
-                        {
-                            if (Synapsys_Values.Second_Device_Name.Equals(result_msg[1]))
-                            {
-                                Synapsys_Values.First_Device_Name = result_msg[3];
-                                Synapsys_Values.First_Device_State = result_msg[4];
-                                Synapsys_Values.First_Device_Connect = true;
-
-                                Synapsys_Values.Monitor_Num = 1;
-
-                                Synapsys_Values.ADB_Instruction.Port_Define(Synapsys_Values.port[0], Synapsys_Values.port[1], Synapsys_Values.port[2], Synapsys_Values.First_Device_Name);
-                                Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[0]);
-                                Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[1]);
-                                Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[2]);
-
-                                Synapsys_Values.Add_device[0] = result_msg[3];
-                                Synapsys_Values.Add_device[1] = "";
-                                Synapsys_Values.Add_Device_Num = 1;
-                            }
-                            else
-                            {
-                                Synapsys_Values.First_Device_Name = result_msg[1];
-                                Synapsys_Values.First_Device_State = result_msg[2];
-                                Synapsys_Values.First_Device_Connect = true;
-
-                                Synapsys_Values.ADB_Instruction.Port_Define(Synapsys_Values.port[0], Synapsys_Values.port[1], Synapsys_Values.port[2], Synapsys_Values.First_Device_Name);
-                                Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[0]);
-                                Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[1]);
-                                Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[2]);
-                                Synapsys_Values.Add_Device_Num = 1;
-                                Synapsys_Values.Add_device[0] = result_msg[1];
-                                Synapsys_Values.Add_device[1] = "";
-                            }
-                            flag = true;
-                            Console.WriteLine("");
-                            Console.WriteLine("2 device");
-                        }
-                        Synapsys_Values.Current_Connect_Device_Num = 2;
-                        Synapsys_Values.Current_Device_Num = 2;
-                    }
-                    Console.Write(msg);
-                     *      * */
                 }
                 catch (Exception ex)
                 {
@@ -537,7 +323,31 @@ namespace Synapsys_ADB
             }
             return true;
         }
+        public void Read_Auto_Connect_Device()
+        {
+            String path = System.IO.Directory.GetCurrentDirectory();
+            path = path.Substring(0, path.IndexOf("Synapsys"));
+            path = @path + "portdefine.txt";
+            String text = System.IO.File.ReadAllText(path);
+            Console.WriteLine(text);
 
+            text = text.Replace("\r\n", " ");
+            Synapsys_Values.Synapsys_Auto_Connect_List = text.Split(' ');
+
+        }
+        public void Write_Auto_Connect_Device(String Device_Name)
+        {
+            Encoding koEnc = Encoding.GetEncoding(949); // 마지막줄에 추가
+
+            String msg = "\r\n" + Device_Name + "\r\n";
+
+            String path = System.IO.Directory.GetCurrentDirectory();
+
+            String filename = "..\\..\\..\\..\\..\\portdefine.txt";
+
+            String fullpath = path + filename;
+            System.IO.File.WriteAllText(fullpath, msg, koEnc);
+        }
         public void Port_Define(String display_port, String data_port, String thumbnail_port, String device_name) //안드로이드에 파일 저장하기 
         {                                                                                  //PC에서 저장하도록 변경
             Console.WriteLine("");

@@ -32,6 +32,7 @@ namespace Synapsys_ADB
         public static int Monitor_Num = 0;
         public static int Current_Connect_Device_Num = 0;
 
+        public static String[] Synapsys_Auto_Connect_List = {};
 
         public static String Check_Deivce_Msg = ""; //Add, Remove
         public static int Check_Device_Flag = 0;

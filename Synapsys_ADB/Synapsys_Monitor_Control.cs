@@ -41,10 +41,10 @@ namespace Synapsys_ADB
         delegate bool MonitorEnumDelegate(IntPtr hMonitor, IntPtr hdcMonitor, ref RECT lprcMonitor, IntPtr dwData);
 
 
-        public int Synapsys_Check_Monitor()
+        public void Synapsys_Check_Monitor()
         {
             EnumDisplayMonitors(IntPtr.Zero, IntPtr.Zero, MonitorEnumProc, IntPtr.Zero);
-            return Synapsys_Values.Monitor_Driver_Num;
+           
         }
         static bool MonitorEnumProc(IntPtr hMonitor, IntPtr hdcMonitor, ref RECT lprcMonitor, IntPtr dwData)
         {

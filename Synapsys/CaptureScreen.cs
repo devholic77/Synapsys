@@ -180,7 +180,7 @@ namespace Synapsys
 
 					//bmpScreenShot.Save("c:\\" + currentMonitor + ".jpg", ImageFormat.Jpeg);
 
-					MainWindow.socket.SendFile(ImageToByte2(bmpScreenShot));
+					//MainWindow.socket.SendFile(ImageToByte2(bmpScreenShot));
 
 				}
 				catch { }

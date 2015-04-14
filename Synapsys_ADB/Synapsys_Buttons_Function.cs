@@ -37,23 +37,25 @@ namespace Synapsys_ADB
             }
 
         }
-        public void Synapsys_Remove_Monitor(String Device_Name)
+        public void Synapsys_Remove_Monitor(String Device_Name) // usb 선이 빠진 경우
 		{
             if(Device_Name.Equals(Synapsys_Values.First_Device_Name))
             {
                 Synapsys_Values.First_Device_Use = "Disuse";
                 Synapsys_Values.First_Device_Name = "";
-                Synapsys_Values.First_Device_State = "";            
+                Synapsys_Values.First_Device_State = "";
+                FirstSubProgram.Close();
             }
             else
             {
                 Synapsys_Values.Second_Device_Use = "Disuse";
                 Synapsys_Values.Second_Device_Name = "";
                 Synapsys_Values.Second_Device_State = "";
+                SecondSubProgram.Close();
             }
         }
 
-        public void Synapsys_Stop_Monitor(String Device_Name)
+        public void Synapsys_Stop_Monitor(String Device_Name) // stop 버튼을 누를 경우 
         {
             if(Device_Name.Equals(Synapsys_Values.First_Device_Name))
             {

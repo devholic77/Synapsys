@@ -71,7 +71,8 @@ namespace Synapsys
             form.Visible = false;
             form.Show();
 
-            
+
+            Synapsys_Values.Monitor_Control.Synapsys_Check_Monitor(); // 설치된 드라이버 확인하기 
             
 
             //monitor
@@ -151,6 +152,8 @@ namespace Synapsys
 
 		#region BUTTON EVENTS
 
+        //1번과 2번이 동시에 켜져있을 때 1번만 stop 불가능 2번이 stop되야 1번이 stop 가능 //장대찬 처리해주세용~
+        
 		private void btn1_start(object sender, RoutedEventArgs e)
 		{
             //Button_Function.Synapsys_Start_Monitor(Synapsys_Values.First_Device_Name); // sub program start
@@ -199,6 +202,19 @@ namespace Synapsys
             // 4 - remove인데 flag가 4인경우 1,2 모니터가 다 연결되있는 상태에서 1번모니터가 제거되서 2번 모니터가 1번모니터로 이동
             //     연결되는 포트가 port[0],port[1],port[2]로 변경되야됨
             //      Android에서도 서버를 다시 열어야됨 포트를 변경해서 <- 아마될거임
+
+            /*
+            if (e.Check_Deivce_Msg.Equals("Add"))
+            {
+               for(int i=0; Synapsys_Values.Synapsys_Auto_Connect_List[i] != null; i++)
+               {
+                   if( Synapsys_Values.Synapsys_Auto_Connect_List[i].Equals(e.Message))
+                   {
+                       //auto ㄱㄱ 
+                   }
+               }
+            }
+             * */
 
 
 			btn_d1_start.Dispatcher.Invoke(new update1Callback(this.update3), "1");
