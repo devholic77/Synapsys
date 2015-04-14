@@ -13,7 +13,7 @@ namespace Synapsys_Sub_Program
 
         public static Synapsys_Android_Thumbnail[] Android_Thumbnail = new Synapsys_Android_Thumbnail[10];
         
-        public static Synapsys_Thumbnail_Socket Thumbnail_Socket;
+        public static Synapsys_Thumbnail_Socket Thumbnail_Socket;//
 
     }//ddd
 }
