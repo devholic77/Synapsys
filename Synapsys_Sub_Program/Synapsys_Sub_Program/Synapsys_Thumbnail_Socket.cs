@@ -94,7 +94,7 @@ namespace Synapsys_Sub_Program
 
         public void Synapsys_1_State(int App_ID, int AppNameSize, int IconSize, int ThumbnailSize) //최초
         {
-            byte[] str_name = new byte[AppNameSize];
+            byte[] str_name = new byte[AppNameSize]; // 장대찬 소켓
             Synaposys_ReadFully(str_name);
             String App_name = Encoding.UTF8.GetString(str_name);
             byte[] App_icon_byte = new byte[IconSize];
