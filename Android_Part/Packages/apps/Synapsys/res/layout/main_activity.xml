@@ -9,5 +9,43 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <RelativeLayout 
+        android:id="@+id/streaming_board"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="@android:color/holo_blue_light"
+        android:padding="@dimen/streaming_board_padding">
+
+        <DigitalClock
+            android:id="@+id/digital_clock"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_margin="@dimen/digital_clock_margin"
+            android:textStyle="bold"
+            android:textSize="@dimen/digital_clock_size"
+            android:textColor="@android:color/white" />
+        
+        <ProgressBar 
+            android:id="@+id/progressbar"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_below="@id/digital_clock"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_margin="@dimen/progressbar_margin"
+            android:indeterminate="true"/>
+        
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/progressbar"
+            android:layout_centerHorizontal="true" 
+            android:layout_margin="@dimen/textview_margin"
+            android:text="@string/streaming_board"
+            android:textStyle="bold"/>
+            
+    </RelativeLayout>
     
 </FrameLayout>

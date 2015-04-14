@@ -1,5 +1,6 @@
 package org.gbssm.synapsys.global;
 
+import org.gbssm.synapsys.MainActivity;
 import org.gbssm.synapsys.SynapsysManager;
 
 import android.content.BroadcastReceiver;
@@ -33,8 +34,14 @@ public class SynapsysBroadcastReceiver extends BroadcastReceiver {
 		if (isUSBready && isPCready) {
 			mApplication.setControllerConnected(isConnected);
 			
-			if (!isConnected)
+			if (!isConnected) {
 				mApplication.startStreaming();
+				
+				Intent newIntent = new Intent(context, MainActivity.class);
+				newIntent.addFlags(Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY);
+				newIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+				context.startActivity(newIntent);
+			}
 			
 		} else if (!isUSBready || !isPCready) {
 			mApplication.setControllerConnected(false);

@@ -81,9 +81,7 @@ public class StreamingView extends SurfaceView implements SurfaceHolder.Callback
 			mSurfaceThread.destroy();
 		mSurfaceThread = new SurfaceThread();	
 		
-		// Dummy
-		mStreamingImage = BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher2);
-		mSurfaceImage = BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher);
+		//mSurfaceImage = BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher2);
 	}
 
 	synchronized void switchSurfaceImage() {
@@ -93,8 +91,8 @@ public class StreamingView extends SurfaceView implements SurfaceHolder.Callback
 		}
 
 		Log.d(TAG, "SurfaceImage is switched!");
-		mSurfaceImage = Bitmap.createBitmap(mStreamingImage);
-		mStreamingImage = null;
+		mSurfaceImage = mStreamingImage.copy(Bitmap.Config.ARGB_8888, false);
+		mStreamingImage.recycle();
 	}
 	
 	/**

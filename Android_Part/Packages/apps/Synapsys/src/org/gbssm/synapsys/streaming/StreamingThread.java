@@ -7,13 +7,13 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.concurrent.RejectedExecutionException;
 
 import org.gbssm.synapsys.global.SynapsysApplication;
 
 import android.graphics.BitmapFactory;
+import android.os.Message;
 import android.util.Log;
 import android.util.Slog;
 
@@ -26,17 +26,12 @@ import android.util.Slog;
 public class StreamingThread extends Thread {
 	
 	private final static String TAG = "Synapsys_StreamingThread";
-	
 	private final static int TIMEOUT = 10000;	// ms
-	
-	private final static int FRAME_MAX_LENGTH = 100000;	// 100kB
 	
 	private final SynapsysApplication mApplication;
 	
 	private Socket mStreamingSocket;
-	
 	private DataInputStream mInputStream;
-	
 	private DataOutputStream mOutputStream;
 	
 	private boolean isDestroyed;
@@ -45,6 +40,9 @@ public class StreamingThread extends Thread {
 		mApplication = application;
 
 		int port = mApplication.getSynapsysManager().requestDisplayConnection();
+		if (port == -1)
+			throw new RejectedExecutionException("Port Number isn't adequte.");
+		
 		try {
 			synchronized (LOCK) {
 				// 서버 소켓이 활성화 되어있지만, 새로운 포트를 할당할 경우, 
@@ -105,21 +103,10 @@ public class StreamingThread extends Thread {
 		}
 		
 	}
-
-	/**
-	 * 
-	 * @return
-	 */
-	public boolean isConnected() {
-		if (mStreamingSocket != null)
-			return isAlive() && mStreamingSocket.isConnected();
-
-		return false;
-	}
-
+	
 	void waitingConnection() throws Exception {
 		if (waitingCount > 0 || runningCount > 0)
-			throw new RejectedExecutionException("Another ControlThread is running.");
+			throw new RejectedExecutionException("Another DisplayThread is running.");
 			
 		waiting(true);
 		
@@ -145,35 +132,18 @@ public class StreamingThread extends Thread {
 			return;
 		
 		running(true);
-		Log.d(TAG, "ControlThread_Connected!");
+		Log.d(TAG, "DisplayThread_Connected!");
+		Message.obtain(mApplication.getHandler(), SynapsysApplication.MSG_CONNECTED_DISPLAY).sendToTarget();
 		
 		try {
-			while(!isDestroyed && mInputStream != null) {
+			while(!isDestroyed && mInputStream != null && runningCount > 0) {
 				try {
-					/* JPEG Header를 통한 파일 탐지.
-						ByteBuffer buffer = null;
-						int read = mInputStream.read(bytes);
-						Log.d(TAG, "Streaming screen read! : " + read);
-						
-						// JPEG HEADER _ SOI (Start of Image)
-						if (bytes[0] == (byte)0xFF && bytes[1] == (byte)0xD8) {
-							buffer = ByteBuffer.wrap(bytes, 0, read);
-							
-						} else
-							if (buffer != null){
-								buffer = ByteBuffer.allocate(buffer.capacity() + read)
-													.put(buffer)
-													.put(bytes, 0, read);
-							}
-						// JPEG HEADER _ EOI (End of Image)	
-						if (!(bytes[read-2] == (byte)0xFF && bytes[read-1] == (byte)0xD9))
-							continue;
-					*/
-					
 					int size = mInputStream.readInt();
-					mOutputStream.write("OK".getBytes());
+					if (size < 0)
+						continue;
 
 					byte[] bytes = new byte[size];
+					mOutputStream.write("OK".getBytes());
 					mInputStream.readFully(bytes);
 					
 					StreamingView view = mApplication.getStreamingView();
@@ -182,12 +152,10 @@ public class StreamingThread extends Thread {
 						view.switchSurfaceImage();
 					}
 					
-				} catch (SocketException e) { 
-					//if (!isDestroyed) 
-					//	Message.obtain(mHandler, SynapsysHandler.MSG_EXIT_CONTROL, mBox).sendToTarget();
-					break;
-				
 				} catch (IOException e) {
+					if (!isDestroyed) 
+						Message.obtain(mApplication.getHandler(), SynapsysApplication.MSG_EXIT_DISPLAY).sendToTarget();
+					break;
 					
 				} finally {
 					
@@ -197,6 +165,7 @@ public class StreamingThread extends Thread {
 			e.printStackTrace();
 		}
 		
+		Message.obtain(mApplication.getHandler(), SynapsysApplication.MSG_DESTROYED_DISPLAY).sendToTarget();
 		running(false);
 	}
 
@@ -209,7 +178,7 @@ public class StreamingThread extends Thread {
 	private static final Object LOCK = new Object();
 	
 	/**
-	 * Control Connection 전역 서버소켓.
+	 * Display Connection 전역 서버소켓.
 	 */
 	static ServerSocket mListenSocket;
 
@@ -228,8 +197,8 @@ public class StreamingThread extends Thread {
 	 * 
 	 * @return
 	 */
-	static boolean isAbleToCreate() {
-		Slog.v(TAG, "Control_isAbleToCreate : " + waitingCount + " / " + runningCount);
+	public static boolean isAbleToCreate() {
+		Slog.v(TAG, "Display_isAbleToCreate : " + waitingCount + " / " + runningCount);
 		synchronized (LOCK) {
 			return ((waitingCount <= 0) && (runningCount <= 0));
 		}
@@ -253,7 +222,7 @@ public class StreamingThread extends Thread {
 	 * @return
 	 */
 	static boolean isWaiting() {
-		Slog.v(TAG, "Control_isWaiting : " + waitingCount);
+		Slog.v(TAG, "Display_isWaiting : " + waitingCount);
 		synchronized (LOCK) {
 			return (waitingCount > 0);
 		}
@@ -277,9 +246,24 @@ public class StreamingThread extends Thread {
 	 * @return
 	 */
 	static boolean isRunning() {
-		Slog.v(TAG, "Control_isRunning : " + runningCount);
+		Slog.v(TAG, "Display_isRunning : " + runningCount);
 		synchronized(LOCK) {
 			return (runningCount > 0);
 		}
 	}
+	
+	/**
+	 * 
+	 */
+	public static void reset() {
+		runningCount = 0;
+	}
+
+	public static int getLocalPort() {
+		if (mListenSocket != null)
+			return mListenSocket.getLocalPort();
+		
+		return -1;
+	}
+
 }

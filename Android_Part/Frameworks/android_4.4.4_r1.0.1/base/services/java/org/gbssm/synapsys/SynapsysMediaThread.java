@@ -139,7 +139,7 @@ public class SynapsysMediaThread extends SynapsysThread {
 		running(true);
 		mHandler.sendEmptyMessage(SynapsysHandler.MSG_CONNECTED_MEDIA);
 		try {
-			transferAllTasks();
+			mHandler.getService().invokeAllCurrentTasks();
 
 			while(!isDestroyed && mDIS != null && runningCount > 0) {
 				try {
@@ -168,21 +168,20 @@ public class SynapsysMediaThread extends SynapsysThread {
 		mHandler.sendEmptyMessage(SynapsysHandler.MSG_DESTROYED_MEDIA);
 	}
 
-	void send(MessageProtocol message) {
+	void send(MediaProtocol message) {
 		try {
 			if (mDOS != null && message != null) {
 				mDOS.write(message.encode());
 				mDOS.flush();
 				
 				// TEST
-				MediaProtocol tp = (MediaProtocol) message;
-				File file = new File("/data/synapsys/", tp.getAppName()+ "/media.dat");
+				File file = new File("/data/synapsys/", message.getAppName()+ "/media.dat");
 				file.createNewFile();
 				FileOutputStream fos = new FileOutputStream(file);
 				fos.write(message.encode());
 				fos.close();
 				
-				Log.d(TAG, "MediaThread_Send! : " + message.toString());
+				Log.d(TAG, "MediaThread_Send! : " + message.toString() + " > " + message.getAppName());
 			}
 			
 		} catch (SocketException e) {
@@ -199,39 +198,7 @@ public class SynapsysMediaThread extends SynapsysThread {
 		}
 	}
 	
-	private void transferAllTasks() {
-		Context context = mHandler.getService().mContext;
-		ActivityManager am = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
-		PackageManager pm = context.getPackageManager();
-		
-		//for (RunningTaskInfo rti : am.getRunningTasks(10)) {
-		for(RecentTaskInfo rti : am.getRecentTasks(10, ActivityManager.RECENT_IGNORE_UNAVAILABLE)) {
-			try {
-				//ComponentName baseComponent = rti.baseActivity;
-				ComponentName baseComponent = rti.baseIntent.getComponent();
-				if (baseComponent == null)
-					continue;
-				
-				ApplicationInfo appInfo = pm.getApplicationInfo(baseComponent.getPackageName(), PackageManager.GET_META_DATA);
-				
-				MediaProtocol media = new MediaProtocol(MediaProtocol.SENDER_STATE_NEW);
-				media.id = rti.id;
-				media.putName((String) pm.getApplicationLabel(appInfo));
-				media.putIcon(appInfo.loadIcon(pm));
-				media.putThumbnail(am.getTaskTopThumbnail(rti.id));
-				
-				//Slog.i(TAG, "RunningTaskInfo : " + media.toString());
-				Slog.i(TAG, "RecentTaskInfo : " + media.toString() + " / ComponentName : " + baseComponent.toShortString());
-				send(media);
-				
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-	}
 	
-	
-
 	
 	// *** STATIC PART *** //
 	/**

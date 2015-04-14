@@ -352,7 +352,7 @@ public abstract class MessageProtocol {
 		/**
 		 * 
 		 */
-		public static final int SENDER_STATE_PREVIOUS = 2;
+		public static final int SENDER_STATE_RENEW = 2;
 		/**
 		 * 
 		 */
@@ -393,7 +393,7 @@ public abstract class MessageProtocol {
 		/**
 		 * Application 이름 크기
 		 */
-		private int appNameSize;
+		private int appNameSize = 0;
 		/**
 		 * Icon Bitmap 객체
 		 */
@@ -401,7 +401,7 @@ public abstract class MessageProtocol {
 		/**
 		 * Icon 이미지 크기
 		 */
-		private int iconSize;
+		private int iconSize = 0;
 		/**
 		 * [Extra] Thumbnail Bitmap 객체
 		 */
@@ -413,7 +413,7 @@ public abstract class MessageProtocol {
 		/**
 		 * Extra 크기
 		 */
-		private int extraSize;
+		private int extraSize = 0;
 		
 		
 		MediaProtocol(int state) {
@@ -445,7 +445,6 @@ public abstract class MessageProtocol {
 				return;
 			
 			this.appName = appName;
-			this.appNameSize = appName.getBytes().length;
 		}
 		
 		public void putIcon(Drawable drawable) {
@@ -486,6 +485,8 @@ public abstract class MessageProtocol {
 			// TEST
 			File dir = new File("/data/synapsys/", appName);
 			dir.mkdir();
+
+			appNameSize = appName.getBytes().length;
 			
 			ByteArrayOutputStream iconByteStream = new ByteArrayOutputStream();
 			if (icon != null) {
@@ -544,13 +545,14 @@ public abstract class MessageProtocol {
 			StringBuilder builder = new StringBuilder();
 			builder.append(state).append(SPLITTER);
 			builder.append(id).append(SPLITTER);
-			builder.append(appName).append(SPLITTER);
+			builder.append(appNameSize).append(SPLITTER);
 			builder.append(iconSize).append(SPLITTER);
 			builder.append(extraSize);
 			
 			return builder.toString();
 		}
 	
+		
 		// *** STATIC PART *** //
 		public static MediaProtocol decode(int state, int id) {
 			MediaProtocol protocol = new MediaProtocol(state);
