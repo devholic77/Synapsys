@@ -21,6 +21,7 @@ namespace Synapsys_ADB
             String path = System.IO.Directory.GetCurrentDirectory(); // sub program 실행 
             path.IndexOf("Synapsys");
             path = path.Substring(0, path.IndexOf("Synapsys\\")) + "Synapsys_Sub_Program\\Synapsys_Sub_Program\\bin\\Release\\Synapsys_Sub_Program.exe";
+			path = @"C:\Synapsys_Sub_Program\Synapsys_Sub_Program\bin\Release\Synapsys_Sub_Program.exe";
 
             if(Device_Name.Equals(Synapsys_Values.First_Device_Name)) // 1e대인경우
             {
