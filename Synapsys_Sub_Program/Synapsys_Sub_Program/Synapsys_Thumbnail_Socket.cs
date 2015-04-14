@@ -92,25 +92,45 @@ namespace Synapsys_Sub_Program
         }
 
 
-        public void Synapsys_1_State(int App_ID, int AppNameSize, int IconSize, int ThumbnailSize) //최초
+        public bool Synapsys_1_State(int App_ID, int AppNameSize, int IconSize, int ThumbnailSize) //최초
         {
-            byte[] str_name = new byte[AppNameSize]; // 장대찬 소켓
-            Synaposys_ReadFully(str_name);
+            
+            byte[] str_name = new byte[AppNameSize]; // 장대찬 소켓 ㅁㄴㅇㅇㅁㄴㅇ
+            if (!Synaposys_ReadFully(str_name))
+            {
+                ReadThread.Interrupt();
+                return false;
+            }
+                
             String App_name = Encoding.UTF8.GetString(str_name);
+
+
+
             byte[] App_icon_byte = new byte[IconSize];
             Synaposys_ReadFully(App_icon_byte);
-            byte[] App_thumbnail_byte = new byte[ThumbnailSize];
-            Synaposys_ReadFully(App_thumbnail_byte);
 
             Bitmap App_icon_bitmap = ConvertToBitmap(App_icon_byte);
             Icon App_Icon = Icon.FromHandle(App_icon_bitmap.GetHicon());
-            Bitmap App_thumbnail = ConvertToBitmap(App_thumbnail_byte);
+
+            Bitmap App_thumbnail;
+
+            if(ThumbnailSize != 0)
+            { 
+                byte[] App_thumbnail_byte = new byte[ThumbnailSize];
+                Synaposys_ReadFully(App_thumbnail_byte);
+                App_thumbnail = ConvertToBitmap(App_thumbnail_byte);
+            }
+            else
+            {
+                App_thumbnail = global::Synapsys_Sub_Program.Properties.Resources.min_1;
+            }
+
 
             for (int i = 0; i < Synapsys_Global_Value.Thumbnail_index; i++)
             {
                 if (Synapsys_Global_Value.Android_Thumbnail[i].Synapsys_GetId().Equals(App_ID))
                 {
-                    return;
+                    return false;
                 }
             }
 
@@ -126,16 +146,20 @@ namespace Synapsys_Sub_Program
 
                 Execute(this, e);  // 이벤트 실행. this는 이 객체를 말하는것.
             }
-
+            return true;
         }
         public delegate void execute(object sender, Synapsys_Thumbnail_Event e); // 델리게이트 선언. 이 형식에 맞춰 이벤트 적용 함수 만들어야함.
         public event execute Execute; // 이벤트 선언
 
-        public void Synapsys_2_State(int App_ID, int AppNameSize, int IconSize, int ThumbnailSize) //직전
+        public bool Synapsys_2_State(int App_ID, int AppNameSize, int IconSize, int ThumbnailSize) //직전
         {
 
             byte[] str_name = new byte[AppNameSize];
-            Synaposys_ReadFully(str_name);
+             if (!Synaposys_ReadFully(str_name))
+            {
+                ReadThread.Interrupt();
+                return false;
+            }
             String App_name = Encoding.UTF8.GetString(str_name);
             byte[] App_icon_byte = new byte[IconSize];
             Synaposys_ReadFully(App_icon_byte);
@@ -155,7 +179,7 @@ namespace Synapsys_Sub_Program
 
                 Execute(this, e);  // 이벤트 실행. this는 이 객체를 말하는것.
             }
-
+            return true;
         }
         public void Synapsys_3_State(int App_ID) //삭제
         {
@@ -260,7 +284,7 @@ namespace Synapsys_Sub_Program
             }
         }
 
-        public static void Synaposys_ReadFully(byte[] buffer)
+        public static bool Synaposys_ReadFully(byte[] buffer)
         {
             int offset = 0;
             int readBytes;
@@ -276,8 +300,13 @@ namespace Synapsys_Sub_Program
 
             if (offset < buffer.Length)
             {
+                Console.WriteLine("에러");
+                return false;
                 throw new EndOfStreamException();
+
             }
+            Console.WriteLine("리드풀리 끝");
+            return true;
         }
         //myNetworkStream.ReadFully(buffer);
 
@@ -303,13 +332,14 @@ namespace Synapsys_Sub_Program
                     {
                         case 1: // 최초
                             Console.WriteLine("최초");
-                            if (head_msg[4] == 0)
-                                break;
-                            Synapsys_1_State(head_msg[1], head_msg[2], head_msg[3], head_msg[4]);
+
+                            if (!Synapsys_1_State(head_msg[1], head_msg[2], head_msg[3], head_msg[4]))
+                                return;
                             break;
                         case 2: // 직전
                             Console.WriteLine("직전");
-                            Synapsys_2_State(head_msg[1], head_msg[2], head_msg[3], head_msg[4]);
+                            if (!Synapsys_2_State(head_msg[1], head_msg[2], head_msg[3], head_msg[4]))
+                                return;
                             break;
                         case 3: // 삭제
                             Console.WriteLine("삭제");

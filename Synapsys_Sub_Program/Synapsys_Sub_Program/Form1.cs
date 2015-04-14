@@ -25,6 +25,7 @@ namespace Synapsys_Sub_Program
 
     public partial class Form1 : Form
     {
+        int launcher_id = 0;
         public Form1()
         {
             InitializeComponent();
@@ -66,6 +67,8 @@ namespace Synapsys_Sub_Program
                     if (App_name.Equals("Launcher"))
                     {
                         this.pictureBox1.Image = App_thumbnail;
+                        this.launcher_id = App_id;
+
                         pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
                         
                     }
@@ -77,18 +80,17 @@ namespace Synapsys_Sub_Program
                     }
                     break;
                 case 2: // 직전
-                    for (int i = 0; i <= Synapsys_Global_Value.Thumbnail_index; i++)
+                    for (int i = 0; i < Synapsys_Global_Value.Thumbnail_index; i++)
                     {
                         if (Synapsys_Global_Value.Android_Thumbnail[i].Synapsys_GetId() == App_id)
                         {
                             Synapsys_Global_Value.Android_Thumbnail[i].Synapsys_SetThumbnail(App_thumbnail);
-                            
                             break;
                         }
                     }
                     break;
                 case 3: // 삭제
-                    for (int i = 0; i <= Synapsys_Global_Value.Thumbnail_index; i++)
+                    for (int i = 0; i < Synapsys_Global_Value.Thumbnail_index; i++)
                     {
                         if (Synapsys_Global_Value.Android_Thumbnail[i].Synapsys_GetId() == App_id)
                         {
@@ -131,28 +133,57 @@ namespace Synapsys_Sub_Program
 
 
         }
-        void Synapsys_AppContextChangeEvent(object sender, TabbedThumbnailEventArgs e)
+        void Synapsys_AppContextChangeEvent(object sender, TabbedThumbnailEventArgs e) // 런처 처리하기 
         {
 
-            byte[] result = { 0, 0, 0, 1, 0, 0, 0, 1 };
+            
             Console.WriteLine("main click");
+
+         
+
+        
+
+            byte[] state = Synapsys_intToByte(1);
+            byte[] id_byte = Synapsys_intToByte(this.launcher_id);
+            byte[] result = new byte[8];
+
+            for (int i = 0; i < 4; i++)
+                result[i] = state[i];
+
+            for (int i = 0; i < 4; i++)
+                result[i + 4] = id_byte[i];
+
+            for (int i = 0; i < 8; i++)
+                Console.WriteLine(result[i]);
+
             Synapsys_Global_Value.Thumbnail_Socket.Synapsys_Write(result);
+
 
         }
 
-        void Synapsys_AppDeleteEvent(object sender, TabbedThumbnailClosedEventArgs e)
+        void Synapsys_AppDeleteEvent(object sender, TabbedThumbnailClosedEventArgs e) // 여기 처리하기.
         {
             //        this.thumbButtonNext.Dispose();
             //          this.thumbButtonPrev.Dispose();
             //            TaskbarManager.Instance.TabbedThumbnail.RemoveThumbnailPreview(thumb);
 
-            Console.WriteLine("딜리트");
+            /*
+            byte[] state = Synapsys_intToByte(3);
+            byte[] id_byte = Synapsys_intToByte(this.launcher_id);
+            byte[] result = new byte[8];
 
-            byte[] result = { 0, 0, 0, 3, 0, 0, 0, 1 };
+            for (int i = 0; i < 4; i++)
+                result[i] = state[i];
+
+            for (int i = 0; i < 4; i++)
+                result[i + 4] = id_byte[i];
+
+            for (int i = 0; i < 8; i++)
+                Console.WriteLine(result[i]);
 
             Synapsys_Global_Value.Thumbnail_Socket.Synapsys_Write(result);
-
-            Synapsys_App_Delete();
+            */
+            Synapsys_App_Delete(); // 소켓 끝내기
         }
         public void Synapsys_App_Delete()
         {
