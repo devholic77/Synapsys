@@ -2,6 +2,7 @@
 using System.Windows.Forms;
 using System.Threading;
 
+
 namespace Synapsys_ADB
 {
 	public partial class ADB_Form : Form
@@ -9,7 +10,7 @@ namespace Synapsys_ADB
 		public ADB_Form()
 		{
 			InitializeComponent();
-			Usb_Check();
+			
 		}
 		static bool device_check_flag = true;
 
@@ -20,7 +21,7 @@ namespace Synapsys_ADB
 			//Console.WriteLine(m);
 			if ((m.Msg == WM_DEVICECHANGE))
 			{
-				Console.WriteLine(m);
+				//Console.WriteLine(m);
 				if (device_check_flag == true && (m.WParam.ToInt32() != DBT_DEVICEARRIVAL))
 				{
 					new Thread(new ThreadStart(Usb_Check)).Start();
@@ -35,7 +36,7 @@ namespace Synapsys_ADB
 
 			device_check_flag = false;
 
-			Thread.Sleep(2000);
+            Thread.Sleep(3000);
 			is_device = Synapsys_Values.ADB_Instruction.Check_Device();
 			if (is_device)
 			{
@@ -47,12 +48,14 @@ namespace Synapsys_ADB
 					ConnEvent e = new ConnEvent();
 					e.Device = Synapsys_Values.Current_Device_Num;
 					e.Message = Synapsys_Values.Current_Device_Name;
+                    e.Check_Deivce_Msg = Synapsys_Values.Check_Deivce_Msg;
+                    e.Check_Device_Flag = Synapsys_Values.Check_Device_Flag;
+      
+                   
+
 					Execute(this, e);  // 이벤트 실행. this는 이 객체를 말하는것.
 				}
-
-
 			}
-
 			device_check_flag = true;
 		}
 
