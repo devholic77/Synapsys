@@ -1662,7 +1662,7 @@ public class NotificationManagerService extends INotificationManager.Stub
         // Notification을 가져가기 위해 선언
 		SynapsysManagerService service = (SynapsysManagerService) ServiceManager.getService(Context.SYNAPSYS_SERVICE);       
         if (service != null) {
-       		 service.dispatchNotification(pkg,id);
+       		 service.dispatchNotification(pkg,id,notification);
        	}        
         
         checkCallerIsSystemOrSameApp(pkg);
@@ -2089,8 +2089,7 @@ public class NotificationManagerService extends INotificationManager.Stub
         // work on the worker handler. Hence, we also schedule the cancel on this
         // handler to avoid a scenario where an add notification call followed by a
         // remove notification call ends up in not removing the notification.
-        
-        /* added */
+        		/* added */
 		Slog.w(TAG, "cancelNotification() call pkg:"+pkg+" tag:"+tag+" id:"+id+" mustHaveFlags:"+mustHaveFlags
 		+" mustNotHaveFlags:"+mustNotHaveFlags+" sendDelete:"+sendDelete+" userId:"+userId);
         mHandler.post(new Runnable() {
