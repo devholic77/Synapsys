@@ -9,6 +9,7 @@ import com.android.server.pm.PackageManagerService;
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.input.InputManager;
+import android.app.Activity;
 import android.os.Handler;
 import android.os.Message;
 import android.os.RemoteException;
@@ -19,6 +20,7 @@ import android.app.NotificationManager;
 import java.util.ArrayList;
 import android.app.Notification;
 import com.android.server.NotificationManagerService;
+import android.app.PendingIntent.CanceledException;
 
 /**
  * 
@@ -147,7 +149,7 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 		try {
 			if (TempNoti != null)
 				TempNoti.contentIntent.send();	// notification 제거 intent 실행 
-		} catch (CanceledException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
@@ -174,7 +176,7 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 			if (event && another) {
 				systemReady();
 				broadcastSynapsysState(true, false, false);						
-				notificationDeleteEvent();
+				notificationDeleteEvent(0);
 				return;
 				
 			}
