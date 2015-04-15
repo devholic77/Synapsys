@@ -139,12 +139,15 @@ namespace Synapsys
 				if (clientSock.Connected)
 				{
 					imgArray = array;
-					byte[] buffer = BitConverter.GetBytes(array.Length);
-					Array.Reverse(buffer);
-					Console.WriteLine("Send :" + buffer.Length);
-					clientSock.BeginSend(buffer, 0, buffer.Length, SocketFlags.None,
-										  new AsyncCallback(SendCallBack), filesize.ToString());
-					
+
+					if(array.Length > 0)
+					{
+						byte[] buffer = BitConverter.GetBytes(array.Length);
+						Array.Reverse(buffer);
+						Console.WriteLine("Send :" + buffer.Length);
+						clientSock.BeginSend(buffer, 0, buffer.Length, SocketFlags.None,
+											  new AsyncCallback(SendCallBack), filesize.ToString());
+					}
 				}
 			}
 			catch (SocketException e)
