@@ -1,11 +1,9 @@
 package org.gbssm.synapsys.streaming;
 
-import org.gbssm.synapsys.R;
 import org.gbssm.synapsys.global.SynapsysApplication;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -16,7 +14,6 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.WindowManager;
-import android.widget.Toast;
 
 /**
  * Windows 확장 디스플레이 화면 스트리밍을 보여주는 View.
@@ -81,9 +78,7 @@ public class StreamingView extends SurfaceView implements SurfaceHolder.Callback
 			mSurfaceThread.destroy();
 		mSurfaceThread = new SurfaceThread();	
 		
-		// Dummy
-		mStreamingImage = BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher2);
-		mSurfaceImage = BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher);
+		//mSurfaceImage = BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher2);
 	}
 
 	synchronized void switchSurfaceImage() {
@@ -93,8 +88,8 @@ public class StreamingView extends SurfaceView implements SurfaceHolder.Callback
 		}
 
 		Log.d(TAG, "SurfaceImage is switched!");
-		mSurfaceImage = Bitmap.createBitmap(mStreamingImage);
-		mStreamingImage = null;
+		mSurfaceImage = mStreamingImage.copy(Bitmap.Config.ARGB_8888, false);
+		mStreamingImage.recycle();
 	}
 	
 	/**
@@ -142,6 +137,7 @@ public class StreamingView extends SurfaceView implements SurfaceHolder.Callback
 							canvas.drawColor(Color.BLACK);
 							canvas.drawBitmap(mSurfaceImage, null, mRect, mPaint);
 						}
+					} catch (Exception e) { 
 					} finally {
 						mHolder.unlockCanvasAndPost(canvas);
 					}

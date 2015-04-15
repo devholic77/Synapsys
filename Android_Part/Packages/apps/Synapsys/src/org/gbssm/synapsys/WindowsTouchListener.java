@@ -12,7 +12,7 @@ import android.hardware.input.InputManager;
 
 
 /**
- * 작업 시작!!
+ * 
  * 
  * @author Dhuckil.Kim
  * @since 2015.03.05
@@ -27,10 +27,12 @@ public class WindowsTouchListener implements OnGestureListener, OnDoubleTapListe
 	final static int SCROLL_UP_DOWN = 5;
 	final static int SCROLL_LEFT_RIGHT = 6;
 	final static int EVENT_END = 7;
+	
 	int Doubletap_flag = 0;
 	int MultiTouch_flag = 0;
 	int Scroll_flag = 0;
 	int act = 0;
+	
 	private static final String DTAG = "TestServer";
 
 	MotionEvent temp_e;

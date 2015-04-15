@@ -9,8 +9,10 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.nio.ByteBuffer;
 import java.util.concurrent.RejectedExecutionException;
 
+import org.gbssm.synapsys.MessageProtocol.ControlProtocol;
 import org.gbssm.synapsys.SynapsysManagerService.SynapsysHandler;
 
 import android.os.Message;
@@ -37,7 +39,7 @@ public class SynapsysControlThread extends SynapsysThread {
 		mBox = box;
 		
 		try {
-			synchronized (LOCK) {
+			synchronized (this) {
 				// 서버 소켓이 활성화 되어있지만, 새로운 포트를 할당할 경우, 
 				// 기존의 서버 소켓을 닫고 새로운 서버 소켓을 생성한다.
 				if (mListenSocket != null && mListenSocket.getLocalPort() != box.port) {
@@ -105,7 +107,7 @@ public class SynapsysControlThread extends SynapsysThread {
 		
 		Log.d(TAG, "ControlThread_Run()_Port : " + mBox.port);
 		do {
-			synchronized (LOCK) {
+			synchronized (this) {
 				try {
 					mConnectedSocket = mListenSocket.accept();
 
@@ -122,39 +124,31 @@ public class SynapsysControlThread extends SynapsysThread {
 	void runningConnection() throws Exception {
 		if (isDestroyed)
 			return;
+
+		Log.d(TAG, "ControlThread_Connected!");
 		
 		running(true);
-		Log.d(TAG, "ControlThread_Connected!");
 		mHandler.sendEmptyMessage(SynapsysHandler.MSG_CONNECTED_CONTROL);
 		
 		try {
-			while(!isDestroyed && mDIS != null) {
-				byte[] bytes = new byte[ControlProtocol.MSG_SIZE];
+			while(!isDestroyed && mDIS != null && runningCount > 0) {
 				try {
-					Log.d(TAG, "ControlThread_Received!" + mDIS.read(bytes));
-					Log.d(TAG, "ControlThread_Message = " + new String(bytes, "UTF-8"));
-	
-					ControlProtocol<?, ?, ?>[] protocols = ControlProtocol.decode(bytes);
+					byte[] bytes = new byte[ControlProtocol.MSG_SIZE];
+					int read = mDIS.read(bytes);
+					
+					ControlProtocol<?, ?, ?>[] protocols = ControlProtocol.decode(
+							ByteBuffer.wrap(bytes, 0, read).array());
 					
 					for (ControlProtocol<?, ?, ?> protocol : protocols)
 						protocol.process(mHandler.getService());
 					
-				} catch (SocketException e) { 
+				} catch (IOException e) {
 					if (!isDestroyed) 
 						Message.obtain(mHandler, SynapsysHandler.MSG_EXIT_CONTROL, mBox).sendToTarget();
 					break;
-				
-				} catch (IOException e) {
 					
 				} finally {
-					// TEST_DUMMY
-					ControlProtocol<Integer, Integer, Integer> protocol = new ControlProtocol<Integer, Integer, Integer>(0);
-					protocol.mCode = 10;
-					protocol.mValue1 = 100;
-					protocol.mValue2 = 200;
-					protocol.mValue3 = 300;
 					
-					send(protocol);
 				}
 			}
 		} catch (Exception e) {
@@ -181,6 +175,9 @@ public class SynapsysControlThread extends SynapsysThread {
 			throw new RejectedExecutionException("Connection Socket is closed.");
 			
 		} catch (IOException e) { 
+			if (!isDestroyed) 
+				Message.obtain(mHandler, SynapsysHandler.MSG_EXIT_CONTROL, mBox).sendToTarget();
+			
 			e.printStackTrace();
 		}
 	}
@@ -215,9 +212,12 @@ public class SynapsysControlThread extends SynapsysThread {
 	 */
 	static boolean isAbleToCreate() {
 		Slog.v(TAG, "Control_isAbleToCreate : " + waitingCount + " / " + runningCount);
+		
+		boolean result;
 		synchronized (LOCK) {
-			return ((waitingCount <= 0) && (runningCount <= 0));
+			result = ((waitingCount <= 0) && (runningCount <= 0));
 		}
+		return result;
 	}
 
 	/**
@@ -229,7 +229,7 @@ public class SynapsysControlThread extends SynapsysThread {
 			if (enable)
 				waitingCount++;
 			else
-				waitingCount = waitingCount>0? waitingCount-1 : 0;
+				waitingCount = waitingCount > 0? waitingCount-1 : 0;
 		}
 	}
 	
@@ -239,9 +239,12 @@ public class SynapsysControlThread extends SynapsysThread {
 	 */
 	static boolean isWaiting() {
 		Slog.v(TAG, "Control_isWaiting : " + waitingCount);
+		
+		boolean result;
 		synchronized (LOCK) {
-			return (waitingCount > 0);
+			result = (waitingCount > 0);
 		}
+		return result;
 	}
 	
 	/**
@@ -263,8 +266,15 @@ public class SynapsysControlThread extends SynapsysThread {
 	 */
 	static boolean isRunning() {
 		Slog.v(TAG, "Control_isRunning : " + runningCount);
+		
+		boolean result;
 		synchronized(LOCK) {
-			return (runningCount > 0);
+			result = (runningCount > 0);
 		}
+		return result;
+	}
+
+	static void reset() {
+		runningCount = 0;
 	}
 }

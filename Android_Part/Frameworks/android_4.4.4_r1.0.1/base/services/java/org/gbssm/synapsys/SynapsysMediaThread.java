@@ -4,6 +4,8 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -11,16 +13,12 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.concurrent.RejectedExecutionException;
 
+import org.gbssm.synapsys.MessageProtocol.MediaProtocol;
 import org.gbssm.synapsys.SynapsysManagerService.SynapsysHandler;
 
-import android.content.Context;
 import android.os.Message;
-import android.os.ServiceManager;
 import android.util.Log;
 import android.util.Slog;
-
-import com.android.server.am.ActivityManagerService;
-import com.android.server.pm.PackageManagerService;
 
 /**
  * Media-Thumbnail SynapsysThread.
@@ -37,15 +35,12 @@ public class SynapsysMediaThread extends SynapsysThread {
 	private DataInputStream mDIS;
 	private DataOutputStream mDOS;
 
-	private ActivityManagerService mActivityService;
-	private PackageManagerService mPackageService;
-	
 	public SynapsysMediaThread(SynapsysHandler handler, ConnectionBox box) {
 		super(handler);
 		mBox = box;
 
 		try {
-			synchronized (LOCK) {
+			synchronized (this) {
 				// 서버 소켓이 활성화 되어있지만, 새로운 포트를 할당할 경우, 
 				// 기존의 서버 소켓을 닫고 새로운 서버 소켓을 생성한다.
 				if (mListenSocket != null && mListenSocket.getLocalPort() != box.port) {
@@ -65,7 +60,6 @@ public class SynapsysMediaThread extends SynapsysThread {
 			e.printStackTrace();
 		}
 		
-		mActivityService = (ActivityManagerService) ServiceManager.getService(Context.ACTIVITY_SERVICE);
 	}
 	
 	@Override
@@ -115,7 +109,7 @@ public class SynapsysMediaThread extends SynapsysThread {
 		
 		Log.d(TAG, "MediaThread_Run()_Port : " + mBox.port);
 		do {
-			synchronized (LOCK) {
+			synchronized (this) {
 				try {
 					mMediaSocket = mListenSocket.accept();
 						
@@ -138,31 +132,32 @@ public class SynapsysMediaThread extends SynapsysThread {
 		running(true);
 		mHandler.sendEmptyMessage(SynapsysHandler.MSG_CONNECTED_MEDIA);
 		try {
-			transferAllTasks();
-			
-			while(!isDestroyed && mDIS != null) {
-//				byte[] bytes = new byte[MediaProtocol.MSG_SIZE];
-//				try {
-//					mDIS.read(bytes);
-//					Log.d(TAG, "MediaThread_Received! : " + new String(bytes, "UTF-8"));
-//					
-//				} catch (SocketException e) {
-//					if (!isDestroyed) 
-//						mHandler.sendMessageDelayed(Message.obtain(mHandler, SynapsysHandler.MSG_EXIT_MEDIA, mBox), 1000);
-//					break;
-//				
-//				} catch (IOException e) {
-//					// Reading Errors occur.
-//				} 
-				send(new MediaProtocol());
-				Thread.sleep(1000);
+			mHandler.getService().invokeAllCurrentTasks();
+
+			while(!isDestroyed && mDIS != null && runningCount > 0) {
+				try {
+					int state = mDIS.readInt();
+					int id = mDIS.readInt();
+					Slog.d(TAG, "MediaThread_Received : State = " + state + " / AppID = " + id);
+					
+					MediaProtocol protocol = new MediaProtocol(state);
+					protocol.id = id;
+					protocol.process(mHandler.getService());
+					
+				} catch (IOException e) {
+					if (!isDestroyed) 
+						Message.obtain(mHandler, SynapsysHandler.MSG_EXIT_MEDIA, mBox).sendToTarget();
+					break;
+					
+				} finally {
+					
+				}
 			}
 		} catch (Exception e) {
-			
+			e.printStackTrace();
 		}
 			
-		
-		running(false);
+		running(false);	
 		mHandler.sendEmptyMessage(SynapsysHandler.MSG_DESTROYED_MEDIA);
 	}
 
@@ -172,31 +167,31 @@ public class SynapsysMediaThread extends SynapsysThread {
 				mDOS.write(message.encode());
 				mDOS.flush();
 				
-				Log.d(TAG, "MediaThread_Send! : " + message.toString());
+				// TEST
+				File file = new File("/data/synapsys/", message.getAppName()+ "/media.dat");
+				file.createNewFile();
+				FileOutputStream fos = new FileOutputStream(file);
+				fos.write(message.encode());
+				fos.close();
+				
+				Log.d(TAG, "MediaThread_Send! : " + message.toString() + " > " + message.getAppName());
 			}
 			
 		} catch (SocketException e) {
 			if (!isDestroyed) 
-				Message.obtain(mHandler, SynapsysHandler.MSG_EXIT_CONTROL, mBox).sendToTarget();
+				Message.obtain(mHandler, SynapsysHandler.MSG_EXIT_MEDIA, mBox).sendToTarget();
 		
 			throw new RejectedExecutionException("Connection Socket is closed.");
 			
 		} catch (IOException e) { 
+			if (!isDestroyed) 
+				Message.obtain(mHandler, SynapsysHandler.MSG_EXIT_MEDIA, mBox).sendToTarget();
+			
 			e.printStackTrace();
 		}
 	}
 	
-	private void transferAllTasks() {
-		mHandler.getService();
-
-		MediaProtocol media = new MediaProtocol();
-		media.state = MediaProtocol.STATE_PREVIOUS_TOP;
-		
-		
-	}
 	
-	
-
 	
 	// *** STATIC PART *** //
 	/**
@@ -225,9 +220,12 @@ public class SynapsysMediaThread extends SynapsysThread {
 	 */
 	static boolean isAbleToCreate() {
 		Slog.v(TAG, "Media_isAbleToCreate : " + waitingCount + " / " + runningCount);
+		
+		boolean result;
 		synchronized (LOCK) {
-			return ((waitingCount <= 0) && (runningCount <= 0));
+			result = (waitingCount <= 0) && (runningCount <= 0);
 		}
+		return result;
 	}
 
 	/**
@@ -249,9 +247,12 @@ public class SynapsysMediaThread extends SynapsysThread {
 	 */
 	static boolean isWaiting() {
 		Slog.v(TAG, "Media_isWaiting : " + waitingCount);
+		
+		boolean result;
 		synchronized (LOCK) {
-			return (waitingCount > 0);
+			result = (waitingCount > 0);
 		}
+		return result;
 	}
 	
 	/**
@@ -273,8 +274,15 @@ public class SynapsysMediaThread extends SynapsysThread {
 	 */
 	static boolean isRunning() {
 		Slog.v(TAG, "Media_isRunning : " + runningCount);
+		
+		boolean result;
 		synchronized(LOCK) {
-			return (runningCount > 0);
+			result = (runningCount > 0);
 		}
+		return result;
+	}
+	
+	static void reset() {
+		runningCount = 0;
 	}
 }

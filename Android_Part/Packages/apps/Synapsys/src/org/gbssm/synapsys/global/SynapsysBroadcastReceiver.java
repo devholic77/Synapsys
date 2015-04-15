@@ -1,5 +1,6 @@
 package org.gbssm.synapsys.global;
 
+import org.gbssm.synapsys.MainActivity;
 import org.gbssm.synapsys.SynapsysManager;
 
 import android.content.BroadcastReceiver;
@@ -18,6 +19,9 @@ public class SynapsysBroadcastReceiver extends BroadcastReceiver {
 	
 	private Toast mToast;
 	
+	private boolean prevConnected;
+	
+	
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		if (mToast == null)
@@ -33,8 +37,13 @@ public class SynapsysBroadcastReceiver extends BroadcastReceiver {
 		if (isUSBready && isPCready) {
 			mApplication.setControllerConnected(isConnected);
 			
-			if (!isConnected)
+			if (!isConnected) {
 				mApplication.startStreaming();
+				
+				Intent newIntent = new Intent(context, MainActivity.class);
+				newIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+				context.startActivity(newIntent);
+			}
 			
 		} else if (!isUSBready || !isPCready) {
 			mApplication.setControllerConnected(false);
