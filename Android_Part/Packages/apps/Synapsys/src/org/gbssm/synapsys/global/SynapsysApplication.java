@@ -50,10 +50,14 @@ public class SynapsysApplication extends Application {
 				
 			case MSG_CONNECTED_DISPLAY:
 				isDisplayed = true;
+				if (mStreamingActivity != null)
+					mStreamingActivity.notifyDisplaying(true);
 				break;
 				
 			case MSG_DESTROYED_DISPLAY:
 				isDisplayed = false;
+				if (mStreamingActivity != null)
+					mStreamingActivity.notifyDisplaying(false);
 				break;
 			}
 		}
@@ -85,16 +89,9 @@ public class SynapsysApplication extends Application {
 			try {
 				mStreamingThread = new StreamingThread(this);
 				mStreamingThread.start();
+				
 			} catch (RejectedExecutionException e) { ; }
-			return;
 		}
-
-		int port = mSynapsysManager.requestDisplayConnection();
-		if (StreamingThread.getLocalPort() != port)
-			stopStreaming();
-		
-		Log.d("SynapsysApplication", "StartStreaming() : Rebind Port.");
-		mHandler.sendEmptyMessageDelayed(MSG_PROCEED_DISPLAY, 250);
 	}
 	
 	public void stopStreaming() {

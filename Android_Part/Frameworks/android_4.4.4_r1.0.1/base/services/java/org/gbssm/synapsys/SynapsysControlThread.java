@@ -4,7 +4,6 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.EOFException;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -40,7 +39,7 @@ public class SynapsysControlThread extends SynapsysThread {
 		mBox = box;
 		
 		try {
-			synchronized (LOCK) {
+			synchronized (this) {
 				// 서버 소켓이 활성화 되어있지만, 새로운 포트를 할당할 경우, 
 				// 기존의 서버 소켓을 닫고 새로운 서버 소켓을 생성한다.
 				if (mListenSocket != null && mListenSocket.getLocalPort() != box.port) {
@@ -108,7 +107,7 @@ public class SynapsysControlThread extends SynapsysThread {
 		
 		Log.d(TAG, "ControlThread_Run()_Port : " + mBox.port);
 		do {
-			synchronized (LOCK) {
+			synchronized (this) {
 				try {
 					mConnectedSocket = mListenSocket.accept();
 

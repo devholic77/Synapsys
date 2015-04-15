@@ -3,6 +3,7 @@ package org.gbssm.synapsys;
 import java.io.IOException;
 import java.util.HashMap;
 
+import org.gbssm.synapsys.MessageProtocol.ControlProtocol;
 import org.gbssm.synapsys.MessageProtocol.MediaProtocol;
 import org.gbssm.synapsys.SynapsysManagerService.SynapsysHandler;
 
@@ -126,7 +127,9 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 		
 		if (mControlThread != null) {
 			try {
+				ControlProtocol<Integer, Integer, Integer> protocol = new ControlProtocol<Integer, Integer, Integer>(event_id);
 				
+				mControlThread.send(protocol);
 				
 			} catch (Exception e) { ; }
 		}

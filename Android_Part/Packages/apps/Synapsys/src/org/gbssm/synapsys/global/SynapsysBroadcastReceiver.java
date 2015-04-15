@@ -19,6 +19,9 @@ public class SynapsysBroadcastReceiver extends BroadcastReceiver {
 	
 	private Toast mToast;
 	
+	private boolean prevConnected;
+	
+	
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		if (mToast == null)
@@ -38,8 +41,7 @@ public class SynapsysBroadcastReceiver extends BroadcastReceiver {
 				mApplication.startStreaming();
 				
 				Intent newIntent = new Intent(context, MainActivity.class);
-				newIntent.addFlags(Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY);
-				newIntent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+				newIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 				context.startActivity(newIntent);
 			}
 			

@@ -1,11 +1,9 @@
 package org.gbssm.synapsys.streaming;
 
-import org.gbssm.synapsys.R;
 import org.gbssm.synapsys.global.SynapsysApplication;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -16,7 +14,6 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.WindowManager;
-import android.widget.Toast;
 
 /**
  * Windows 확장 디스플레이 화면 스트리밍을 보여주는 View.
@@ -140,6 +137,7 @@ public class StreamingView extends SurfaceView implements SurfaceHolder.Callback
 							canvas.drawColor(Color.BLACK);
 							canvas.drawBitmap(mSurfaceImage, null, mRect, mPaint);
 						}
+					} catch (Exception e) { 
 					} finally {
 						mHolder.unlockCanvasAndPost(canvas);
 					}

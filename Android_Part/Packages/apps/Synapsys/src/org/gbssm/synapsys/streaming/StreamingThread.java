@@ -44,7 +44,7 @@ public class StreamingThread extends Thread {
 			throw new RejectedExecutionException("Port Number isn't adequte.");
 		
 		try {
-			synchronized (LOCK) {
+			synchronized (this) {
 				// 서버 소켓이 활성화 되어있지만, 새로운 포트를 할당할 경우, 
 				// 기존의 서버 소켓을 닫고 새로운 서버 소켓을 생성한다.
 				if (mListenSocket != null && mListenSocket.getLocalPort() != port) {
@@ -112,7 +112,7 @@ public class StreamingThread extends Thread {
 		
 		//Log.d(TAG, "StreamingThread_Run()_Port : " + mBox.port);
 		do {
-			synchronized (LOCK) {
+			synchronized (this) {
 				try {
 					mStreamingSocket = mListenSocket.accept();
 
@@ -199,9 +199,12 @@ public class StreamingThread extends Thread {
 	 */
 	public static boolean isAbleToCreate() {
 		Slog.v(TAG, "Display_isAbleToCreate : " + waitingCount + " / " + runningCount);
+		
+		boolean result;
 		synchronized (LOCK) {
-			return ((waitingCount <= 0) && (runningCount <= 0));
+			result = ((waitingCount <= 0) && (runningCount <= 0));
 		}
+		return result;
 	}
 
 	/**
@@ -223,9 +226,12 @@ public class StreamingThread extends Thread {
 	 */
 	static boolean isWaiting() {
 		Slog.v(TAG, "Display_isWaiting : " + waitingCount);
+		
+		boolean result;
 		synchronized (LOCK) {
-			return (waitingCount > 0);
+			result = (waitingCount > 0);
 		}
+		return result;
 	}
 	
 	/**
@@ -247,9 +253,12 @@ public class StreamingThread extends Thread {
 	 */
 	static boolean isRunning() {
 		Slog.v(TAG, "Display_isRunning : " + runningCount);
+		
+		boolean result;
 		synchronized(LOCK) {
-			return (runningCount > 0);
+			result = (runningCount > 0);
 		}
+		return result;
 	}
 	
 	/**

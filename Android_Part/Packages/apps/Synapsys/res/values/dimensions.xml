@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="digital_clock_margin">10dp</dimen>
+    <dimen name="digital_clock_size">35sp</dimen>
+    <dimen name="progressbar_margin">20dp</dimen>
+    <dimen name="textview_margin">10dp</dimen>
+    <dimen name="streaming_board_padding">30dp</dimen>
+    
+</resources>
