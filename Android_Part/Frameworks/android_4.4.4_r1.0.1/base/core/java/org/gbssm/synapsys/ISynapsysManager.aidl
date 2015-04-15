@@ -28,7 +28,7 @@ interface ISynapsysManager {
 	
 	boolean invokeKeyboardEvent(int event_id, int key_code);
 	
-	boolean invokeNotificationEvent();
+	boolean invokeNotificationEvent(String PackageName , int id);
 	
 	boolean invokeTaskInfoEvents();
 }
