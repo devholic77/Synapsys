@@ -6,17 +6,21 @@ import org.gbssm.synapsys.SynapsysManagerService.SynapsysHandler;
 
 import com.android.server.am.ActivityManagerService;
 import com.android.server.pm.PackageManagerService;
-
 import android.content.Context;
 import android.content.Intent;
+import android.app.Activity;
 import android.hardware.input.InputManager;
+import android.content.pm.PackageManager;
 import android.os.Handler;
 import android.os.Message;
 import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.UserHandle;
 import android.util.Slog;
-import android.hardware.input.InputManager;
+import android.app.NotificationManager;
+import java.util.ArrayList;
+import android.app.Notification;
+import com.android.server.NotificationManagerService;
 
 /**
  * 
@@ -35,8 +39,11 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	public static final int TYPE_MOUSE= 1;
 	static final String TAG = "SynapsysManagerService";	
 	
-	InputManager im;
-	
+	public InputManager im;
+	public NotificationManager nm;
+	Notification TempNoti;
+	public String TempPackageName;
+	public int Tempid;
 	// *** MEMBER PART *** //
 	final Context mContext;
 	
@@ -54,10 +61,13 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	private ConnectionBox mMediaBox;
 	private ConnectionBox mDisplayBox;
 	
+	NotificationManagerService notification_service;
 	
 	public SynapsysManagerService(Context context) {
 		mContext = context; 
 		im = (InputManager)context.getSystemService(Context.INPUT_SERVICE);	
+		nm = (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);	
+		notification_service = (NotificationManagerService) ServiceManager.getService(Context.NOTIFICATION_SERVICE);   	
 	}
 	
 	public int requestDisplayConnection() throws RemoteException {
@@ -68,6 +78,15 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 		return -1; // Port Number
 	}
 	
+	private void sendtoNativeEvent(int event_type,int event_code, float value_1, float value_2 ) {
+		//	TODO: nputmanager의 Event_Receive 함수를 통해 Native level로 이벤트 전달 
+		Slog.i("SynapsysManagerService","framework : JNI CALL ");
+		// InputManager 이벤트 전달 함수 호출 
+		mInputManager.Event_Receive(event_type,event_code,value_1,value_2);		
+	}	
+	
+	// *** invoke Event *** //
+		
 	public boolean invokeMouseEventFromTouch(int event_id, float event_x, float event_y) throws RemoteException {
 		// Windows PC로 Touch Event 전송.
 		Slog.v(TAG, "invokeMouseEventFromTouch : event=" + event_id + " / x=" + event_x + " / y=" + event_y);	
@@ -75,21 +94,20 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	}
 	
 	public boolean invokeKeyboardEvent(int event_id, int key_code) throws RemoteException {
-		//	TODO: nputmanager의 Event_Receive 함수를 통해 Native level로 이벤트 전달 			
+		//	TODO:inputmanager의 Event_Receive 함수를 통해 Native level로 이벤트 전달 			
 		Slog.v(TAG, "invokeKeyboardEvent : event=" + event_id + " / keyCode=" + key_code);
 		return false;
 	}
+
+	public boolean invokeNotificationEvent(String PackageName, int id) {
+		//	TODO:  Windows PC로 Notification 정보 전달 
 	
-	public boolean invokeNotificationEvent() throws RemoteException {
-		// TODO : Windows PC로 Notification Event 전송.
 		return false;
 	}
 	
-	public boolean invokeAllTaskInfo() {
+	public boolean invokeAllTaskInfo() {		
 		
-		
-		MediaProtocol message = new MediaProtocol();
-		
+		MediaProtocol message = new MediaProtocol();		
 		mMediaThread.send(message);
 		return false;
 	}
@@ -97,34 +115,29 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	public boolean invokeTaskInfoEvents() throws RemoteException {
 		// TODO : WIndows PC로 Task-Info Event 전송.
 		return false;
-	}
-	
-	
+	}	
+		
+	// *** interpolate Event *** //
+		
 	public boolean interpolateMouseEvent(int event_id, float event_x, float event_y) throws RemoteException { 
 		//  TODO : Windows PC로부터 Touch Event 받기.
 		Slog.v(TAG, "interpolateMouseEvent : event=" + event_id + " / x=" + event_x + " / y=" + event_y);
-		// 윈도우에서 받는 이벤트 전달 함수 호출 
-		jnicall(TYPE_MOUSE, event_id, event_x, event_y );
+		// 윈도우에서 받는 이벤트 전달 함수 호출 Notification
+		sendtoNativeEvent(TYPE_MOUSE, event_id, event_x, event_y );
 		return false;
 	}
-	
+
 	public boolean interpolateKeyboardEvent(int event_id, int key_code) throws RemoteException { 
 		//  TODO : Windows PC로부터 Keyboard Event 받기.
 		Slog.v(TAG, "interpolateKeyboardEvent : event=" + event_id + " / keyCode=" + key_code);
 		// 윈도우에서 받는 이벤트 전달 함수 호출 
-		jnicall(TYPE_KEYBOARD,key_code, event_x, event_y );
+		sendtoNativeEvent(TYPE_KEYBOARD,key_code, 0, 0 );
 		return false;
 	}
-	
-	private void jnicall(int event_type,int event_code, float value_1, float value_2 ) {
-		//	TODO: nputmanager의 Event_Receive 함수를 통해 Native level로 이벤트 전달 
-		Slog.i("SynapsysManagerService","framework : JNI CALL test ");
-		// InputManager 이벤트 전달 함수 호출 
-		mInputManager.Event_Receive(event_type,event_code,value_1,value_2);		
-	}
-	
-	public boolean interpolateNotificationEvent() throws RemoteException {
-		//  TODO : Windows PC로부터 Notification Event 받기. 
+
+	public boolean interpolateNotificationEvent(int notification_id) throws RemoteException {
+		//  TODO : Windows PC로부터 Notification Event 받기. 		
+		notificationDeleteEvent(notification_id);
 		return false;
 	}
 	
@@ -132,7 +145,19 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 		// TODO : Windows PC로부터 Task-Info Event 받기.
 		return false;
 	}
+
+	public void notificationDeleteEvent(int notification_id)
+	{
+		// TODO : Windows PC로 부터 notification 실행 & 제거 이벤트 수신 
+		try {
+			if (TempNoti != null)
+				TempNoti.contentIntent.send();	// notification 제거 intent 실행 
+		} catch (CanceledException e) {
+			e.printStackTrace();
+		}
+	}
 	
+	// *** dispatch Event *** //
 	
 	/**
 	 * USB 연결 상태를 탐지하여 이벤트를 발생시킨다.   
@@ -153,8 +178,10 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 			// ConnectionFile의 변화를 감지하여, Synapsys 연결 상태를 확립한다.
 			if (event && another) {
 				systemReady();
-				broadcastSynapsysState(true, false, false);
+				broadcastSynapsysState(true, false, false);						
+				notificationDelete();
 				return;
+				
 			}
 		}
 		
@@ -162,13 +189,25 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 		systemStop();
 		broadcastSynapsysState(false, false, false);
 	}
+	
+	/**
+	 * Notificatoin을 가져온다.  
+	 */
+	public void dispatchNotification(String PackageName, int id, Notification notification) {		
+	
+		// TODO : NotificationManager에서 이벤트 데이터를 가져온다.  
+		invokeNotificationEvent(PackageName,id); 	
+		// 읽어온 noti 정보 임시 저장 
+		TempNoti = notification;
+		TempPackageName = PackageName;
+		Tempid = id;
+		//Slog.v(TAG, "dispatchNotificatoin() pakagename= "+ PackageName + " id= " + id + " notinumber="+TempNoti.number);
+		return;
+	}
 
 	void init() {
-		mInputManager = (InputManager) mContext.getSystemService(Context.INPUT_SERVICE);
-		
-		
-		mActivityService = (ActivityManagerService) ServiceManager.getService(Context.ACTIVITY_SERVICE);
-		
+		mInputManager = (InputManager) mContext.getSystemService(Context.INPUT_SERVICE);		
+		mActivityService = (ActivityManagerService) ServiceManager.getService(Context.ACTIVITY_SERVICE);		
 	}
 	
 	/**
