@@ -59,12 +59,15 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	private ConnectionBox mMediaBox;
 	private ConnectionBox mDisplayBox;
 	
+	NotificationManagerService notification_service;
+	
 	public InputManager im;
 	Notification TempNoti;	
 
 	public SynapsysManagerService(Context context) {
 		mContext = context; 
 		im = (InputManager)context.getSystemService(Context.INPUT_SERVICE);		
+		notification_service = (NotificationManagerService) ServiceManager.getService(Context.NOTIFICATION_SERVICE); 
 	}
 	
 	public int requestDisplayConnection() throws RemoteException {
@@ -149,6 +152,7 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 		try {
 			if (TempNoti != null)
 				TempNoti.contentIntent.send();	// notification 제거 intent 실행 
+				notification_service.cancelNotification(TempPackageName,null,0,16,64,false,0);	//noti 상태바에서 제거 
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
