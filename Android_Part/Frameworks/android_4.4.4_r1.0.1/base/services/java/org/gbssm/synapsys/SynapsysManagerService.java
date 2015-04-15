@@ -8,9 +8,7 @@ import com.android.server.am.ActivityManagerService;
 import com.android.server.pm.PackageManagerService;
 import android.content.Context;
 import android.content.Intent;
-import android.app.Activity;
 import android.hardware.input.InputManager;
-import android.content.pm.PackageManager;
 import android.os.Handler;
 import android.os.Message;
 import android.os.RemoteException;
@@ -38,12 +36,10 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	public static final int TYPE_KEYBOARD = 0;
 	public static final int TYPE_MOUSE= 1;
 	static final String TAG = "SynapsysManagerService";	
-	
-	public InputManager im;
-	public NotificationManager nm;
-	Notification TempNoti;
 	public String TempPackageName;
 	public int Tempid;
+
+
 	// *** MEMBER PART *** //
 	final Context mContext;
 	
@@ -61,13 +57,12 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	private ConnectionBox mMediaBox;
 	private ConnectionBox mDisplayBox;
 	
-	NotificationManagerService notification_service;
-	
+	public InputManager im;
+	Notification TempNoti;	
+
 	public SynapsysManagerService(Context context) {
 		mContext = context; 
-		im = (InputManager)context.getSystemService(Context.INPUT_SERVICE);	
-		nm = (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);	
-		notification_service = (NotificationManagerService) ServiceManager.getService(Context.NOTIFICATION_SERVICE);   	
+		im = (InputManager)context.getSystemService(Context.INPUT_SERVICE);		
 	}
 	
 	public int requestDisplayConnection() throws RemoteException {
@@ -179,7 +174,7 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 			if (event && another) {
 				systemReady();
 				broadcastSynapsysState(true, false, false);						
-				notificationDelete();
+				notificationDeleteEvent();
 				return;
 				
 			}
