@@ -32,15 +32,13 @@ interface ISynapsysManager {
 	 */
 	boolean invokeKeyboardEvent(int event_id, int key_code);
 	
-<<<<<<< HEAD
-	boolean invokeNotificationEvent(String PackageName , int id);
-=======
+
 	/**
 	 * PC로부터 전달받은 Keyboard Event를 Android에 적용시킨다.
 	 *
 	 */
 	boolean interpolateKeyboardEvent(int event_id, int key_code);
->>>>>>> refs/remotes/origin/yeonho
+
 	
 	/**
 	 * Android Device의 Notification Event를 PC의 Notification Event로 발생시킨다.
