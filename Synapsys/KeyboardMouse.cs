@@ -16,7 +16,7 @@ namespace Synapsys
 		private static MouseHookListener m_MouseHookManager;
 		private static KeyboardMouse kb = null;
 
-		// 싱글톤
+		// 싱글톤 123
 		public static KeyboardMouse getInstance()
 		{
 			if(kb == null)

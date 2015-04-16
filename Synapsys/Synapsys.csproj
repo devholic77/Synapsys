@@ -56,9 +56,8 @@
     <Reference Include="Elysium">
       <HintPath>..\packages\Elysium.Theme.2.0.4\lib\net45\Elysium.dll</HintPath>
     </Reference>
-    <Reference Include="MouseKeyboardActivityMonitor, Version=4.0.5150.10665, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\MouseKeyboardActivityMonitor.dll</HintPath>
+    <Reference Include="MouseKeyboardActivityMonitor">
+      <HintPath>D:\Downloads\MouseKeyboardActivityMonitor_v4a2\MouseKeyboardActivityMonitor.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
