@@ -158,28 +158,35 @@ namespace Synapsys
 		{
             //Button_Function.Synapsys_Start_Monitor(Synapsys_Values.First_Device_Name); // sub program start
             Synapsys_Values.Buttons_Function.Synapsys_Start_Monitor(Synapsys_Values.First_Device_Name);
-
+            btn_d1_start.IsEnabled = false;
+            btn_d1_stop.IsEnabled = true;
 		}
 
 		private void btn1_stop(object sender, RoutedEventArgs e)
 		{
 			Console.WriteLine("btn1_stop");
             Synapsys_Values.Buttons_Function.Synapsys_Stop_Monitor(Synapsys_Values.First_Device_Name);
+            btn_d1_start.IsEnabled = true;
+            btn_d1_stop.IsEnabled = false;
 		}
 
 		private void btn2_start(object sender, RoutedEventArgs e)
 		{
             Synapsys_Values.Buttons_Function.Synapsys_Start_Monitor(Synapsys_Values.Second_Device_Name);
 			Console.WriteLine("btn2_start");
+            btn_d2_start.IsEnabled = false;
+            btn_d2_stop.IsEnabled = true;
+            btn_d1_stop.IsEnabled = false;
 		}
 
 		private void btn2_stop(object sender, RoutedEventArgs e)
 		{
+            Console.WriteLine("btn2_stop");
             Synapsys_Values.Buttons_Function.Synapsys_Stop_Monitor(Synapsys_Values.Second_Device_Name);
-
-			Console.WriteLine("btn2_stop");
+            btn_d1_stop.IsEnabled = true;
+            btn_d2_start.IsEnabled = true;
+            btn_d2_stop.IsEnabled = false;			
 		}
-
 		#endregion
 
 		#region ADB
@@ -203,6 +210,47 @@ namespace Synapsys
             //     연결되는 포트가 port[0],port[1],port[2]로 변경되야됨
             //      Android에서도 서버를 다시 열어야됨 포트를 변경해서 <- 아마될거임
 
+            if(e.Check_Deivce_Msg.Equals("Add"))
+            {
+                switch(e.Check_Device_Flag)
+                {
+                    case 1:
+                        btn_d1_start.Dispatcher.Invoke(new update1Callback(this.update3), "1s");
+                        break;
+                    case 2:
+                        btn_d2_start.Dispatcher.Invoke(new update1Callback(this.update3), "2s");
+                        break;
+                    case 3:
+                        btn_d1_start.Dispatcher.Invoke(new update1Callback(this.update3), "1s");
+                        btn_d2_start.Dispatcher.Invoke(new update1Callback(this.update3), "2s");
+                        break;
+                    default:
+                        break;
+                }
+            }
+            else // Remove
+            {
+                switch(e.Check_Device_Flag) // 제거제거제거  장대찬
+                {
+                    case 1:
+                        btn_d1_stop.Dispatcher.Invoke(new update1Callback(this.update3), "1e");
+                           Synapsys_Values.FirstSubProgram.Kill();
+                        break;
+                    case 2:
+                        btn_d1_stop.Dispatcher.Invoke(new update1Callback(this.update3), "1se");
+                        btn_d2_stop.Dispatcher.Invoke(new update1Callback(this.update3), "2e");
+                        Synapsys_Values.SecondSubProgram.Kill();
+                        break;
+                    case 3:
+                        btn_d1_stop.Dispatcher.Invoke(new update1Callback(this.update3), "1e");
+                        btn_d2_stop.Dispatcher.Invoke(new update1Callback(this.update3), "2e");
+                        Synapsys_Values.FirstSubProgram.Kill();
+                        Synapsys_Values.SecondSubProgram.Kill();
+                        break;
+                    default:
+                        break;
+                }
+            }
             /*
             if (e.Check_Deivce_Msg.Equals("Add"))
             {
@@ -217,29 +265,40 @@ namespace Synapsys
              * */
 
 
-			btn_d1_start.Dispatcher.Invoke(new update1Callback(this.update3), "1");
+			
 		}
-
 		private void update3(string s)
 		{
-			if (s.Equals("1"))
+			if (s.Equals("1s"))
 			{
 				btn_d1_start.IsEnabled = true;
 				Show_Log("Device 1 Connected!");
 			}
-			else if (s.Equals("2"))
+			else if (s.Equals("2s"))
 			{
+                
 				btn_d2_start.IsEnabled = true;
 				Show_Log("Device 2 Connected!");
 			}
+            else if (s.Equals("1e"))
+            {
+                btn_d1_stop.IsEnabled = false;
+                btn_d1_start.IsEnabled = false;
+                Show_Log("Device 2 Stop!");
+            }
+            else if (s.Equals("2e"))
+            {
+                btn_d2_stop.IsEnabled = false;
+                btn_d2_start.IsEnabled = false;
+                Show_Log("Device 2 Stop!");
+            }
+            else if (s.Equals("1se"))
+            {
+                if (btn_d1_stop.IsEnabled == false && btn_d2_stop.IsEnabled == true)
+                    btn_d1_stop.IsEnabled = true;
 		}
-
+            }
 		#endregion
-
-		
-
-		
-
 
 		#region Popup
 		public Popup popup = new Popup();

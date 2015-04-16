@@ -86,9 +86,9 @@ namespace Synapsys_ADB
                             Synapsys_Values.Add_Device_Num = 1;
 
                             Synapsys_Values.ADB_Instruction.Port_Define(Synapsys_Values.port[0], Synapsys_Values.port[1], Synapsys_Values.port[2], Synapsys_Values.First_Device_Name);
-                            Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[0]);
-                            Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[1]);
-                            Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[2]);
+                            Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[0], Synapsys_Values.First_Device_Name);
+                            Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[1], Synapsys_Values.First_Device_Name);
+                            Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[2], Synapsys_Values.First_Device_Name);
 
                             Synapsys_Values.Current_Connect_Device_Num = 1;
 
@@ -107,9 +107,9 @@ namespace Synapsys_ADB
                             Synapsys_Values.Monitor_Num = 2;
 
                             Synapsys_Values.ADB_Instruction.Port_Define(Synapsys_Values.port[3], Synapsys_Values.port[4], Synapsys_Values.port[5], Synapsys_Values.Second_Device_Name);
-                            Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[3]);
-                            Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[4]);
-                            Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[5]);
+                            Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[3], Synapsys_Values.Second_Device_Name);
+                            Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[4], Synapsys_Values.Second_Device_Name);
+                            Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[5], Synapsys_Values.Second_Device_Name);
                             Synapsys_Values.Add_device[0] = result_msg[3];
                             Synapsys_Values.Add_device[1] = "";
                             Synapsys_Values.Add_Device_Num = 1;
@@ -137,14 +137,14 @@ namespace Synapsys_ADB
                             Synapsys_Values.Monitor_Num = 3;
 
                             Synapsys_Values.ADB_Instruction.Port_Define(Synapsys_Values.port[0], Synapsys_Values.port[1], Synapsys_Values.port[2], Synapsys_Values.First_Device_Name);
-                            Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[0]);
-                            Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[1]);
-                            Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[2]);
+                            Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[0], Synapsys_Values.First_Device_Name);
+                            Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[1], Synapsys_Values.First_Device_Name);
+                            Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[2], Synapsys_Values.First_Device_Name);
 
                             Synapsys_Values.ADB_Instruction.Port_Define(Synapsys_Values.port[3], Synapsys_Values.port[4], Synapsys_Values.port[5], Synapsys_Values.Second_Device_Name);
-                            Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[3]);
-                            Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[4]);
-                            Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[5]);
+                            Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[3], Synapsys_Values.Second_Device_Name);
+                            Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[4], Synapsys_Values.Second_Device_Name);
+                            Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[5], Synapsys_Values.Second_Device_Name);
 
                             Synapsys_Values.Add_device[0] = result_msg[1];
                             Synapsys_Values.Add_device[1] = result_msg[3];
@@ -213,9 +213,9 @@ namespace Synapsys_ADB
                                     Synapsys_Values.First_Device_Connect = true;
 
                                     Synapsys_Values.ADB_Instruction.Port_Define(Synapsys_Values.port[0], Synapsys_Values.port[1], Synapsys_Values.port[2], Synapsys_Values.First_Device_Name);
-                                    Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[0]);
-                                    Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[1]);
-                                    Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[2]);
+                                    Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[0], Synapsys_Values.First_Device_Name);
+                                    Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[1], Synapsys_Values.First_Device_Name);
+                                    Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[2], Synapsys_Values.First_Device_Name);
 
 
                                     Synapsys_Values.Second_Device_Name = "";
@@ -270,7 +270,7 @@ namespace Synapsys_ADB
             return flag;
 
         }
-        public void Port_Forward(object str_inst) // 실재 ADB 포워딩
+        public void Port_Forward(object str_inst, String device_name) // 실재 ADB 포워딩
         {
             Console.WriteLine("");
             process = new Process();
@@ -285,7 +285,9 @@ namespace Synapsys_ADB
 
             startInfo.WorkingDirectory = Synapsys_Values.adb_install_path;
 
-            cmd_string = "adb forward tcp:" + (String)str_inst + " tcp:" + (String)str_inst;
+
+
+            cmd_string = "adb -s " + device_name + " forward tcp:" + (String)str_inst + " tcp:" + (String)str_inst;
 
             if (cmd_type(cmd_string))
             {
