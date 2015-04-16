@@ -170,7 +170,7 @@ namespace Synapsys
 								//	}
 								//}
 
-								//MainWindow.socket.SendFile(ImageToByte2(bmpScreenShot));
+								MainWindow.socketIMG.SendFile(ImageToByte2(bmpScreenShot));
 							}
 						}
 					}

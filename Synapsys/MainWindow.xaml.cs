@@ -10,7 +10,6 @@ using System.ComponentModel;
 
 using Synapsys_SUB;
 using Synapsys_Sub_Program;
-using Synapsys_ADB;
 
 namespace Synapsys
 {
@@ -28,12 +27,13 @@ namespace Synapsys
 		//HOTKEY
 		string collectedHotkey = "";
 		ArrayList tempHotkeyList, HotkeyList;
-		Synapsys_Data_Socket sds;
-
 
         //Form
         ADB_Form form;
-   
+
+		// Socket
+		public static SynapsysSocket socketIMG = null;
+		public static SynapsysSocket socketData = null;
         
         
         // Minhwan
@@ -83,27 +83,11 @@ namespace Synapsys
 
 		private void socketTest()
 		{
-			Thread.Sleep(5000);
-			sds.Synapsys_Write("Socket Count D-3");
-
-			Thread.Sleep(1000);
-			sds.Synapsys_Write("Socket Count D-2");
-
-			Thread.Sleep(1000);
-			sds.Synapsys_Write("Socket Count D-1");
-
-			sds.sendFile("C:\\1.jpg");
-
-			Thread.Sleep(1000);
-			sds.Synapsys_Write("Socket Count D-3");
-
-			Thread.Sleep(1000);
-			sds.Synapsys_Write("Socket Count D-2");
-
-			Thread.Sleep(1000);
-			sds.Synapsys_Write("Socket Count D-1");
-
-			sds.sendFile("C:\\2.jpg");
+			while(true)
+			{
+				Thread.Sleep(1000);
+				socketData.Send("1:0:123:123");
+			}
 		}
 
 		private void hz()
@@ -157,9 +141,13 @@ namespace Synapsys
 		private void btn1_start(object sender, RoutedEventArgs e)
 		{
             //Button_Function.Synapsys_Start_Monitor(Synapsys_Values.First_Device_Name); // sub program start
-            Synapsys_Values.Buttons_Function.Synapsys_Start_Monitor(Synapsys_Values.First_Device_Name);
-            btn_d1_start.IsEnabled = false;
-            btn_d1_stop.IsEnabled = true;
+			//Synapsys_Values.Buttons_Function.Synapsys_Start_Monitor(Synapsys_Values.First_Device_Name);
+			//btn_d1_start.IsEnabled = false;
+			//btn_d1_stop.IsEnabled = true;
+
+			socketData = new SynapsysSocket("1235", "1");
+			socketData.DoInit();
+			new Thread(new ThreadStart(socketTest)).Start();
 		}
 
 		private void btn1_stop(object sender, RoutedEventArgs e)

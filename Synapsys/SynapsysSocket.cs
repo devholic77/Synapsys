@@ -103,6 +103,23 @@ namespace Synapsys
 			}
 		}
 
+		public void SendByte(byte[] buffer)
+		{
+			try
+			{
+				/* 연결 성공시 */
+				if (clientSock.Connected)
+				{
+					clientSock.BeginSend(buffer, 0, buffer.Length, SocketFlags.None,
+										  new AsyncCallback(SendCallBack), "byte");
+				}
+			}
+			catch (SocketException e)
+			{
+				Console.WriteLine("\r\n전송 에러 : " + e.Message);
+			}
+		}
+
 		public void Synapsys_SendIMG(string file)
 		{
 			Console.WriteLine("SendIMG: " + file);

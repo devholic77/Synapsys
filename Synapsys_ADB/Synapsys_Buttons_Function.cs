@@ -8,7 +8,7 @@ namespace Synapsys_ADB
         
         public void Synapsys_Search_Button()
         {
-            //device_num = Synapsys_Values.ADB_Instruction.Check_Device(); //returen 값이 Device 개수
+            //device_num = Synapsys_Values.ADB_Instruction.Check_Device(); //returen 값이 Device 개수sdf
 
             Synapsys_Values.ADB_Instruction.Check_Device();
 
