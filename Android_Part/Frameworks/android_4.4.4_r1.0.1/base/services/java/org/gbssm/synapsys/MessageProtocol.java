@@ -158,16 +158,16 @@ public abstract class MessageProtocol {
 		 * Protocol Message 크기 (byte)
 		 */
 		public static final int MSG_SIZE = 256;
-		
+
 		// === TYPE === //
+		/**
+		 * TYPE : 키보드 이벤트
+		 */
+		static final int TYPE_KEYBOARD_EVENT = 0;
 		/**
 		 * TYPE : 마우스 이벤트
 		 */
 		static final int TYPE_MOUSE_EVENT = 1;
-		/**
-		 * TYPE : 애플리케이션 이벤트
-		 */
-		static final int TYPE_APP_EVENT = 10;
 	
 		// === CODE === //
 		/**
@@ -233,15 +233,9 @@ public abstract class MessageProtocol {
 					return;
 				}
 		
-				case TYPE_APP_EVENT: {
-					Slog.i("Synapsys_MessageProtocol", "Process_App_Event! : " + mCode);
-					switch (mCode) {
-					case CODE_APP_START:
-						break;
-		
-					case CODE_APP_STOP:
-						break;
-					}
+				case TYPE_KEYBOARD_EVENT: {
+					Slog.i("Synapsys_MessageProtocol", "Process_Keyboard_Event! : " + mCode);
+					service.interpolateKeyboardEvent(0, (Integer)mValue1);
 					return;
 				}
 				
@@ -294,21 +288,19 @@ public abstract class MessageProtocol {
 								try {
 									p.mValue1 = Float.parseFloat(values[2]);
 									p.mValue2 = Float.parseFloat(values[3]);
-									p.mValue3 = Float.parseFloat(values[4]);
-									
-									protocol = p;
+									//p.mValue3 = Float.parseFloat(values[4]);
 								} catch (NumberFormatException e) { ; }
+								protocol = p;
 							} break;
 							
-							case TYPE_APP_EVENT: {
+							case TYPE_KEYBOARD_EVENT: {
 								ControlProtocol<Integer, Integer, Integer> p = new ControlProtocol<Integer, Integer, Integer>(type);
 								try {
 									p.mValue1 = Integer.parseInt(values[2]);
-									p.mValue2 = Integer.parseInt(values[3]);
-									p.mValue3 = Integer.parseInt(values[4]);
-									
-									protocol = p;
+									//p.mValue2 = Integer.parseInt(values[3]);
+									//p.mValue3 = Integer.parseInt(values[4]);
 								} catch (NumberFormatException e) { ; }
+								protocol = p;
 							} break;
 						
 							default:

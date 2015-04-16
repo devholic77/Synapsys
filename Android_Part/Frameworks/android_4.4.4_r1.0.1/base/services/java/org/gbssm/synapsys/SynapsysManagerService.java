@@ -105,9 +105,14 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 
 		if (mControlThread != null) {
 			try {
-
+				ControlProtocol<Integer, Integer, Integer> protocol = new ControlProtocol<Integer, Integer, Integer>(ControlProtocol.TYPE_MOUSE_EVENT);
+				protocol.mCode = event_id;
+				protocol.mValue1 = (int) event_x;
+				protocol.mValue2 = (int) event_y;
+				
+				mControlThread.send(protocol);
+				
 			} catch (Exception e) {
-				;
 			}
 		}
 		
@@ -127,7 +132,9 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 		
 		if (mControlThread != null) {
 			try {
-				ControlProtocol<Integer, Integer, Integer> protocol = new ControlProtocol<Integer, Integer, Integer>(event_id);
+				ControlProtocol<Integer, Integer, Integer> protocol = new ControlProtocol<Integer, Integer, Integer>(TYPE_KEYBOARD);
+				protocol.mCode = event_id;
+				protocol.mValue1 = key_code;
 				
 				mControlThread.send(protocol);
 				
@@ -205,19 +212,19 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 		case MediaProtocol.SENDER_STATE_NEW:
 			// 이전 Top-Task가 변경되었음을 알린다.
 			try {
-				ApplicationInfo info = mPackageManager.getApplicationInfo(
-						mCurrentTaskMap.get(currentTopTaskID), PackageManager.GET_META_DATA);
-
-				MediaProtocol protocol = new MediaProtocol(MediaProtocol.SENDER_STATE_RENEW);
-				protocol.id = currentTopTaskID;
-				protocol.putName((String) mPackageManager.getApplicationLabel(info));
-				protocol.putIcon(mPackageManager.getApplicationIcon(info));
-				protocol.putThumbnail(mActivityManager.getTaskTopThumbnail(currentTopTaskID));
-
-				mMediaThread.send(protocol);
-
-			} catch (Exception e) {
-			}
+				if (mCurrentTaskMap.containsKey(currentTopTaskID)) {
+					ApplicationInfo info = mPackageManager.getApplicationInfo(
+							mCurrentTaskMap.get(currentTopTaskID), PackageManager.GET_META_DATA);
+	
+					MediaProtocol protocol = new MediaProtocol(MediaProtocol.SENDER_STATE_RENEW);
+					protocol.id = currentTopTaskID;
+					protocol.putName((String) mPackageManager.getApplicationLabel(info));
+					protocol.putIcon(mPackageManager.getApplicationIcon(info));
+					protocol.putThumbnail(mActivityManager.getTaskTopThumbnail(currentTopTaskID));
+	
+					mMediaThread.send(protocol);
+				}
+			} catch (Exception e) { ; }
 		
 			currentTopTaskID = taskId;
 			
@@ -233,8 +240,8 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 					
 					mMediaThread.send(newTaskEvent);
 					mCurrentTaskMap.put(taskId, packageName);
-				} catch (Exception e) {
-				}
+					
+				} catch (Exception e) { ; }
 			}
 			break;
 			
