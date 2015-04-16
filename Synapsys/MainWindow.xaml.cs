@@ -142,8 +142,8 @@ namespace Synapsys
 		{
             //Button_Function.Synapsys_Start_Monitor(Synapsys_Values.First_Device_Name); // sub program start
 			//Synapsys_Values.Buttons_Function.Synapsys_Start_Monitor(Synapsys_Values.First_Device_Name);
-			//btn_d1_start.IsEnabled = false;
-			//btn_d1_stop.IsEnabled = true;
+			btn_d1_start.IsEnabled = false;
+			btn_d1_stop.IsEnabled = true;
 
 			socketData = new SynapsysSocket("1235", "1");
 			socketData.DoInit();
@@ -170,7 +170,7 @@ namespace Synapsys
 		private void btn2_stop(object sender, RoutedEventArgs e)
 		{
             Console.WriteLine("btn2_stop");
-            Synapsys_Values.Buttons_Function.Synapsys_Stop_Monitor(Synapsys_Values.Second_Device_Name);
+            Synapsys_Values.Buttons_Function.Synapsys_Stop_Monitor(Synapsys_Values.Second_Device_Name); 
             btn_d1_stop.IsEnabled = true;
             btn_d2_start.IsEnabled = true;
             btn_d2_stop.IsEnabled = false;			
