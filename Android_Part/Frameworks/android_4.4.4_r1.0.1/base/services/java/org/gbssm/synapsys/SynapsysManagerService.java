@@ -7,7 +7,6 @@ import org.gbssm.synapsys.MessageProtocol.ControlProtocol;
 import org.gbssm.synapsys.MessageProtocol.MediaProtocol;
 import org.gbssm.synapsys.SynapsysManagerService.SynapsysHandler;
 
-
 import com.android.server.am.ActivityManagerService;
 import com.android.server.pm.PackageManagerService;
 import android.app.ActivityManager;
@@ -31,8 +30,6 @@ import java.util.ArrayList;
 import android.app.Notification;
 import com.android.server.NotificationManagerService;
 import android.app.PendingIntent.CanceledException;
-
-
 
 /**
  * 
@@ -146,7 +143,7 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 			try {
 
 			} catch (Exception e) {
-				;
+				
 			}
 		}
 		

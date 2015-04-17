@@ -35,11 +35,11 @@ public class Connect {
 							try {
 								File file;
 								if (i%3 == 0)
-									file = new File("/home/yeonho/Desktop/bin3.jpg");
+									file = new File("/home/dhuck/bin3.jpg");
 								else if (i%3 == 1)
-									file =	new File("/home/yeonho/Desktop/bin2.jpg");
+									file =	new File("/home/dhuck/bin2.jpg");
 								else
-									file =	new File("/home/yeonho/Desktop/bin.jpg");
+									file =	new File("/home/dhuck/bin.jpg");
 								
 								dos.writeInt((int) file.length());
 								dos.flush();

@@ -32,11 +32,11 @@ public class DisplayConnect {
 							try {
 								File file;
 								if (i%3 == 0)
-									file = new File("/home/yeonho/Desktop/bin4.jpg");
+									file = new File("/home/dhuck/bin.jpg");
 								else if (i%3 == 1)
-									file =	new File("/home/yeonho/Desktop/bin5.jpg");
+									file =	new File("/home/dhuck/bin2.jpg");
 								else
-									file =	new File("/home/yeonho/Desktop/bin6.jpg");
+									file =	new File("/home/dhuck/bin3.jpg");
 								
 								dos.writeInt((int) file.length());
 								dos.flush();

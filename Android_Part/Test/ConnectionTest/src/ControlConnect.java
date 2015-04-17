@@ -20,21 +20,43 @@ public class ControlConnect {
 				@Override
 				public void run() {
 					System.out.println("Client Socket is Connected!");
-					
+					int count = 100;
+					int togle = 0; 
 					try {
 						DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
 						//DataInputStream dis = new DataInputStream(socket.getInputStream());
-
+						Thread.sleep(5000);
 						System.out.println("Client Running...");
-						for(int i=0; i<10; i++) {
+						for(int i=0; i<1000; i++) {
 							try {
-								String str = "01:01:1234:4321:0:\n";
-								dos.write(str.getBytes());
-								dos.flush();
 								
-								System.out.println(str);
+								//count += 20;
+								if(togle == 0)
+								{
+									String str = "01:01:350:300:0:\n";
+									dos.write(str.getBytes());
+									dos.flush();									
+									System.out.println(str);
+									togle = 1;
+								
+								}else if(togle == 1)
+								{
+									String str = "01:04:350:300:0:\n";
+									dos.write(str.getBytes());
+									dos.flush();									
+									System.out.println(str);
+									togle = 2;								
+								}else
+								{
+									String str = "01:00:350:300:0:\n";
+									dos.write(str.getBytes());
+									dos.flush();									
+									System.out.println(str);
+									togle = 0;		
+								
+								}
 	
-								Thread.sleep(1000);
+								Thread.sleep(10);
 							
 							} catch (Exception e) {
 								e.printStackTrace();
@@ -42,6 +64,9 @@ public class ControlConnect {
 						}
 					} catch (IOException e) {
 						e.printStackTrace();
+					} catch (InterruptedException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
 					}
 
 					System.out.println("Client Thread is dead.");

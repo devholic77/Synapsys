@@ -314,7 +314,9 @@ public abstract class MessageProtocol {
 							default:
 								continue;
 							}
-	
+							String toast_text = "type :"+type+" code :"+code+" value1 :"+mValue1+" value2 :"+mValue2;
+							Toast toast = Toast.makeText(getApplicationContext(),toast_text, Toast.LENGTH_SHORT);
+							
 							protocol.mCode = code;
 							results.add(protocol);
 							

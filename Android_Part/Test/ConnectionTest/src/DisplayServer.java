@@ -22,7 +22,7 @@ public class DisplayServer {
 		
 		try {
 			System.out.println("Server Socket starts.");
-			final ServerSocket server = new ServerSocket(1230);
+			final ServerSocket server = new ServerSocket(1235);
 			
 			for(int i=0; i<3; i++) {
 				final Socket socket = server.accept();
@@ -38,7 +38,7 @@ public class DisplayServer {
 							//DataInputStream dis = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
 							BufferedInputStream dis = new BufferedInputStream(socket.getInputStream());
 							
-							File file = new File("/home/yeonho/Desktop/test.jpg");
+							File file = new File("/home/dhuck/bin.jpg");
 							file.createNewFile();
 							
 							while(true) {
