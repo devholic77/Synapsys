@@ -60,21 +60,21 @@
 
 /* added */
 // 가상 디바이스 이벤트 타입 정의 
-#define KEYBOARD_EVENT 	(0)
-#define MOUSE_EVENT 	(1)
+#define KEYBOARD_EVENT 	0
+#define MOUSE_EVENT 	1
 
 // 가상 디바이스 코드 정의 
-#define MOUSE_MOVE	(0)
-#define MOUSE_L_CLICK	(1)
-#define MOUSE_R_CLICK	(2)
-#define MOUSE_L_UNCLICK	(3)
-#define MOUSE_R_UNCLICK	(4)
-#define MOUSE_DCLICK	(5)
-#define MOUSE_WHELL_UP	(6)
-#define MOUSE_WHELL_DOWN	(7)
+#define MOUSE_MOVE		0
+#define MOUSE_L_CLICK	1
+#define MOUSE_R_CLICK	2
+#define MOUSE_L_UNCLICK	4
+#define MOUSE_R_UNCLICK	5
+#define MOUSE_DCLICK	5
+#define MOUSE_WHELL_UP	6
+#define MOUSE_WHELL_DOWN 7
 
-#define KEYBOARD_KEY (0)
-#define KEYBOARD_UNKEY (1)
+#define KEYBOARD_KEY 0
+#define KEYBOARD_UNKEY 1
 
 /* added */
 // 가상 디바이스를 위한 변수 선언 
@@ -88,6 +88,8 @@ int32_t move_test = 0;
 int32_t char_num = 16;
 float mouse_x = 20.0;
 float mouse_y = 20.0;
+bool clicked = false;
+
 
 
 namespace android {
@@ -319,10 +321,16 @@ void InputReader::loopOnce() {
 			event[0].code = 0x0039;
 			event[0].value = 0xffffffff;
 			
-			processEventsLocked(event,1);
+			event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
+			event[1].deviceId = (int32_t)6;
+			event[1].type = 0x30000000;
+			event[1].code = 0x0000;
+			event[1].value = 0x00000000;
+			
+			processEventsLocked(event,2);
 			//Add 이벤트를 생성하여 가상 키보드 추가 
 			
-			/*
+			
 			event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
 			event[0].deviceId = (int32_t)21;
 			event[0].type = 0x10000000;
@@ -352,6 +360,7 @@ void InputReader::loopOnce() {
 			*/
 			once = false;
 		}
+		
 		/*====================================================*/
 
         if (mNextTimeout != LLONG_MAX) {
@@ -391,7 +400,7 @@ void InputReader::virtualDeviceEvent(int32_t event_type, int32_t event_code, flo
 	//	TODO : Framework 레벨에서 내려오는 이벤트를 처리하는 함수
 	// 	가상 마우스, 가상 키보드 이벤트 처리 
 	
-	//ALOGD("native Test call type = %d , code = %d , value_1 = %f, value_2 = %f",event_type,event_code,value_1,value_2);	
+	ALOGD("native  call type = %d , code = %d , value_1 = %f, value_2 = %f",event_type,event_code,value_1,value_2);	
 	ssize_t deviceIndex ;
 	InputDevice* device ;
 	RawEvent event[5];
@@ -511,35 +520,11 @@ void InputReader::virtualDeviceEvent(int32_t event_type, int32_t event_code, flo
 		//가상 마우스 
 		case MOUSE_EVENT:		
 			deviceIndex = mDevices.indexOfKey((int32_t)20);
-			device = mDevices.valueAt(deviceIndex);
+			device = mDevices.valueAt(deviceIndex);		
 			
-			if(event_code == MOUSE_MOVE)	//when mouse move event
-			{
-				// mouse 이동 이벤트 생성, 발생 
-				event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
-				event[0].deviceId = (int32_t)20;
-				event[0].type = 0x00000002;
-				event[0].code = 0x00000000;
-				event[0].value = 0xfffffffd;
-
-				event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
-				event[1].deviceId = (int32_t)20;
-				event[1].type = 0x00000002;
-				event[1].code = 0x00000001;
-				event[1].value = 0xfffffffd;
-
-				event[2].when = systemTime(SYSTEM_TIME_MONOTONIC);
-				event[2].deviceId = (int32_t)20;
-				event[2].type = 0x00000000;
-				event[2].code = 0x00000000;
-				event[2].value = 0x00000000;
-				
-				mouse_x = value_1;
-				mouse_y = value_2;
-				device->process(event, 3);	
-			}
-			else if(event_code == MOUSE_L_CLICK)	//when mouse left click event
-			{
+			if(event_code == MOUSE_L_CLICK)	//when mouse left click event
+			{				
+				clicked = true;	//클릭 확인 변수 
 				// mouse 왼 클릭 이벤트 생성, 발생 
 				event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
 				event[0].deviceId = (int32_t)20;
@@ -559,15 +544,18 @@ void InputReader::virtualDeviceEvent(int32_t event_type, int32_t event_code, flo
 				event[2].code = 0x00000000;
 				event[2].value = 0x00000000;
 				
-				mouse_x = value_1;
-				mouse_y = value_2;
+				//mouse_x = value_1;
+				//mouse_y = value_2;
+				
 				device->process(event, 3);	
+				ALOGD("native L-Click");	
 			}
 			else if(event_code == MOUSE_R_CLICK)	
 			{
 				// mouse 우 클릭 이벤트 생성, 발생 
 				event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
 				event[0].deviceId = (int32_t)20;
+				
 				event[0].type = 0x00000004;
 				event[0].code = 0x00000004;
 				event[0].value = 0x00090002;
@@ -590,6 +578,7 @@ void InputReader::virtualDeviceEvent(int32_t event_type, int32_t event_code, flo
 			}
 			else if(event_code == MOUSE_L_UNCLICK)	
 			{
+				
 				// mouse 왼 클릭 떨어짐 이벤트 생성, 발생 
 				event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
 				event[0].deviceId = (int32_t)20;
@@ -609,9 +598,11 @@ void InputReader::virtualDeviceEvent(int32_t event_type, int32_t event_code, flo
 				event[2].code = 0x00000000;
 				event[2].value = 0x00000000;
 				
-				mouse_x = value_1;
-				mouse_y = value_2;
+				//mouse_x = value_1;
+				//mouse_y = value_2;
 				device->process(event, 3);	
+				clicked = false;
+				ALOGD("native L-UNClick");	
 			}
 			else if(event_code == MOUSE_R_UNCLICK)	//when mouse right unclick event
 			{
@@ -638,7 +629,32 @@ void InputReader::virtualDeviceEvent(int32_t event_type, int32_t event_code, flo
 				mouse_y = value_2;
 				device->process(event, 3);	
 			}		
-			else if(event_code == MOUSE_WHELL_UP)	
+			else if(event_code == MOUSE_MOVE)	//when mouse move event
+			{
+				// mouse 이동 이벤트 생성, 발생 
+				event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
+				event[0].deviceId = (int32_t)20;
+				event[0].type = 0x00000002;
+				event[0].code = 0x00000000;
+				event[0].value = 0xfffffffd;
+
+				event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
+				event[1].deviceId = (int32_t)20;
+				event[1].type = 0x00000002;
+				event[1].code = 0x00000001;
+				event[1].value = 0xfffffffd;
+
+				event[2].when = systemTime(SYSTEM_TIME_MONOTONIC);
+				event[2].deviceId = (int32_t)20;
+				event[2].type = 0x00000000;
+				event[2].code = 0x00000000;
+				event[2].value = 0x00000000;
+				
+				mouse_x = value_1;
+				mouse_y = value_2;
+				device->process(event, 3);	
+			}
+			if(event_code == MOUSE_WHELL_UP)	
 			{
 				// mouse 휠 업 이벤트 생성, 발생 
 				event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
@@ -657,7 +673,7 @@ void InputReader::virtualDeviceEvent(int32_t event_type, int32_t event_code, flo
 				mouse_y = value_2;
 				device->process(event, 2);	
 			}		
-			else if(event_code == MOUSE_WHELL_DOWN)	
+			if(event_code == MOUSE_WHELL_DOWN)	
 			{
 				// mouse 휠 업 이벤트 생성, 발생 
 				event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
@@ -683,6 +699,15 @@ void InputReader::virtualDeviceEvent(int32_t event_type, int32_t event_code, flo
 		
 		break;
 	}	
+	
+	// Flush queued events out to the listener.
+    // This must happen outside of the lock because the listener could potentially call
+    // back into the InputReader's methods, such as getScanCodeState, or become blocked
+    // on another thread similarly waiting to acquire the InputReader lock thereby
+    // resulting in a deadlock.  This situation is actually quite plausible because the
+    // listener is actually the input dispatcher, which calls into the window manager,
+    // which occasionally calls into the input reader.
+	mQueuedListener->flush();
 }
 
 void InputReader::processEventsLocked( RawEvent* rawEvents, size_t count) {
@@ -698,21 +723,21 @@ void InputReader::processEventsLocked( RawEvent* rawEvents, size_t count) {
                         || rawEvent[batchSize].deviceId != deviceId) {
                     break;
                 }
-              
+               
                 batchSize += 1;
             }
 #if DEBUG_RAW_EVENTS
             ALOGD("BatchSize: %d Count: %d", batchSize, count);
-#endif
+#endif			
 			
 			/* ADDED  dhuck*/
 			// 테스트를 위해 터치 이벤트 발생시 마우스 이동 이벤트 생성하여 실행 
-			/*
+			
 			if(rawEvent[0].deviceId == (int32_t)6 && rawEvent[0].type == 0x00000003 && rawEvent[0].code == 0x00000039 &&
 				rawEvent[1].deviceId == (int32_t)6 && rawEvent[1].type == 0x00000000 && rawEvent[1].code == 0x00000000)
 			{	
 				
-				
+				/*
 				if(click_count > 10 && click_count < 20 )
 				{
 					virtualDeviceEvent(KEYBOARD_EVENT, KEYBOARD_KEY, char_num, 300);
@@ -739,8 +764,9 @@ void InputReader::processEventsLocked( RawEvent* rawEvents, size_t count) {
 				}			
 				
 				click_count++;			
+				*/
 			}		 
-*/
+
 			processEventsForDeviceLocked(deviceId, rawEvent, batchSize);
 			
         } else {
@@ -2888,7 +2914,7 @@ void CursorInputMapper::sync(nsecs_t when) {
     nsecs_t downTime = mDownTime;
     bool buttonsChanged = currentButtonState != lastButtonState;
     bool buttonsPressed = currentButtonState & ~lastButtonState;
-
+	
     float deltaX = mCursorMotionAccumulator.getRelativeX() * mXScale;
     float deltaY = mCursorMotionAccumulator.getRelativeY() * mYScale;
     bool moved = deltaX != 0 || deltaY != 0;
@@ -2963,7 +2989,11 @@ void CursorInputMapper::sync(nsecs_t when) {
 
 	/* added ========================*/
 	// Queue로 Argument를 바꾸기 적전에 윈도우에서 받는 절대 좌표로 변경하여 준다. 	
-	mPointerController->setPosition(mouse_x,mouse_y);
+	if(getDeviceId() == (int32_t)20 && clicked == false) 
+	{
+		mPointerController->setPosition(mouse_x,mouse_y);
+		
+	}
 	/*===============================*/
     // Send motion event.
     if (downChanged || moved || scrolled || buttonsChanged) {
@@ -2977,6 +3007,7 @@ void CursorInputMapper::sync(nsecs_t when) {
             motionEventAction = AMOTION_EVENT_ACTION_HOVER_MOVE;
         }
 
+		ALOGD("NotiMotionArgs getDevice() = %d, motionEventAction = %d, currentButtonState = %d",getDeviceId(),motionEventAction,currentButtonState);
         NotifyMotionArgs args(when, getDeviceId(), mSource, policyFlags,
                 motionEventAction, 0, metaState, currentButtonState, 0,
                 displayId, 1, &pointerProperties, &pointerCoords,
@@ -6205,6 +6236,7 @@ void TouchInputMapper::assignPointerIds() {
             const RawPointerData::Pointer& lastPointer =
                     mLastRawPointerData.pointers[lastPointerIndex];
             if (currentPointer.toolType == lastPointer.toolType) {
+				
                 int64_t deltaX = currentPointer.x - lastPointer.x;
                 int64_t deltaY = currentPointer.y - lastPointer.y;
 

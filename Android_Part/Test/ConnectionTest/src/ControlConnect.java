@@ -27,13 +27,14 @@ public class ControlConnect {
 						//DataInputStream dis = new DataInputStream(socket.getInputStream());
 						Thread.sleep(5000);
 						System.out.println("Client Running...");
-						for(int i=0; i<1000; i++) {
+						for(int i=0; i<10; i++) {
 							try {
 								
 								//count += 20;
 								if(togle == 0)
 								{
-									String str = "01:01:350:300:0:\n";
+									//String str = "01:00:500:500:0:\n";
+									String str = "00:00:16:500:0:\n";
 									dos.write(str.getBytes());
 									dos.flush();									
 									System.out.println(str);
@@ -41,22 +42,26 @@ public class ControlConnect {
 								
 								}else if(togle == 1)
 								{
-									String str = "01:04:350:300:0:\n";
+									//String str = "01:01:500:500:0:\n";
+									String str = "00:01:16:0:0:\n";
 									dos.write(str.getBytes());
 									dos.flush();									
 									System.out.println(str);
-									togle = 2;								
+									togle = 0;			
+									
 								}else
 								{
-									String str = "01:00:350:300:0:\n";
+									//String str = "01:04:500:500:0:\n";
+									String str = "01:00:500:500:0:\n";
 									dos.write(str.getBytes());
 									dos.flush();									
 									System.out.println(str);
 									togle = 0;		
-								
+									//Thread.sleep(20000);
+									//Thread.sleep(20000);
 								}
 	
-								Thread.sleep(10);
+								
 							
 							} catch (Exception e) {
 								e.printStackTrace();

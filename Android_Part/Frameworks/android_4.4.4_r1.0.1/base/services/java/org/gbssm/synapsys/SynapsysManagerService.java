@@ -232,7 +232,7 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	// *** interpolate Event *** //
 		
 
-	}
+	
 	
 	/**
 	 * Windows PC로 Task-Info Event 전송.
