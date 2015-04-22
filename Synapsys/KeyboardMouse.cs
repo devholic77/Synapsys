@@ -38,13 +38,13 @@ namespace Synapsys
 				m_MouseHookManager.Enabled = true;
 
 				m_MouseHookManager.MouseMove += HookManager_MouseMove;
-				m_MouseHookManager.MouseClickExt += HookManager_MouseClick;
-				//m_MouseHookManager.MouseUp += HookManager_MouseUp;
-				//m_MouseHookManager.MouseDown += HookManager_MouseDown;
-				m_MouseHookManager.MouseDoubleClick += HookManager_MouseDoubleClick;
+				//m_MouseHookManager.MouseClickExt += HookManager_MouseClick;
+				m_MouseHookManager.MouseUp += HookManager_MouseUp;
+				m_MouseHookManager.MouseDown += HookManager_MouseDown;
+				//m_MouseHookManager.MouseDoubleClick += HookManager_MouseDoubleClick;
 				m_MouseHookManager.MouseWheel += HookManager_MouseWheel;
 				//m_MouseHookManager.MouseDownExt += HookManager_Supress;
-				//m_KeyboardHookManager.KeyDown += HookManager_KeyDown;
+				m_KeyboardHookManager.KeyDown += HookManager_KeyDown;
 				m_KeyboardHookManager.KeyUp += HookManager_KeyUp;
 				//m_KeyboardHookManager.KeyPress += HookManager_KeyPress;
 			}
@@ -58,13 +58,13 @@ namespace Synapsys
 				m_MouseHookManager.Enabled = true;
 
 				m_MouseHookManager.MouseMove -= HookManager_MouseMove;
-				m_MouseHookManager.MouseClickExt -= HookManager_MouseClick;
-				//m_MouseHookManager.MouseUp -= HookManager_MouseUp;
-				//m_MouseHookManager.MouseDown -= HookManager_MouseDown;
-				m_MouseHookManager.MouseDoubleClick -= HookManager_MouseDoubleClick;
+				//m_MouseHookManager.MouseClickExt -= HookManager_MouseClick;
+				m_MouseHookManager.MouseUp -= HookManager_MouseUp;
+				m_MouseHookManager.MouseDown -= HookManager_MouseDown;
+				//m_MouseHookManager.MouseDoubleClick -= HookManager_MouseDoubleClick;
 				m_MouseHookManager.MouseWheel -= HookManager_MouseWheel;
 				//m_MouseHookManager.MouseDownExt -= HookManager_Supress;
-				//m_KeyboardHookManager.KeyDown -= HookManager_KeyDown;
+				m_KeyboardHookManager.KeyDown -= HookManager_KeyDown;
 				m_KeyboardHookManager.KeyUp -= HookManager_KeyUp;
 				//m_KeyboardHookManager.KeyPress -= HookManager_KeyPress;
 			}
@@ -74,16 +74,17 @@ namespace Synapsys
 
 		#region Event Handler Start!
 
-		//private void HookManager_KeyDown(object sender, KeyEventArgs e)
-		//{
-		//	Console.WriteLine(string.Format("KeyDown - {0}\n", e.KeyCode));
+		[DllImport("user32.dll")]
+		private static extern int MapVirtualKey(int wCode, int wMapType);
 
-		//}
+		private void HookManager_KeyDown(object sender, KeyEventArgs e)
+		{
+			MainWindow.socketData.Send("0:0:" + MapVirtualKey(e.KeyValue, 0) + ":0:0:\n");
+		}
 
 		private void HookManager_KeyUp(object sender, KeyEventArgs e)
 		{
-			//Console.WriteLine(string.Format("KeyUp - {0}\n", e.KeyValue));
-			Console.WriteLine(string.Format("KeyUp - {0}\n", e.KeyCode));
+			MainWindow.socketData.Send("0:1:" + MapVirtualKey(e.KeyValue, 0) + ":0:0:\n");
 		}
 
 
@@ -92,43 +93,90 @@ namespace Synapsys
 		//	Console.WriteLine(string.Format("KeyPress - {0}\n", e.KeyChar));
 		//}
 
+		const int MONITOR_WIDTH = 1600;
+		const int MONITOR_HEIGHT = 900;
+		static int MOUSE_X = 0;
+		static int MOUSE_Y = 0;
 
 		private void HookManager_MouseMove(object sender, MouseEventArgs e)
 		{
-			Console.WriteLine(string.Format("x={0:0000}; y={1:0000}", e.X, e.Y));
+			//Console.WriteLine(string.Format("x={0:0000}; y={1:0000}", e.X, e.Y));
+			MOUSE_X = e.X;
+			MOUSE_Y = e.Y;
+			if(CaptureScreen.getCurrentMonitor() == "2")
+			{
+				if (MOUSE_X < 0)
+					MOUSE_X += MONITOR_WIDTH;
+				else
+					MOUSE_X -= MONITOR_WIDTH;
+			}
+			else if (CaptureScreen.getCurrentMonitor() == "3")
+			{
+				if (MOUSE_X < 0)
+					MOUSE_X += 2 * MONITOR_WIDTH;
+				else
+					MOUSE_X -= 2 * MONITOR_WIDTH;
+			}
+
+			if (MOUSE_X < 0)
+				MOUSE_X = 0;
+
+			//Console.WriteLine("1:0:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
+			//MainWindow.socketData.Send("1:0:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
 		}
 
-		private void HookManager_MouseClick(object sender, MouseEventArgs e)
-		{
-			//Console.WriteLine(string.Format("MouseClick - {0}\n", e.Button));
-
-		}
-
-
-		//private void HookManager_MouseUp(object sender, MouseEventArgs e)
+		//private void HookManager_MouseClick(object sender, MouseEventArgs e)
 		//{
-		//	Console.WriteLine(string.Format("MouseUp - {0}\n", e.Button));
+		//	Console.WriteLine(string.Format("MouseClick - {0}\n", e.Button));
 
 		//}
 
 
-		//private void HookManager_MouseDown(object sender, MouseEventArgs e)
+		private void HookManager_MouseUp(object sender, MouseEventArgs e)
+		{
+			//Console.WriteLine(string.Format("MouseUp - {0}\n", e.Button));
+			if (e.Button == MouseButtons.Left)
+			{
+				MainWindow.socketData.Send("1:4:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
+			}
+			else if (e.Button == MouseButtons.Right)
+			{
+				MainWindow.socketData.Send("1:5:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
+			}
+		}
+
+
+		private void HookManager_MouseDown(object sender, MouseEventArgs e)
+		{
+			if (e.Button == MouseButtons.Left)
+			{
+				MainWindow.socketData.Send("1:1:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
+			}
+			else if (e.Button == MouseButtons.Right)
+			{
+				MainWindow.socketData.Send("1:2:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
+			}
+		}
+
+
+		//private void HookManager_MouseDoubleClick(object sender, MouseEventArgs e)
 		//{
-		//	Console.WriteLine(string.Format("MouseDown - {0}\n", e.Button));
+		//	Console.WriteLine(string.Format("MouseDoubleClick - {0}\n", e.Button));
 
 		//}
-
-
-		private void HookManager_MouseDoubleClick(object sender, MouseEventArgs e)
-		{
-			Console.WriteLine(string.Format("MouseDoubleClick - {0}\n", e.Button));
-
-		}
 
 
 		private void HookManager_MouseWheel(object sender, MouseEventArgs e)
 		{
-			Console.WriteLine(string.Format("Wheel={0:000}", e.Delta));
+			//Console.WriteLine(string.Format("Wheel={0:000}", e.Delta));
+			if(e.Delta > 0)
+			{
+				MainWindow.socketData.Send("1:6:" + e.X + ":" + e.Y + ":0:\n");
+			}
+			else
+			{
+				MainWindow.socketData.Send("1:7:" + e.X + ":" + e.Y + ":0:\n");
+			}
 		}
 		#endregion
 
@@ -144,13 +192,13 @@ namespace Synapsys
 		private const int MOUSEEVENTF_MIDDLEUP = 0x0040;
 		private const int MOUSEEVENTF_MIDDLEDOWN = 0x0020;
 
-		public void MOVE_MOUSE(int x, int y)
+		public void MOVE_MOUSE(int x, int y, int device)
 		{
-			Cursor.Position = new Point(
-						//Cursor.Position.X + int.Parse((String)col["mouseX"].GetValue()),
-						//Cursor.Position.Y + int.Parse((String)col["mouseY"].GetValue())
-						x, y
-					);
+			if(device == 1)
+			{
+
+			}
+			Cursor.Position = new Point(x, y);
 		}
 
 		public void EVENT_MOUSE(int k)

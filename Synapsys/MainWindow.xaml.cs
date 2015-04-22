@@ -8,8 +8,6 @@ using System.Collections;
 
 using System.ComponentModel;
 
-using Synapsys_SUB;
-using Synapsys_Sub_Program;
 
 namespace Synapsys
 {
@@ -34,13 +32,16 @@ namespace Synapsys
 		// Socket
 		public static SynapsysSocket socketIMG = null;
 		public static SynapsysSocket socketData = null;
+		public static Socket2015 socketIMG2 = null;
         
         
         // Minhwan
 
         public MainWindow()
         {
-            
+			//System.Diagnostics.Process myProcess = System.Diagnostics.Process.GetCurrentProcess();
+			//myProcess.PriorityClass = System.Diagnostics.ProcessPriorityClass.High;
+
             InitializeComponent();
 
 			Closing += new CancelEventHandler(Exit);
@@ -56,7 +57,7 @@ namespace Synapsys
 
 			//KEYBOARD, MOUSE HOOK
 			kb = KeyboardMouse.getInstance();
-			kb.Activate();
+			//kb.Activate();
 
 			HotkeyList = new ArrayList();
 			tempHotkeyList = new ArrayList();
@@ -80,15 +81,6 @@ namespace Synapsys
 			//new Thread(new ThreadStart(hz)).Start();
 
         }
-
-		private void socketTest()
-		{
-			while(true)
-			{
-				Thread.Sleep(1000);
-				socketData.Send("1:0:123:123:0:\n");
-			}
-		}
 
 		private void hz()
 		{
@@ -134,7 +126,6 @@ namespace Synapsys
 			kb.Deactivate();
 		}
 
-
 		#region BUTTON EVENTS
 
         //1번과 2번이 동시에 켜져있을 때 1번만 stop 불가능 2번이 stop되야 1번이 stop 가능 //장대찬 처리해주세용~
@@ -142,13 +133,17 @@ namespace Synapsys
 		private void btn1_start(object sender, RoutedEventArgs e)
 		{
             //Button_Function.Synapsys_Start_Monitor(Synapsys_Values.First_Device_Name); // sub program start
-			Synapsys_Values.Buttons_Function.Synapsys_Start_Monitor(Synapsys_Values.First_Device_Name);
+			//Synapsys_Values.Buttons_Function.Synapsys_Start_Monitor(Synapsys_Values.First_Device_Name);
 			btn_d1_start.IsEnabled = false;
 			btn_d1_stop.IsEnabled = true;
 
+			socketIMG = new SynapsysSocket("1234", "1");
+			socketIMG.DoInit();
+			//socketIMG2 = new Socket2015(1237);
+			//socketIMG2.Connect();
+
 			socketData = new SynapsysSocket("1235", "1");
 			socketData.DoInit();
-			new Thread(new ThreadStart(socketTest)).Start();
 		}
 
 		private void btn1_stop(object sender, RoutedEventArgs e)
@@ -240,7 +235,7 @@ namespace Synapsys
                         Synapsys_Values.SecondSubProgram.Kill();
                         Synapsys_Values.FirstSubProgram.Kill();
 
-                        Synapsys_Values.Buttons_Function.Synapsys_Stop_Monitor(Synapsys_Values.First_Device_Name); 
+                        Synapsys_Values.Buttons_Function.Synapsys_Stop_Monitor(Synapsys_Values.First_Device_Name);
                         btn_d1_stop.IsEnabled = true;
                         btn_d1_start.IsEnabled = false;
                         btn_d2_stop.IsEnabled = false;

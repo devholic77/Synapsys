@@ -16,14 +16,13 @@ namespace Synapsys
 
 		private static Thread thread = null;
 		private static Thread gcThread = null;
-		private static int FPS = 30;
+		private static int FPS = 100;
 
-		private Bitmap[,] bitmapArray = new Bitmap[MAX_MONITOR, 2];
-		private bool captSwitch = true;
-		private const int MAX_MONITOR = 3;
-		private static Bitmap bmpScreenShot;
-		private static Graphics g;
+		private static Bitmap[,] bitmapArray = new Bitmap[MAX_MONITOR, 2];
+		private static int MAX_MONITOR = 3;
 		private static Screen[] scrs;
+
+		public static int currFPS = 0;
 
 		//private static System.Drawing.Imaging.Encoder myEncoder = System.Drawing.Imaging.Encoder.Quality;
 		//private static EncoderParameter myEncoderParameter = new EncoderParameter(myEncoder, 50L);
@@ -42,22 +41,29 @@ namespace Synapsys
 		}
 
 		// 디바이스 목록을 새로고침한다. 새로 기기가 연결된 경우 실행
-		public void Refresh()
+		public static void Refresh()
 		{
-			scrs = Screen.AllScreens;
+			totalMonitor = Screen.AllScreens.Length;
+			if(beforeTotalMonitor != totalMonitor)
+			{
+				scrs = Screen.AllScreens;
+				beforeTotalMonitor = totalMonitor;
+			}
 		}
 
 		// 캡쳐를 시작한다.
 		public void Start()
 		{
 			Stop();
-			setFPS(60);
+			setFPS(25);
 
 			Refresh();
 			thread = new Thread(new ThreadStart(captureMachine));
 			thread.Start();
 			gcThread = new Thread(new ThreadStart(gcMachine));
 			gcThread.Start();
+
+			new Thread(new ThreadStart(gcMachine2)).Start();
 		}
 
 		public void Stop()
@@ -73,35 +79,51 @@ namespace Synapsys
 		}
 
 		// FPS를 정한다
-		public void setFPS(int a)
+		public static void setFPS(int a)
 		{
 			FPS = 1000 / a;
 		}
 
 		// 마우스 포인터가 위치한 모니터 번호를 리턴
-		public string getCurrentMonitor()
+		public static string getCurrentMonitor()
 		{
 			return Regex.Replace(Screen.FromPoint(new System.Drawing.Point(System.Windows.Forms.Cursor.Position.X,
 					System.Windows.Forms.Cursor.Position.Y)).DeviceName,
 					@"[^\d]", string.Empty);
 		}
 
-		private void gcMachine()
+		private static void gcMachine()
 		{
 			while(true)
 			{
-				GC.Collect();
+				Console.WriteLine("Current FPS : " + currFPS);
+				//Console.WriteLine("OK FPS : " + SynapsysSocket.currOK);
+				currFPS = 0; 
+				//SynapsysSocket.currOK = 0;
+				//GC.Collect();
+				//Refresh();
 				Thread.Sleep(1000);
 			}
 		}
 
-		private void captureMachine()
+		private static void gcMachine2()
 		{
+			while (true)
+			{
+				GC.Collect();
+				Thread.Sleep(500);
+			}
+		}
+
+		private static void captureMachine()
+		{
+			Refresh();
 			while (true)
 			{
 				try
 				{
-					capture();
+					new Thread(new ThreadStart(capture)).Start();
+					//capture();
 					Thread.Sleep(FPS);
 				}
 				catch (Exception)
@@ -113,98 +135,51 @@ namespace Synapsys
 
 		// 화면을 캡쳐
 
+		static int totalMonitor = 0;
+		static int beforeTotalMonitor = 0;
 
-		private void capture()
+		private static void capture()
 		{
-
-			string currentMonitor;
-
-			foreach (Screen scr in scrs)
+			try
 			{
-				if (scr == null)
-					continue;
-
-				currentMonitor = Regex.Replace(scr.DeviceName, @"[^\d]", string.Empty);
-
-				if (currentMonitor.Equals("1"))
-					continue;
-
-				try
+				for (int i = 1; i < beforeTotalMonitor; i++)
 				{
-					bmpScreenShot = new Bitmap(scr.Bounds.Width, scr.Bounds.Height, PixelFormat.Format16bppRgb555);
+					Screen scr = scrs[i];
 
-					g = Graphics.FromImage(bmpScreenShot);
-					g.CopyFromScreen(scr.Bounds.X, scr.Bounds.Y, 0, 0, scr.Bounds.Size, CopyPixelOperation.SourceCopy);
+					//Bitmap bmpScreenShot1 = new Bitmap(scr.Bounds.Width, scr.Bounds.Height, PixelFormat.Format16bppRgb555);
+					Bitmap bmpScreenShot2 = new Bitmap(scr.Bounds.Width, scr.Bounds.Height, PixelFormat.Format16bppRgb555);
 
-					// 차영상
-					if (captSwitch)
-					{
-						bitmapArray[Convert.ToInt32(currentMonitor), 0] = bmpScreenShot;
-					}
-					else
-					{
-						bitmapArray[Convert.ToInt32(currentMonitor), 1] = bmpScreenShot;
-						//if (compare(bitmapArray[Convert.ToInt32(currentMonitor), 0], bitmapArray[Convert.ToInt32(currentMonitor), 1]))
-						{
-							// 바뀐게 없다
-							//Console.WriteLine(currentMonitor + ": 바뀐게 없다");
-						}
-						//else
-						{
-							// 바뀌었다
-							Console.WriteLine(currentMonitor + ": Changed");
-							//bmpScreenShot.Save("c:\\" + currentMonitor + ".jpg", ImageFormat.Jpeg);
+					//Graphics g1 = Graphics.FromImage(bmpScreenShot1);
+					//g1.CopyFromScreen(scr.Bounds.X, scr.Bounds.Y, 0, 0, scr.Bounds.Size, CopyPixelOperation.SourceCopy);
+					Graphics g2 = Graphics.FromImage(bmpScreenShot2);
+					g2.CopyFromScreen(scr.Bounds.X, scr.Bounds.Y, 0, 0, scr.Bounds.Size, CopyPixelOperation.SourceCopy);
+					currFPS++;
 
-							if (currentMonitor.Equals("2"))
-							{
+					scr = null; 
+					//g1 = null; 
+					g2 = null;
 
-								//CURSORINFO pci;
-								//pci.cbSize = System.Runtime.InteropServices.Marshal.SizeOf(typeof(CURSORINFO));
-
-								//if (GetCursorInfo(out pci))
-								//{
-								//	if (pci.flags == CURSOR_SHOWING)
-								//	{
-								//		DrawIcon(g.GetHdc(), pci.ptScreenPos.x, pci.ptScreenPos.y, pci.hCursor);
-								//		g.ReleaseHdc();
-								//	}
-								//}
-
-								MainWindow.socketIMG.SendFile(ImageToByte2(bmpScreenShot));
-							}
-						}
-					}
-
-
-
-					//// 현재 모니터에 마우스 드로잉
-					//if (currentMonitor.Equals(getCurrentMonitor()))
+					//if(!compare(bmpScreenShot1, bmpScreenShot2))
 					//{
-					//	CURSORINFO pci;
-					//	pci.cbSize = System.Runtime.InteropServices.Marshal.SizeOf(typeof(CURSORINFO));
+						// Change to Byte Array
+						MemoryStream stream = new MemoryStream();
+						bmpScreenShot2.Save(stream, System.Drawing.Imaging.ImageFormat.Jpeg);
+						MainWindow.socketIMG.SendFile(stream.ToArray());
+						stream.Close();
 
-					//	if (GetCursorInfo(out pci))
-					//	{
-					//		if (pci.flags == CURSOR_SHOWING)
-					//		{
-					//			DrawIcon(g.GetHdc(), pci.ptScreenPos.x, pci.ptScreenPos.y, pci.hCursor);
-					//			g.ReleaseHdc();
-					//		}
-					//	}
+						stream = null;
 					//}
-
-					//bmpScreenShot.Save("c:\\" + currentMonitor + ".jpg", ImageFormat.Jpeg);
-
-					//MainWindow.socket.SendFile(ImageToByte2(bmpScreenShot));
-
+					
+					//bmpScreenShot1 = null; 
+					bmpScreenShot2 = null;
 				}
-				catch { }
 			}
-
-			captSwitch = !captSwitch;
+			catch (Exception)
+			{
+			}
 		}
 
-		private bool compare(Bitmap bmp1, Bitmap bmp2)
+		private static bool compare(Bitmap bmp1, Bitmap bmp2)
 		{
 			// false : 바뀌었다
 			// true : 바뀐게 없다.
@@ -220,18 +195,18 @@ namespace Synapsys
 			{
 				byte* ptr1 = (byte*)bmpData1.Scan0.ToPointer();
 				byte* ptr2 = (byte*)bmpData2.Scan0.ToPointer();
-				int width = rect.Width * 3; // for 24bpp pixel data
-				for (int y = 0; equals && y < rect.Height; y++)
+				int width = rect.Width * 2; // for 16bpp pixel data
+				for (int y = 0; equals && y < rect.Height; y+=2)
 				{
-					for (int x = 0; x < width; x++)
+					for (int x = 0; x < width; x+=2)
 					{
 						if (*ptr1 != *ptr2)
 						{
 							equals = false;
 							break;
 						}
-						ptr1++;
-						ptr2++;
+						ptr1+=2;
+						ptr2+=2;
 					}
 					ptr1 += bmpData1.Stride - width;
 					ptr2 += bmpData2.Stride - width;
@@ -241,21 +216,8 @@ namespace Synapsys
 			bmp1.UnlockBits(bmpData1);
 			bmp2.UnlockBits(bmpData2);
 
+			bmpData1 = null; bmpData2 = null;
 			return equals;
-		}
-
-		static byte[] byteArray;
-		public static byte[] ImageToByte2(Image img)
-		{
-			byteArray = new byte[0];
-			using (MemoryStream stream = new MemoryStream())
-			{
-				img.Save(stream, System.Drawing.Imaging.ImageFormat.Jpeg);
-				stream.Close();
-
-				byteArray = stream.ToArray();
-			}
-			return byteArray;
 		}
 
 		[StructLayout(LayoutKind.Sequential)]
