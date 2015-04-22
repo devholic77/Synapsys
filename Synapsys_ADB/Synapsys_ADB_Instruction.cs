@@ -369,8 +369,8 @@ namespace Synapsys_ADB
             String filename = "..\\..\\..\\..\\..\\portdefine.txt";
 
             String fullpath = path + filename;
-            System.IO.File.WriteAllText(fullpath, msg, Encoding.Default);
-
+           // System.IO.File.WriteAllText(fullpath, msg, Encoding.Default);
+			System.IO.File.WriteAllText(@"C:\portdefine.txt", msg, Encoding.Default);
             startInfo.WorkingDirectory = Synapsys_Values.adb_install_path;
 
             String adb_msg = "adb -s " + device_name + " push C:\\portdefine.txt" + " /data/synapsys/connection.dat";
