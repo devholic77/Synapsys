@@ -136,7 +136,8 @@ public abstract class MessageProtocol {
 	
 	abstract void process(SynapsysManagerService service);
 	
-
+	abstract void destroy();
+	
 	/**
 	 * 
 	 * Data-Control 소켓 Connection에서 사용하는 Protocol.
@@ -241,6 +242,16 @@ public abstract class MessageProtocol {
 				}
 			} catch (RemoteException e) {
 				
+			}
+		}
+
+		@Override
+		void destroy() {
+			try {
+				finalize();
+				
+			} catch (Throwable e) {
+				e.printStackTrace();
 			}
 		}
 		
@@ -429,6 +440,19 @@ public abstract class MessageProtocol {
 				break;
 			}
 		}
+
+		@Override
+		void destroy() {
+			appName = null;
+			
+			if (icon != null)
+				icon.recycle();
+			
+			if (thumbnail != null)
+				thumbnail.recycle();
+
+			notiMessage = null;
+		}
 		
 		public void putName(String appName) {
 			if (appName == null)
@@ -550,6 +574,7 @@ public abstract class MessageProtocol {
 			
 			return protocol;
 		}
+
 	}
 }
 

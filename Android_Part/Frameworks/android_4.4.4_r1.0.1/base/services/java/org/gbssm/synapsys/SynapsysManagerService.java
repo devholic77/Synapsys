@@ -425,8 +425,10 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	public void dispatchNotification(String PackageName, int id, Notification notification) {		
 		if (notification == null)
 			return;
-		
-		invokeNotificationEvent(id, PackageName, (String)notification.tickerText); 	
+		try {
+			invokeNotificationEvent(id, PackageName, (String)notification.tickerText); 	
+			
+		} catch (RemoteException e) { ; }
 		
 		// 읽어온 최신 Noti 정보 임시 저장 
 		mRecentNoti = notification;

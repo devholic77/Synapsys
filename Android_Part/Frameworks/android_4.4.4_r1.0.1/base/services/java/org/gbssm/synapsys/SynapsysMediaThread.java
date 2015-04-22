@@ -143,6 +143,7 @@ public class SynapsysMediaThread extends SynapsysThread {
 					MediaProtocol protocol = new MediaProtocol(state);
 					protocol.id = id;
 					protocol.process(mHandler.getService());
+					protocol.destroy();
 					
 				} catch (IOException e) {
 					if (!isDestroyed) 
@@ -175,6 +176,9 @@ public class SynapsysMediaThread extends SynapsysThread {
 				fos.close();
 				
 				Log.d(TAG, "MediaThread_Send! : " + message.toString() + " > " + message.getAppName());
+				
+				message.destroy();
+				message = null;
 			}
 			
 		} catch (SocketException e) {

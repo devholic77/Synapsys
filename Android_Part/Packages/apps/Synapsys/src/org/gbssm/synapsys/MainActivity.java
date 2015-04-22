@@ -7,6 +7,7 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.WindowManager;
 
 /**
  * 애플리케이션을 시작하는 Main Activity.
@@ -31,6 +32,8 @@ public class MainActivity extends Activity {
 		
 		mApplication = (SynapsysApplication) getApplication();	
 		mTouchListener = new WindowsTouchListener(this);	
+		
+		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 	}
 
 	@Override

@@ -139,8 +139,10 @@ public class SynapsysControlThread extends SynapsysThread {
 					ControlProtocol<?, ?, ?>[] protocols = ControlProtocol.decode(
 							ByteBuffer.wrap(bytes, 0, read).array());
 					
-					for (ControlProtocol<?, ?, ?> protocol : protocols)
+					for (ControlProtocol<?, ?, ?> protocol : protocols) {
 						protocol.process(mHandler.getService());
+						protocol.destroy();
+					}
 					
 				} catch (IOException e) {
 					if (!isDestroyed) 
@@ -166,6 +168,8 @@ public class SynapsysControlThread extends SynapsysThread {
 				mDOS.flush();
 
 				Log.i("Synapsys_Message", "ControlThread : " + message.mType +" / " + message.mCode + " / " + message.mValue1 + " / " + message.mValue2 + " / " + message.mValue3);
+				message.destroy();
+				message = null;
 			}
 			
 		} catch (SocketException e) {
