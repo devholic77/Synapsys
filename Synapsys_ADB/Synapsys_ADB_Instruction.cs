@@ -373,7 +373,7 @@ namespace Synapsys_ADB
 
             startInfo.WorkingDirectory = Synapsys_Values.adb_install_path;
 
-            String adb_msg = "adb -s " + device_name + " push " + fullpath + " /data/synapsys/connection.dat";
+            String adb_msg = "adb -s " + device_name + " push C:\\portdefine.txt" + " /data/synapsys/connection.dat";
 
             if (cmd_type(adb_msg))
             {

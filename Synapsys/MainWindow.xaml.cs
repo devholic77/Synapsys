@@ -8,8 +8,6 @@ using System.Collections;
 
 using System.ComponentModel;
 
-using Synapsys_SUB;
-using Synapsys_Sub_Program;
 
 namespace Synapsys
 {
@@ -34,13 +32,16 @@ namespace Synapsys
 		// Socket
 		public static SynapsysSocket socketIMG = null;
 		public static SynapsysSocket socketData = null;
+		public static Socket2015 socketIMG2 = null;
         
         
         // Minhwan
 
         public MainWindow()
         {
-            
+			//System.Diagnostics.Process myProcess = System.Diagnostics.Process.GetCurrentProcess();
+			//myProcess.PriorityClass = System.Diagnostics.ProcessPriorityClass.High;
+
             InitializeComponent();
 
 			Closing += new CancelEventHandler(Exit);
@@ -63,7 +64,7 @@ namespace Synapsys
 			KeyboardMouse.m_KeyboardHookManager.KeyUp += Hotkey;
 
 			cs = CaptureScreen.getInstance();
-			//cs.Start();
+			cs.Start();
 
             form = new ADB_Form();
             form.Execute += new ADB_Form.execute(Clap);
@@ -80,15 +81,6 @@ namespace Synapsys
 			//new Thread(new ThreadStart(hz)).Start();
 
         }
-
-		private void socketTest()
-		{
-			while(true)
-			{
-				Thread.Sleep(1000);
-				socketData.Send("1:0:123:123");
-			}
-		}
 
 		private void hz()
 		{
@@ -145,9 +137,13 @@ namespace Synapsys
 			btn_d1_start.IsEnabled = false;
 			btn_d1_stop.IsEnabled = true;
 
+			socketIMG = new SynapsysSocket("1234", "1");
+			socketIMG.DoInit();
+			//socketIMG2 = new Socket2015(1237);
+			//socketIMG2.Connect();
+
 			socketData = new SynapsysSocket("1235", "1");
 			socketData.DoInit();
-			new Thread(new ThreadStart(socketTest)).Start();
 		}
 
 		private void btn1_stop(object sender, RoutedEventArgs e)

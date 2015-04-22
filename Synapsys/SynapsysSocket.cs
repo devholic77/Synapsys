@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using System.IO;
+using System.Collections.Concurrent;
 
 namespace Synapsys
 {
@@ -21,9 +17,10 @@ namespace Synapsys
 			this.DEVICE_NUM = Convert.ToInt32(device_num);
 		}
 
-		private Socket clientSock;  /* client Socket */
+		private Socket clientSock = null;  /* client Socket */
 		private Socket cbSock;   /* client Async Callback Socket */
 		private byte[] recvBuffer;
+		private static bool flag = true;
 
 		private const int MAXSIZE = 4096;   /* 4096  */
 
@@ -32,6 +29,7 @@ namespace Synapsys
 			clientSock = new Socket(AddressFamily.InterNetwork,
 										  SocketType.Stream, ProtocolType.Tcp);
 			recvBuffer = new byte[4096];
+			queue = new ConcurrentQueue<byte[]>();
 			this.BeginConnect();
 		}
 
@@ -84,13 +82,12 @@ namespace Synapsys
 		 *----------------------*/
 
 		ulong filesize = 0L;
-		string file;
 		public void Send(string message)
 		{
 			try
 			{
 				/* 연결 성공시 */
-				if (clientSock.Connected)
+				if (clientSock != null && clientSock.Connected)
 				{
 					byte[] buffer = new UTF8Encoding().GetBytes(message);
 					clientSock.BeginSend(buffer, 0, buffer.Length, SocketFlags.None,
@@ -108,7 +105,7 @@ namespace Synapsys
 			try
 			{
 				/* 연결 성공시 */
-				if (clientSock.Connected)
+				if (clientSock != null && clientSock.Connected)
 				{
 					clientSock.BeginSend(buffer, 0, buffer.Length, SocketFlags.None,
 										  new AsyncCallback(SendCallBack), "byte");
@@ -120,50 +117,53 @@ namespace Synapsys
 			}
 		}
 
-		public void Synapsys_SendIMG(string file)
+		byte[] imgArray;
+		ConcurrentQueue<byte[]> queue;
+
+		public void addIMG(byte[] array)
 		{
-			Console.WriteLine("SendIMG: " + file);
-			this.file = file;
-			filesize = (ulong)new FileInfo(file).Length;
-			try
+			queue.Enqueue(array);
+		}
+		byte[] array;
+		public void Sender()
+		{
+			while (true)
 			{
-				/* 연결 성공시 */
-				if (clientSock.Connected)
+				if (queue.TryPeek(out array))
 				{
-					byte[] buffer = BitConverter.GetBytes((int)filesize);
-					Array.Reverse(buffer);
-
-					Console.WriteLine(buffer);
-					Console.WriteLine(buffer.Length);
-
-					clientSock.BeginSend(buffer, 0, buffer.Length, SocketFlags.None,
-										  new AsyncCallback(SendCallBack), filesize.ToString());
+					SendFile(array);
+					System.Console.WriteLine("Send");
+					new Thread(new ThreadStart(setEmpty)).Start();
 				}
-			}
-			catch (SocketException e)
-			{
-				Console.WriteLine("\r\n전송 에러 : " + e.Message);
+				array = null;
 			}
 		}
 
-		byte[] imgArray;
+		public void setEmpty()
+		{
+			byte[] array;
+			while (queue.TryDequeue(out array))
+			{}
+			array = null;
+		}
 
 		public void SendFile(byte[] array)
 		{
 			try
 			{
 				/* 연결 성공시 */
-				if (clientSock.Connected)
+				if (flag && clientSock != null && clientSock.Connected)
 				{
+					flag = false;
+					Console.WriteLine(array.Length);
 					imgArray = array;
 
 					if(array.Length > 0)
 					{
 						byte[] buffer = BitConverter.GetBytes(array.Length);
 						Array.Reverse(buffer);
-						Console.WriteLine("Send :" + buffer.Length);
 						clientSock.BeginSend(buffer, 0, buffer.Length, SocketFlags.None,
-											  new AsyncCallback(SendCallBack), filesize.ToString());
+											  null, filesize.ToString());
 					}
 				}
 			}
@@ -180,7 +180,11 @@ namespace Synapsys
 		private void SendCallBack(IAsyncResult IAR)
 		{
 			string message = (string)IAR.AsyncState;
-			Console.WriteLine("\r\n전송 완료 CallBack : " + message);
+			//Console.WriteLine("\r\n전송 완료 CallBack : " + message);
+			if(message == "image")
+			{
+				flag = true;
+			}
 		}
 
 		/*----------------------*
@@ -196,6 +200,8 @@ namespace Synapsys
 		 * ##### CallBack ##### *
 		 *  Receive             *
 		 *----------------------*/
+
+		public static int currOK = 0;
 		private void OnReceiveCallBack(IAsyncResult IAR)
 		{
 			try
@@ -209,6 +215,7 @@ namespace Synapsys
 					message = message.Trim();
 					if ("OK".Equals(message))
 					{
+						currOK++;
 						clientSock.BeginSend(imgArray, 0, imgArray.Length, SocketFlags.None,
 										  new AsyncCallback(SendCallBack), "image");
 					}
