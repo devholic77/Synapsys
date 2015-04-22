@@ -86,7 +86,7 @@ namespace Synapsys
 			while(true)
 			{
 				Thread.Sleep(1000);
-				socketData.Send("1:0:123:123");
+				socketData.Send("1:0:123:123:0:\n");
 			}
 		}
 
@@ -134,6 +134,7 @@ namespace Synapsys
 			kb.Deactivate();
 		}
 
+
 		#region BUTTON EVENTS
 
         //1번과 2번이 동시에 켜져있을 때 1번만 stop 불가능 2번이 stop되야 1번이 stop 가능 //장대찬 처리해주세용~
@@ -141,7 +142,7 @@ namespace Synapsys
 		private void btn1_start(object sender, RoutedEventArgs e)
 		{
             //Button_Function.Synapsys_Start_Monitor(Synapsys_Values.First_Device_Name); // sub program start
-			//Synapsys_Values.Buttons_Function.Synapsys_Start_Monitor(Synapsys_Values.First_Device_Name);
+			Synapsys_Values.Buttons_Function.Synapsys_Start_Monitor(Synapsys_Values.First_Device_Name);
 			btn_d1_start.IsEnabled = false;
 			btn_d1_stop.IsEnabled = true;
 
@@ -234,6 +235,16 @@ namespace Synapsys
                         btn_d2_stop.Dispatcher.Invoke(new update1Callback(this.update3), "2e");
                         Synapsys_Values.FirstSubProgram.Kill();
                         Synapsys_Values.SecondSubProgram.Kill();
+                        break;
+                    case 4:
+                        Synapsys_Values.SecondSubProgram.Kill();
+                        Synapsys_Values.FirstSubProgram.Kill();
+
+                        Synapsys_Values.Buttons_Function.Synapsys_Stop_Monitor(Synapsys_Values.First_Device_Name); 
+                        btn_d1_stop.IsEnabled = true;
+                        btn_d1_start.IsEnabled = false;
+                        btn_d2_stop.IsEnabled = false;
+                        btn_d2_start.IsEnabled = false;
                         break;
                     default:
                         break;

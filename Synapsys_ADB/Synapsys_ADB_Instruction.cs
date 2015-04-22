@@ -204,8 +204,7 @@ namespace Synapsys_ADB
 
                                     //2번 소켓을 지우고 //연호쪽에서 포
                                     
-                                    
-                                    
+                                                                        
                                     //1번 소켓을 실행
 
                                     Synapsys_Values.First_Device_Name = Synapsys_Values.Second_Device_Name;
@@ -216,7 +215,6 @@ namespace Synapsys_ADB
                                     Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[0], Synapsys_Values.First_Device_Name);
                                     Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[1], Synapsys_Values.First_Device_Name);
                                     Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[2], Synapsys_Values.First_Device_Name);
-
 
                                     Synapsys_Values.Second_Device_Name = "";
                                     Synapsys_Values.Second_Device_State = "";

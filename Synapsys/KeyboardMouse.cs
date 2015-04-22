@@ -95,7 +95,7 @@ namespace Synapsys
 
 		private void HookManager_MouseMove(object sender, MouseEventArgs e)
 		{
-			//Console.WriteLine(string.Format("x={0:0000}; y={1:0000}", e.X, e.Y));
+			Console.WriteLine(string.Format("x={0:0000}; y={1:0000}", e.X, e.Y));
 		}
 
 		private void HookManager_MouseClick(object sender, MouseEventArgs e)
