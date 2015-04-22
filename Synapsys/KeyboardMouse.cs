@@ -79,12 +79,12 @@ namespace Synapsys
 
 		private void HookManager_KeyDown(object sender, KeyEventArgs e)
 		{
-			MainWindow.socketData.Send("0:0:" + MapVirtualKey(e.KeyValue, 0) + ":0:0:\n");
+			MainWindow.socketData1.SendString("0:0:" + MapVirtualKey(e.KeyValue, 0) + ":0:0:\n");
 		}
 
 		private void HookManager_KeyUp(object sender, KeyEventArgs e)
 		{
-			MainWindow.socketData.Send("0:1:" + MapVirtualKey(e.KeyValue, 0) + ":0:0:\n");
+			MainWindow.socketData1.SendString("0:1:" + MapVirtualKey(e.KeyValue, 0) + ":0:0:\n");
 		}
 
 
@@ -121,8 +121,8 @@ namespace Synapsys
 			if (MOUSE_X < 0)
 				MOUSE_X = 0;
 
-			Console.WriteLine("1:0:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
-			MainWindow.socketData.Send("1:0:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
+			//Console.WriteLine("1:0:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
+			MainWindow.socketData1.SendString("1:0:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
 		}
 
 		//private void HookManager_MouseClick(object sender, MouseEventArgs e)
@@ -137,11 +137,11 @@ namespace Synapsys
 			//Console.WriteLine(string.Format("MouseUp - {0}\n", e.Button));
 			if (e.Button == MouseButtons.Left)
 			{
-				MainWindow.socketData.Send("1:4:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
+				MainWindow.socketData1.SendString("1:4:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
 			}
 			else if (e.Button == MouseButtons.Right)
 			{
-				MainWindow.socketData.Send("1:5:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
+				MainWindow.socketData1.SendString("1:5:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
 			}
 		}
 
@@ -150,11 +150,11 @@ namespace Synapsys
 		{
 			if (e.Button == MouseButtons.Left)
 			{
-				MainWindow.socketData.Send("1:1:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
+				MainWindow.socketData1.SendString("1:1:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
 			}
 			else if (e.Button == MouseButtons.Right)
 			{
-				MainWindow.socketData.Send("1:2:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
+				MainWindow.socketData1.SendString("1:2:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
 			}
 		}
 
@@ -171,11 +171,11 @@ namespace Synapsys
 			//Console.WriteLine(string.Format("Wheel={0:000}", e.Delta));
 			if(e.Delta > 0)
 			{
-				MainWindow.socketData.Send("1:6:" + e.X + ":" + e.Y + ":0:\n");
+				MainWindow.socketData1.SendString("1:6:" + e.X + ":" + e.Y + ":0:\n");
 			}
 			else
 			{
-				MainWindow.socketData.Send("1:7:" + e.X + ":" + e.Y + ":0:\n");
+				MainWindow.socketData1.SendString("1:7:" + e.X + ":" + e.Y + ":0:\n");
 			}
 		}
 		#endregion

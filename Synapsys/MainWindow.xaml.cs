@@ -30,9 +30,11 @@ namespace Synapsys
         ADB_Form form;
 
 		// Socket
-		public static SynapsysSocket socketIMG = null;
-		public static SynapsysSocket socketData = null;
-		public static Socket2015 socketIMG2 = null;
+		public static SynapsysSocket socketIMG1 = null;
+		public static SynapsysSocket socketData1 = null;
+
+		public static SynapsysSocket socketIMG2 = null;
+		public static SynapsysSocket socketData2 = null;
         
         
         // Minhwan
@@ -64,7 +66,7 @@ namespace Synapsys
 			KeyboardMouse.m_KeyboardHookManager.KeyUp += Hotkey;
 
 			cs = CaptureScreen.getInstance();
-			cs.Start();
+			//cs.Start();
 
             form = new ADB_Form();
             form.Execute += new ADB_Form.execute(Clap);
@@ -80,6 +82,15 @@ namespace Synapsys
 
 			//new Thread(new ThreadStart(hz)).Start();
 
+
+			//SOCKET INIT
+			socketIMG1 = new SynapsysSocket("1234");
+			socketData1 = new SynapsysSocket("1235");
+
+			socketIMG1.DoInit();
+			socketData1.DoInit();
+			socketIMG2 = new SynapsysSocket("1237");
+			socketData2 = new SynapsysSocket("1238");
         }
 
 		private void hz()
@@ -137,13 +148,6 @@ namespace Synapsys
 			btn_d1_start.IsEnabled = false;
 			btn_d1_stop.IsEnabled = true;
 
-			socketIMG = new SynapsysSocket("1234", "1");
-			socketIMG.DoInit();
-			//socketIMG2 = new Socket2015(1237);
-			//socketIMG2.Connect();
-
-			socketData = new SynapsysSocket("1235", "1");
-			socketData.DoInit();
 		}
 
 		private void btn1_stop(object sender, RoutedEventArgs e)
@@ -161,6 +165,9 @@ namespace Synapsys
             btn_d2_start.IsEnabled = false;
             btn_d2_stop.IsEnabled = true;
             btn_d1_stop.IsEnabled = false;
+
+			socketIMG2.DoInit();
+			socketData2.DoInit();
 		}
 
 		private void btn2_stop(object sender, RoutedEventArgs e)
@@ -218,7 +225,7 @@ namespace Synapsys
                 {
                     case 1:
                         btn_d1_stop.Dispatcher.Invoke(new update1Callback(this.update3), "1e");
-                           Synapsys_Values.FirstSubProgram.Kill();
+						   //Synapsys_Values.FirstSubProgram.Kill();
                         break;
                     case 2:
                         btn_d1_stop.Dispatcher.Invoke(new update1Callback(this.update3), "1se");

@@ -10,7 +10,8 @@ namespace Synapsys_ADB
 		public ADB_Form()
 		{
 			InitializeComponent();
-			
+			Opacity = 0;
+			ShowInTaskbar = false;
 		}
 		static bool device_check_flag = true;
 

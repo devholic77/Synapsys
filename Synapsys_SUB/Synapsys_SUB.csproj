@@ -49,7 +49,6 @@
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SynapsysSocket.cs" />
     <Compile Include="Synapsys_Data_Socket.cs" />
     <Compile Include="Synapsys_Display_Socket.cs" />
   </ItemGroup>
