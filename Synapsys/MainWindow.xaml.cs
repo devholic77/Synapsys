@@ -84,13 +84,10 @@ namespace Synapsys
 
 
 			//SOCKET INIT
-			socketIMG1 = new SynapsysSocket("1234");
-			socketData1 = new SynapsysSocket("1235");
+			
 
-			socketIMG1.DoInit();
-			socketData1.DoInit();
-			socketIMG2 = new SynapsysSocket("1237");
-			socketData2 = new SynapsysSocket("1238");
+			
+			
         }
 
 		private void hz()
@@ -144,9 +141,15 @@ namespace Synapsys
 		private void btn1_start(object sender, RoutedEventArgs e)
 		{
             //Button_Function.Synapsys_Start_Monitor(Synapsys_Values.First_Device_Name); // sub program start
-			//Synapsys_Values.Buttons_Function.Synapsys_Start_Monitor(Synapsys_Values.First_Device_Name);
+			Synapsys_Values.Buttons_Function.Synapsys_Start_Monitor(Synapsys_Values.First_Device_Name);
 			btn_d1_start.IsEnabled = false;
 			btn_d1_stop.IsEnabled = true;
+
+			socketIMG1 = new SynapsysSocket("1234");
+			socketData1 = new SynapsysSocket("1235");
+
+			socketIMG1.DoInit();
+			socketData1.DoInit();
 
 		}
 
@@ -156,6 +159,9 @@ namespace Synapsys
             Synapsys_Values.Buttons_Function.Synapsys_Stop_Monitor(Synapsys_Values.First_Device_Name);
             btn_d1_start.IsEnabled = true;
             btn_d1_stop.IsEnabled = false;
+
+			socketIMG1.Disconnect();
+			socketData1.Disconnect();
 		}
 
 		private void btn2_start(object sender, RoutedEventArgs e)
@@ -165,6 +171,9 @@ namespace Synapsys
             btn_d2_start.IsEnabled = false;
             btn_d2_stop.IsEnabled = true;
             btn_d1_stop.IsEnabled = false;
+
+			socketIMG2 = new SynapsysSocket("1237");
+			socketData2 = new SynapsysSocket("1238");
 
 			socketIMG2.DoInit();
 			socketData2.DoInit();
@@ -176,7 +185,10 @@ namespace Synapsys
             Synapsys_Values.Buttons_Function.Synapsys_Stop_Monitor(Synapsys_Values.Second_Device_Name); 
             btn_d1_stop.IsEnabled = true;
             btn_d2_start.IsEnabled = true;
-            btn_d2_stop.IsEnabled = false;			
+            btn_d2_stop.IsEnabled = false;
+
+			socketIMG2.Disconnect();
+			socketData2.Disconnect();
 		}
 		#endregion
 

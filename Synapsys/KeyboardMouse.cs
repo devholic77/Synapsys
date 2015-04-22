@@ -40,7 +40,7 @@ namespace Synapsys
 				m_MouseHookManager.MouseMove += HookManager_MouseMove;
 				//m_MouseHookManager.MouseClickExt += HookManager_MouseClick;
 				m_MouseHookManager.MouseUp += HookManager_MouseUp;
-				m_MouseHookManager.MouseDown += HookManager_MouseDown;
+				m_MouseHookManager.MouseDownExt += HookManager_MouseDown;
 				//m_MouseHookManager.MouseDoubleClick += HookManager_MouseDoubleClick;
 				m_MouseHookManager.MouseWheel += HookManager_MouseWheel;
 				//m_MouseHookManager.MouseDownExt += HookManager_Supress;
@@ -60,7 +60,7 @@ namespace Synapsys
 				m_MouseHookManager.MouseMove -= HookManager_MouseMove;
 				//m_MouseHookManager.MouseClickExt -= HookManager_MouseClick;
 				m_MouseHookManager.MouseUp -= HookManager_MouseUp;
-				m_MouseHookManager.MouseDown -= HookManager_MouseDown;
+				m_MouseHookManager.MouseDownExt -= HookManager_MouseDown;
 				//m_MouseHookManager.MouseDoubleClick -= HookManager_MouseDoubleClick;
 				m_MouseHookManager.MouseWheel -= HookManager_MouseWheel;
 				//m_MouseHookManager.MouseDownExt -= HookManager_Supress;
@@ -79,12 +79,38 @@ namespace Synapsys
 
 		private void HookManager_KeyDown(object sender, KeyEventArgs e)
 		{
-			MainWindow.socketData1.SendString("0:0:" + MapVirtualKey(e.KeyValue, 0) + ":0:0:\n");
+			if (CaptureScreen.getCurrentMonitor() == "2")
+			{
+				if (MainWindow.socketData1 != null)
+				{
+					MainWindow.socketData1.SendString("0:0:" + MapVirtualKey(e.KeyValue, 0) + ":0:0:\n");
+				}
+			}
+			else if (CaptureScreen.getCurrentMonitor() == "3")
+			{
+				if (MainWindow.socketData2 != null)
+				{
+					MainWindow.socketData2.SendString("0:0:" + MapVirtualKey(e.KeyValue, 0) + ":0:0:\n");
+				}
+			}
 		}
 
 		private void HookManager_KeyUp(object sender, KeyEventArgs e)
 		{
-			MainWindow.socketData1.SendString("0:1:" + MapVirtualKey(e.KeyValue, 0) + ":0:0:\n");
+			if (CaptureScreen.getCurrentMonitor() == "2")
+			{
+				if (MainWindow.socketData1 != null)
+				{
+					MainWindow.socketData1.SendString("0:1:" + MapVirtualKey(e.KeyValue, 0) + ":0:0:\n");
+				}
+			}
+			else if (CaptureScreen.getCurrentMonitor() == "3")
+			{
+				if (MainWindow.socketData2 != null)
+				{
+					MainWindow.socketData2.SendString("0:1:" + MapVirtualKey(e.KeyValue, 0) + ":0:0:\n");
+				}
+			}
 		}
 
 
@@ -109,6 +135,13 @@ namespace Synapsys
 					MOUSE_X += MONITOR_WIDTH;
 				else
 					MOUSE_X -= MONITOR_WIDTH;
+				if (MOUSE_X < 0)
+					MOUSE_X = 0;
+
+				if (MainWindow.socketData1 != null)
+				{
+					MainWindow.socketData1.SendString("1:0:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
+				}
 			}
 			else if (CaptureScreen.getCurrentMonitor() == "3")
 			{
@@ -116,13 +149,19 @@ namespace Synapsys
 					MOUSE_X += 2 * MONITOR_WIDTH;
 				else
 					MOUSE_X -= 2 * MONITOR_WIDTH;
+				if (MOUSE_X < 0)
+					MOUSE_X = 0;
+
+				if (MainWindow.socketData2 != null)
+				{
+					MainWindow.socketData2.SendString("1:0:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
+				}
 			}
 
-			if (MOUSE_X < 0)
-				MOUSE_X = 0;
+			
 
-			//Console.WriteLine("1:0:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
-			MainWindow.socketData1.SendString("1:0:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
+			//Console.WriteLine("1:0:" + MOUSE_X + ":" + MOUSE_Y + ":0:" + CaptureScreen.getCurrentMonitor());
+			
 		}
 
 		//private void HookManager_MouseClick(object sender, MouseEventArgs e)
@@ -135,27 +174,73 @@ namespace Synapsys
 		private void HookManager_MouseUp(object sender, MouseEventArgs e)
 		{
 			//Console.WriteLine(string.Format("MouseUp - {0}\n", e.Button));
-			if (e.Button == MouseButtons.Left)
+
+			if (CaptureScreen.getCurrentMonitor() == "2")
 			{
-				MainWindow.socketData1.SendString("1:4:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
+				if (MainWindow.socketData1 != null)
+				{
+					if (e.Button == MouseButtons.Left)
+					{
+						MainWindow.socketData1.SendString("1:4:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
+					}
+					else if (e.Button == MouseButtons.Right)
+					{
+						MainWindow.socketData1.SendString("1:5:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
+					}
+				}
 			}
-			else if (e.Button == MouseButtons.Right)
+			else if (CaptureScreen.getCurrentMonitor() == "3")
 			{
-				MainWindow.socketData1.SendString("1:5:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
+				if (MainWindow.socketData2 != null)
+				{
+					if (e.Button == MouseButtons.Left)
+					{
+						MainWindow.socketData2.SendString("1:4:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
+					}
+					else if (e.Button == MouseButtons.Right)
+					{
+						MainWindow.socketData2.SendString("1:5:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
+					}
+				}
 			}
+			
 		}
 
 
-		private void HookManager_MouseDown(object sender, MouseEventArgs e)
+		private void HookManager_MouseDown(object sender, MouseEventExtArgs e)
 		{
-			if (e.Button == MouseButtons.Left)
+			if (CaptureScreen.getCurrentMonitor() == "2")
 			{
-				MainWindow.socketData1.SendString("1:1:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
+				e.Handled = true;
+				if (MainWindow.socketData1 != null)
+				{
+					if (e.Button == MouseButtons.Left)
+					{
+						MainWindow.socketData1.SendString("1:1:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
+					}
+					else if (e.Button == MouseButtons.Right)
+					{
+						MainWindow.socketData1.SendString("1:2:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
+					}
+				}
+				e.Handled = false;
 			}
-			else if (e.Button == MouseButtons.Right)
+			else if (CaptureScreen.getCurrentMonitor() == "3")
 			{
-				MainWindow.socketData1.SendString("1:2:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
+				e.Handled = true;
+				if (MainWindow.socketData2 != null)
+				{
+					if (e.Button == MouseButtons.Left)
+					{
+						MainWindow.socketData2.SendString("1:1:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
+					}
+					else if (e.Button == MouseButtons.Right)
+					{
+						MainWindow.socketData2.SendString("1:2:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
+					}
+				}
 			}
+			
 		}
 
 
@@ -168,15 +253,39 @@ namespace Synapsys
 
 		private void HookManager_MouseWheel(object sender, MouseEventArgs e)
 		{
-			//Console.WriteLine(string.Format("Wheel={0:000}", e.Delta));
-			if(e.Delta > 0)
+
+			if (CaptureScreen.getCurrentMonitor() == "2")
 			{
-				MainWindow.socketData1.SendString("1:6:" + e.X + ":" + e.Y + ":0:\n");
+				if (MainWindow.socketData1 != null)
+				{
+					//Console.WriteLine(string.Format("Wheel={0:000}", e.Delta));
+					if (e.Delta > 0)
+					{
+						MainWindow.socketData1.SendString("1:6:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
+					}
+					else
+					{
+						MainWindow.socketData1.SendString("1:7:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
+					}
+				}
 			}
-			else
+			else if (CaptureScreen.getCurrentMonitor() == "3")
 			{
-				MainWindow.socketData1.SendString("1:7:" + e.X + ":" + e.Y + ":0:\n");
+				if (MainWindow.socketData2 != null)
+				{
+					//Console.WriteLine(string.Format("Wheel={0:000}", e.Delta));
+					if (e.Delta > 0)
+					{
+						MainWindow.socketData2.SendString("1:6:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
+					}
+					else
+					{
+						MainWindow.socketData2.SendString("1:7:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
+					}
+				}
 			}
+			
+			
 		}
 		#endregion
 
