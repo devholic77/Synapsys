@@ -7,8 +7,6 @@ import java.util.ArrayList;
 
 import org.gbssm.synapsys.SynapsysManagerService.SynapsysHandler;
 
-import android.app.ActivityManager;
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.drawable.BitmapDrawable;
@@ -235,7 +233,7 @@ public abstract class MessageProtocol {
 		
 				case TYPE_KEYBOARD_EVENT: {
 					Slog.i("Synapsys_MessageProtocol", "Process_Keyboard_Event! : " + mCode);
-					service.interpolateKeyboardEvent(0, (Integer)mValue1);
+					service.interpolateKeyboardEvent(mCode, (Integer)mValue1);
 					return;
 				}
 				
@@ -306,9 +304,7 @@ public abstract class MessageProtocol {
 							default:
 								continue;
 							}
-							String toast_text = "type :"+type+" code :"+code+" value1 :"+mValue1+" value2 :"+mValue2;
-							Toast toast = Toast.makeText(getApplicationContext(),toast_text, Toast.LENGTH_SHORT);
-							
+	
 							protocol.mCode = code;
 							results.add(protocol);
 							

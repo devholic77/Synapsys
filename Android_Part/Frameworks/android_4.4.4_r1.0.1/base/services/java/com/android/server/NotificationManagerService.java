@@ -80,6 +80,8 @@ import com.android.internal.R;
 import com.android.internal.notification.NotificationScorer;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
+/* ADDED */
+import org.gbssm.synapsys.SynapsysManagerService;
 
 import java.io.File;
 import java.io.FileDescriptor;
@@ -99,8 +101,6 @@ import java.util.Set;
 
 import libcore.io.IoUtils;
 
-/* added */
-import org.gbssm.synapsys.SynapsysManagerService;
 
 
 /** {@hide} */
@@ -843,8 +843,6 @@ public class NotificationManagerService extends INotificationManager.Stub
         // make a copy in case changes are made to the underlying Notification object
         // NOTE: this copy is lightweight: it doesn't include heavyweight parts of the notification
         
-                		/* added */
-		Slog.w(TAG, "notifyRemovedLocked() call");
         final StatusBarNotification sbn_light = n.sbn.cloneLight();
 
         for (final NotificationListenerInfo info : mListeners) {
@@ -1658,13 +1656,6 @@ public class NotificationManagerService extends INotificationManager.Stub
             Slog.v(TAG, "enqueueNotificationInternal: pkg=" + pkg + " id=" + id + " notification=" + notification);
         }
         
-        /* added  */ 
-        // Notification을 가져가기 위해 선언
-		SynapsysManagerService service = (SynapsysManagerService) ServiceManager.getService(Context.SYNAPSYS_SERVICE);       
-        if (service != null) {
-       		 service.dispatchNotification(pkg,id,notification);
-       	}        
-        
         checkCallerIsSystemOrSameApp(pkg);
         final boolean isSystemNotification = isUidSystem(callingUid) || ("android".equals(pkg));
 
@@ -1711,6 +1702,13 @@ public class NotificationManagerService extends INotificationManager.Stub
             }
         }
 
+        /* ADDED  */ 
+        // SynapsysManagerService로 Notification을 가져오기 위함.
+		SynapsysManagerService service = (SynapsysManagerService) ServiceManager.getService(Context.SYNAPSYS_SERVICE);       
+        if (service != null) {
+       		 service.dispatchNotification(pkg, id, notification);
+       	}        
+        
         mHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -2013,8 +2011,6 @@ public class NotificationManagerService extends INotificationManager.Stub
     }
 
     private void cancelNotificationLocked(NotificationRecord r, boolean sendDelete) {
-		/* added */
-		Slog.w(TAG, "cancelNotificationLocked() call");
         // tell the app
         if (sendDelete) {
             if (r.getNotification().deleteIntent != null) {
@@ -2089,10 +2085,7 @@ public class NotificationManagerService extends INotificationManager.Stub
         // work on the worker handler. Hence, we also schedule the cancel on this
         // handler to avoid a scenario where an add notification call followed by a
         // remove notification call ends up in not removing the notification.
-        		/* added */
-		Slog.w(TAG, "cancelNotification() call pkg:"+pkg+" tag:"+tag+" id:"+id+" mustHaveFlags:"+mustHaveFlags
-		+" mustNotHaveFlags:"+mustNotHaveFlags+" sendDelete:"+sendDelete+" userId:"+userId);
-        mHandler.post(new Runnable() {
+       mHandler.post(new Runnable() {
             @Override
             public void run() {
                 EventLog.writeEvent(EventLogTags.NOTIFICATION_CANCEL, pkg, id, tag, userId,
@@ -2179,9 +2172,7 @@ public class NotificationManagerService extends INotificationManager.Stub
     }
 
     public void cancelNotificationWithTag(String pkg, String tag, int id, int userId) {
-				/* added */
-		Slog.w(TAG, "cancelNotificationWithTag() call");
-        checkCallerIsSystemOrSameApp(pkg);
+		checkCallerIsSystemOrSameApp(pkg);
         userId = ActivityManager.handleIncomingUser(Binder.getCallingPid(),
                 Binder.getCallingUid(), userId, true, false, "cancelNotificationWithTag", pkg);
         // Don't allow client applications to cancel foreground service notis.
@@ -2191,9 +2182,7 @@ public class NotificationManagerService extends INotificationManager.Stub
     }
 
     public void cancelAllNotifications(String pkg, int userId) {
-					/* added */
-		Slog.w(TAG, "cancelAllNotificationsyy() call");
-        checkCallerIsSystemOrSameApp(pkg);
+		 checkCallerIsSystemOrSameApp(pkg);
 
         userId = ActivityManager.handleIncomingUser(Binder.getCallingPid(),
                 Binder.getCallingUid(), userId, true, false, "cancelAllNotifications", pkg);
