@@ -25,12 +25,11 @@ import android.view.WindowManager;
  * 
  */
 public class StreamingView extends SurfaceView implements SurfaceHolder.Callback {
-
+	protected final static boolean DEBUG = false;
 	private final static String TAG = "Synapsys_StreamingView";
 	
 	private final SynapsysApplication mApplication;
 	
-	private SurfaceThread mSurfaceThread;
 	private SurfaceHandler mSurfaceHandler;
 	private SurfaceHolder mHolder;
 	
@@ -57,23 +56,16 @@ public class StreamingView extends SurfaceView implements SurfaceHolder.Callback
 	public void surfaceCreated(SurfaceHolder holder) {
 		init();
 
-//		if (mSurfaceThread != null)
-//			mSurfaceThread.start();
 		mSurfaceHandler.isRunning = true;
 	}
 
 	@Override
 	public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-//		if (mSurfaceThread != null)
-//			mSurfaceThread.setDisplaySize(width, height);
-		
 		mSurfaceHandler.setDisplaySize(width, height);
 	}
 
 	@Override
 	public void surfaceDestroyed(SurfaceHolder holder) {
-//		if (mSurfaceThread != null)
-//			mSurfaceThread.destroy();
 		mSurfaceHandler.isRunning = false;
 		mApplication.notifyStreamingView(null);
 		
@@ -93,14 +85,12 @@ public class StreamingView extends SurfaceView implements SurfaceHolder.Callback
 
 		mSurfaceHandler = new SurfaceHandler();
 		mApplication.notifyStreamingView(this);
-//		if (mSurfaceThread != null)
-//			mSurfaceThread.destroy();
-//		mSurfaceThread = new SurfaceThread();	
 	}
 
 	synchronized void switchSurfaceImage() {
 		if (mStreamingImage == null) {
-			Log.d(TAG, "Streaming Image NULL!");
+			if (DEBUG)
+				Log.d(TAG, "Streaming Image NULL!");
 			return;
 		}
 
@@ -111,8 +101,6 @@ public class StreamingView extends SurfaceView implements SurfaceHolder.Callback
 			mStreamingImage = temp;
 		}
 
-		//mSurfaceImage = mStreamingImage.copy(Bitmap.Config.ARGB_8888, false);
-		//mStreamingImage.recycle();
 		mSurfaceHandler.sendEmptyMessage(SurfaceHandler.SWITCH);
 		
 	}
@@ -156,7 +144,7 @@ public class StreamingView extends SurfaceView implements SurfaceHolder.Callback
 					canvas.drawBitmap(mSurfaceImage, null, mRect, mPaint);
 
 				} catch (Exception e) {
-
+					;
 				} finally {
 					mHolder.unlockCanvasAndPost(canvas);
 				}
@@ -184,74 +172,4 @@ public class StreamingView extends SurfaceView implements SurfaceHolder.Callback
 		
 	}
 	
-	/**
-	 * 
-	 * @deprecated
-	 * @author Yeonho.Kim
-	 * @since 2013.03.05
-	 *
-	 */
-	private class SurfaceThread extends Thread {
-
-		private boolean isRunning;
-
-		private Paint mPaint;
-		private Rect mRect;
-		
-		private SurfaceThread() {
-			init();
-		}
-
-		private void init() {
-			DisplayMetrics dm = new DisplayMetrics();
-			WindowManager mWindowManager = (WindowManager) mApplication.getSystemService(Context.WINDOW_SERVICE);
-			mWindowManager.getDefaultDisplay().getMetrics(dm);
-			
-			mRect = new Rect(0, 0, dm.widthPixels, dm.heightPixels);
-			mPaint = new Paint();
-		}
-		
-		void setDisplaySize(int width, int height) {
-			if (mRect != null) {
-				mRect.right = width;
-				mRect.bottom = height;
-			}
-		}
-		
-		@Override
-		public void run() {
-			Log.d(TAG, "SurfaceThread is running.");
-			
-			try {
-				while (mSurfaceThread.isRunning) {
-					final Canvas canvas = mHolder.lockCanvas();
-					try {
-						synchronized (mHolder) {
-							canvas.drawColor(Color.BLACK);
-							canvas.drawBitmap(mSurfaceImage, null, mRect, mPaint);
-						}
-					} catch (Exception e) { 
-					} finally {
-						mHolder.unlockCanvasAndPost(canvas);
-					}
-				}
-			} catch (NullPointerException e) { 
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			
-			Log.d(TAG, "SurfaceThread is dead.");
-		}
-
-		@Override
-		public synchronized void start() {
-			this.isRunning = true;
-			super.start();
-		}
-		
-		public synchronized void destroy() {
-			this.isRunning = false;
-			mSurfaceThread = null;
-		}
-	}
 }

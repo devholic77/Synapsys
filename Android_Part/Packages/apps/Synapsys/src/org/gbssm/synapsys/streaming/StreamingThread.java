@@ -1,15 +1,12 @@
 package org.gbssm.synapsys.streaming;
 
 import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.RejectedExecutionException;
 
 import org.gbssm.synapsys.global.SynapsysApplication;
@@ -30,8 +27,9 @@ import android.view.WindowManager;
  *
  */
 public class StreamingThread extends Thread {
-	
+	protected final static boolean DEBUG = false;
 	private final static String TAG = "Synapsys_StreamingThread";
+	
 	private final static int TIMEOUT = 10000;	// ms
 	private final static int MAX_SCREEN_SIZE = 1000000;	// bytes
 	
@@ -73,14 +71,17 @@ public class StreamingThread extends Thread {
 				}
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			if (DEBUG)
+				e.printStackTrace();
 		}
 	}
 	
 	
 	@Override
 	public void run() {
-		Log.d(TAG, "StreamingThread is running.");
+		if (DEBUG)
+			Log.d(TAG, "StreamingThread is running.");
+		
 		try {
 			waitingConnection();
 			runningConnection();
@@ -92,10 +93,13 @@ public class StreamingThread extends Thread {
 			
 		} catch (Exception e) {
 			waiting(false);
-			e.printStackTrace();
+			
+			if (DEBUG)
+				e.printStackTrace();
 		} 
-		
-		Log.d(TAG, "StreamingThread is dead.");
+
+		if (DEBUG)
+			Log.d(TAG, "StreamingThread is dead.");
 	}
 	
 	@Override
@@ -109,7 +113,7 @@ public class StreamingThread extends Thread {
 				mStreamingSocket = null;
 			}
 		} catch (IOException e) {
-			
+			;
 		} finally {
 			mInputStream = null;
 		}
@@ -121,8 +125,9 @@ public class StreamingThread extends Thread {
 			throw new RejectedExecutionException("Another DisplayThread is running.");
 			
 		waiting(true);
-		
-		Log.d(TAG, "StreamingThread_Run()_Port : " + mListenSocket.getLocalPort());
+
+		if (DEBUG)
+			Log.d(TAG, "StreamingThread_Run()_Port : " + mListenSocket.getLocalPort());
 		do {
 			synchronized (this) {
 				try {
@@ -143,7 +148,9 @@ public class StreamingThread extends Thread {
 			return;
 		
 		running(true);
-		Log.d(TAG, "DisplayThread_Connected!");
+		
+		if (DEBUG)
+			Log.d(TAG, "DisplayThread_Connected!");
 		Message.obtain(mApplication.getHandler(), SynapsysApplication.MSG_CONNECTED_DISPLAY).sendToTarget();
 		
 		try {
@@ -178,6 +185,7 @@ public class StreamingThread extends Thread {
 						
 						if (view.mStreamingImage != null)
 							view.mStreamingImage.recycle();
+						
 						view.mStreamingImage = null;
 					}
 					
@@ -191,7 +199,8 @@ public class StreamingThread extends Thread {
 				}
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			if (DEBUG)
+				e.printStackTrace();
 		}
 		
 		Message.obtain(mApplication.getHandler(), SynapsysApplication.MSG_DESTROYED_DISPLAY).sendToTarget();
@@ -227,7 +236,8 @@ public class StreamingThread extends Thread {
 	 * @return
 	 */
 	public static boolean isAbleToCreate() {
-		Slog.v(TAG, "Display_isAbleToCreate : " + waitingCount + " / " + runningCount);
+		if (DEBUG)
+			Slog.v(TAG, "Display_isAbleToCreate : " + waitingCount + " / " + runningCount);
 		
 		boolean result;
 		synchronized (LOCK) {
@@ -254,7 +264,8 @@ public class StreamingThread extends Thread {
 	 * @return
 	 */
 	static boolean isWaiting() {
-		Slog.v(TAG, "Display_isWaiting : " + waitingCount);
+		if (DEBUG)
+			Slog.v(TAG, "Display_isWaiting : " + waitingCount);
 		
 		boolean result;
 		synchronized (LOCK) {
@@ -281,7 +292,8 @@ public class StreamingThread extends Thread {
 	 * @return
 	 */
 	static boolean isRunning() {
-		Slog.v(TAG, "Display_isRunning : " + runningCount);
+		if (DEBUG)
+			Slog.v(TAG, "Display_isRunning : " + runningCount);
 		
 		boolean result;
 		synchronized(LOCK) {

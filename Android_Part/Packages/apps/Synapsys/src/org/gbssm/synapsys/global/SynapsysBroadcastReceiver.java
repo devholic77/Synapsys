@@ -1,6 +1,7 @@
 package org.gbssm.synapsys.global;
 
 import org.gbssm.synapsys.MainActivity;
+import org.gbssm.synapsys.R;
 import org.gbssm.synapsys.SynapsysManager;
 
 import android.content.BroadcastReceiver;
@@ -54,21 +55,21 @@ public class SynapsysBroadcastReceiver extends BroadcastReceiver {
 				newIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 				context.startActivity(newIntent);
 
-				String message = "PC와 연결되었습니다 !!";
+				String message = context.getString(R.string.pc_connected);
 				mToast.setText(message);
 				mToast.show();
 			}
-			
 			
 		} else if (!usbReady || !pcReady) {
 			mApplication.setControllerConnected(false);
 			mApplication.stopStreaming();
 			
-			if (isUSBready || isPCready) {
-				String message = "PC와 연결이 끊어졌습니다..";
+			if (isUSBready && isPCready) {
+				String message = context.getString(R.string.pc_disconnected);
 				mToast.setText(message);
 				mToast.show();
 			}
+			
 		}
 		
 		isUSBready = usbReady;

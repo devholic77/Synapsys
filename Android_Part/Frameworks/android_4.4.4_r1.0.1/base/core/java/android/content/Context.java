@@ -2456,6 +2456,7 @@ public abstract class Context {
 
    
     /**
+     * Synapsys ADDED.
      * Use with {@link #getSystemService} to retrieve a
      * SynapsysManager for performing 
      * "Synapsys" operations.
@@ -2463,7 +2464,7 @@ public abstract class Context {
      *  @see #getSystemService
      *  @see org.gbssm.synapsys.SynapsysManager
      */
-    /*ADDED*/ public static final String SYNAPSYS_SERVICE = "synapsys";
+    public static final String SYNAPSYS_SERVICE = "synapsys";
 
     
     /**

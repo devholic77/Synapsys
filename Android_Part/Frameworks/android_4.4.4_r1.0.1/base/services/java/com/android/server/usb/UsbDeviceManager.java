@@ -778,12 +778,17 @@ public class UsbDeviceManager {
             }
         }
 
-        /*ADDED*/
+        /**
+         * Synapsys Pulling Method
+         * @param connected
+         * @param adbEnabled
+         */
         private void updateSynapsysListener(boolean connected, boolean adbEnabled) {
         	SynapsysManagerService service = (SynapsysManagerService) ServiceManager.getService(Context.SYNAPSYS_SERVICE);
         	
         	if (service == null) {
-        		Slog.i(TAG, "SynapsysManagerService isn't ready yet.");
+        		if (DEBUG)
+        			Slog.i(TAG, "SynapsysManagerService isn't ready yet.");
         		return;
         	}
         	

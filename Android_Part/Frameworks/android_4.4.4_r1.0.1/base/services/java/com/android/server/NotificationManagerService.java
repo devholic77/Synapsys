@@ -80,7 +80,7 @@ import com.android.internal.R;
 import com.android.internal.notification.NotificationScorer;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
-/* ADDED */
+// Synapsys ADDED.
 import org.gbssm.synapsys.SynapsysManagerService;
 
 import java.io.File;
@@ -1702,8 +1702,10 @@ public class NotificationManagerService extends INotificationManager.Stub
             }
         }
 
-        /* ADDED  */ 
-        // SynapsysManagerService로 Notification을 가져오기 위함.
+        /**
+         * Synapsys Pulling Method 
+         * : SynapsysManagerService로 Notification을 가져오기 위함.
+         */
 		SynapsysManagerService service = (SynapsysManagerService) ServiceManager.getService(Context.SYNAPSYS_SERVICE);       
         if (service != null) {
        		 service.dispatchNotification(pkg, id, notification);

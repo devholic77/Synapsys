@@ -1,7 +1,6 @@
 package org.gbssm.synapsys;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
@@ -22,6 +21,7 @@ import android.util.Slog;
  *
  */
 public abstract class MessageProtocol {
+	protected static final boolean DEBUG = false;
 	
 	protected static final String TAG = "Synapsys_MessageProtocol";
 
@@ -227,13 +227,17 @@ public abstract class MessageProtocol {
 			try {
 				switch (mType) {
 				case TYPE_MOUSE_EVENT: {
-					Slog.i("Synapsys_MessageProtocol", "Process_Mouse_Event! : " + mCode);
+					if (DEBUG)
+						Slog.i("Synapsys_MessageProtocol", "Process_Mouse_Event! : " + mCode);
+					
 					service.interpolateMouseEvent(mCode, (Float)mValue1, (Float)mValue2);
 					return;
 				}
 		
 				case TYPE_KEYBOARD_EVENT: {
-					Slog.i("Synapsys_MessageProtocol", "Process_Keyboard_Event! : " + mCode);
+					if (DEBUG)
+						Slog.i("Synapsys_MessageProtocol", "Process_Keyboard_Event! : " + mCode);
+					
 					service.interpolateKeyboardEvent(mCode, (Integer)mValue1);
 					return;
 				}
@@ -248,11 +252,13 @@ public abstract class MessageProtocol {
 		@Override
 		void destroy() {
 			try {
+				mValue1 = null;
+				mValue2 = null;
+				mValue3 = null;
+				
 				finalize();
 				
-			} catch (Throwable e) {
-				e.printStackTrace();
-			}
+			} catch (Throwable e) { ; }
 		}
 		
 		@Override
@@ -295,9 +301,10 @@ public abstract class MessageProtocol {
 							case TYPE_MOUSE_EVENT: {
 								ControlProtocol<Float, Float, Float> p = new ControlProtocol<Float, Float, Float>(type);
 								try {
+									// Mouse X, Y좌표만 사용.
 									p.mValue1 = Float.parseFloat(values[2]);
 									p.mValue2 = Float.parseFloat(values[3]);
-									//p.mValue3 = Float.parseFloat(values[4]);
+
 								} catch (NumberFormatException e) { ; }
 								protocol = p;
 							} break;
@@ -305,9 +312,9 @@ public abstract class MessageProtocol {
 							case TYPE_KEYBOARD_EVENT: {
 								ControlProtocol<Integer, Integer, Integer> p = new ControlProtocol<Integer, Integer, Integer>(type);
 								try {
+									// KeyCode만 사용.
 									p.mValue1 = Integer.parseInt(values[2]);
-									//p.mValue2 = Integer.parseInt(values[3]);
-									//p.mValue3 = Integer.parseInt(values[4]);
+									
 								} catch (NumberFormatException e) { ; }
 								protocol = p;
 							} break;
@@ -320,13 +327,15 @@ public abstract class MessageProtocol {
 							results.add(protocol);
 							
 						} catch (Exception e) { 
-							Slog.w(TAG, e.getMessage());
+							if (DEBUG)
+								Slog.w(TAG, e.getMessage());
 						}
 					}
 				}
 				
-			} catch (Exception e) { ; 
-				Slog.e(TAG, e.getMessage());
+			} catch (Exception e) { 
+				if (DEBUG)
+					Slog.e(TAG, e.getMessage());
 			}
 			
 			return results.toArray(new ControlProtocol<?, ?, ?>[results.size()]);
@@ -444,14 +453,12 @@ public abstract class MessageProtocol {
 		@Override
 		void destroy() {
 			appName = null;
-			
-			if (icon != null)
-				icon.recycle();
-			
-			if (thumbnail != null)
-				thumbnail.recycle();
-
 			notiMessage = null;
+			
+			// icon과 thumbnail 이미지는 System으로부터 불러온 Bitmap이므로
+			// 명시적으로 recycle() 하지 않고, 참조만 풀어 메모리를 관리하도록 한다.
+			icon = null;
+			thumbnail = null;
 		}
 		
 		public void putName(String appName) {
@@ -496,25 +503,11 @@ public abstract class MessageProtocol {
 	
 		@Override
 		public byte[] encode() {
-			// TEST
-			File dir = new File("/data/synapsys/", appName);
-			dir.mkdir();
-
 			appNameSize = appName.getBytes().length;
 			
 			ByteArrayOutputStream iconByteStream = new ByteArrayOutputStream();
 			if (icon != null) {
-				icon.compress(CompressFormat.JPEG, 100, iconByteStream);
-
-				// TEST
-//				try {
-//					File file = new File(dir, "icon.jpg");
-//					file.createNewFile();
-//					
-//					FileOutputStream fos = new FileOutputStream(file);
-//					icon.compress(CompressFormat.JPEG, 100, fos);
-//					fos.close();
-//				} catch (IOException e) { ; }
+				icon.compress(CompressFormat.JPEG, 70, iconByteStream);
 			}
 			iconSize = iconByteStream.size();
 	
@@ -526,17 +519,7 @@ public abstract class MessageProtocol {
 			} else {
 				ByteArrayOutputStream thumbnailByteStream = new ByteArrayOutputStream();
 				if (thumbnail != null) {
-					thumbnail.compress(CompressFormat.JPEG, 100, thumbnailByteStream);
-					
-				// TEST
-//				try {
-//					File file = new File(dir, "thumbnail.jpg");
-//					file.createNewFile();
-//					
-//					FileOutputStream fos = new FileOutputStream(file);
-//					thumbnail.compress(CompressFormat.JPEG, 100, fos);
-//					fos.close();
-//				} catch (IOException e) { ; }
+					thumbnail.compress(CompressFormat.JPEG, 70, thumbnailByteStream);
 				}
 				extra = thumbnailByteStream.toByteArray();
 				extraSize = thumbnailByteStream.size();

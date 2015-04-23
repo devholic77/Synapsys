@@ -44,23 +44,6 @@ public class SynapsysManager {
 		
 	}
 	
-//	/**
-//	 * 
-//	 * @author Yeonho.Kim
-//	 * @since 2015.03.07
-//	 *
-//	 */
-//	public interface OnDisplayConnectionListener {
-//		
-//		public void onConnected(Socket displaySock);
-//		
-//		public void onDisconnected();
-//	}
-//
-//	private OnDisplayConnectionListener mOnDisplayConnectionListener;
-
-	private Socket mDisplaySocket;
-	
 	/**
 	 * 
 	 * @return
@@ -85,6 +68,7 @@ public class SynapsysManager {
 			return mService.invokeMouseEventFromTouch(mouse_id, mouse_x, mouse_y);
 			
 		} catch (RemoteException e) {	
+			;
 		}
 		return false;
 	}
@@ -97,7 +81,8 @@ public class SynapsysManager {
 		try {
 			return mService.invokeKeyboardEvent(event_id, key_code);
 			
-		} catch (RemoteException e) {	
+		} catch (RemoteException e) {
+			;
 		}
 		return false;
 	}

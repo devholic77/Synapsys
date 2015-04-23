@@ -42,6 +42,8 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	
 	public static final int TYPE_KEYBOARD = 0;
 	public static final int TYPE_MOUSE= 1;
+
+	protected static final boolean DEBUG = false;
 	
 	static final String TAG = "SynapsysManagerService";	
 	
@@ -91,7 +93,9 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	 * @throws RemoteException
 	 */
 	public int requestDisplayConnection() throws RemoteException {
-		Slog.v(TAG, "reqeustDisplayConnection()");
+		if (DEBUG)
+			Slog.v(TAG, "reqeustDisplayConnection()");
+		
 		if (mDisplayBox != null)
 			return mDisplayBox.port;
 		
@@ -108,7 +112,8 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	 * @throws RemoteException
 	 */
 	public boolean invokeMouseEventFromTouch(int event_id, float event_x, float event_y) throws RemoteException {
-		Slog.v(TAG, "invokeMouseEventFromTouch : event=" + event_id + " / x=" + event_x + " / y=" + event_y);
+		if (DEBUG)
+			Slog.v(TAG, "invokeMouseEventFromTouch : event=" + event_id + " / x=" + event_x + " / y=" + event_y);
 
 		if (mControlThread != null) {
 			try {
@@ -119,8 +124,7 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 				
 				mControlThread.send(protocol);
 				
-			} catch (Exception e) {
-			}
+			} catch (Exception e) { ; }
 		}
 		
 		return false;
@@ -135,7 +139,8 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	 * @throws RemoteException
 	 */
 	public boolean invokeKeyboardEvent(int event_id, int key_code) throws RemoteException {
-		Slog.v(TAG, "invokeKeyboardEvent : event=" + event_id + " / keyCode=" + key_code);
+		if (DEBUG)
+			Slog.v(TAG, "invokeKeyboardEvent : event=" + event_id + " / keyCode=" + key_code);
 		
 		if (mControlThread != null) {
 			try {
@@ -161,7 +166,8 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	 * @throws RemoteException
 	 */
 	public boolean invokeNotificationEvent(int notificationId, String packageName, String message) throws RemoteException {
-		Slog.d(TAG, "invokeNotificationEvents :  Noti_ID = " + notificationId + " / Package = " + packageName + " / Message : " + message);
+		if (DEBUG)
+			Slog.d(TAG, "invokeNotificationEvents :  Noti_ID = " + notificationId + " / Package = " + packageName + " / Message : " + message);
 		
 		if (mMediaThread != null) {
 			try {
@@ -204,7 +210,8 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 				// System UI 전달 방지.
 				return false;
 			}
-		Slog.v(TAG, "invokeTaskInfoEvents : state = " + state + " / task = " + taskId + " / package = " + packageName);
+		if (DEBUG)
+			Slog.v(TAG, "invokeTaskInfoEvents : state = " + state + " / task = " + taskId + " / package = " + packageName);
 			
 		SHADOW_TASK_STATE = state;
 		SHADOW_TASK_ID = taskId;
@@ -289,12 +296,12 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 				media.putName((String) mPackageManager.getApplicationLabel(appInfo));
 				media.putIcon(appInfo.loadIcon(mPackageManager));
 				media.putThumbnail(mActivityManager.getTaskTopThumbnail(rti.id));
-				
-				Slog.i(TAG, "RecentTaskInfo : " + media.toString() + " / ComponentName : " + baseComponent.toShortString());
+
 				mMediaThread.send(media);
 				
 			} catch (Exception e) {
-				e.printStackTrace();
+				if (DEBUG)
+					e.printStackTrace();
 			}
 		}
 		
@@ -310,7 +317,8 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	 * @throws RemoteException
 	 */
 	public boolean interpolateMouseEvent(int event_id, float event_x, float event_y) throws RemoteException { 
-		Slog.v(TAG, "interpolateMouseEvent : event=" + event_id + " / x=" + event_x + " / y=" + event_y);
+		if (DEBUG)
+			Slog.v(TAG, "interpolateMouseEvent : event=" + event_id + " / x=" + event_x + " / y=" + event_y);
 				
 		// 윈도우에서 받는 이벤트 전달 함수 호출 
 		sendtoNativeEvent(TYPE_MOUSE, event_id, event_x, event_y );
@@ -326,7 +334,8 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	 * @throws RemoteException
 	 */
 	public boolean interpolateKeyboardEvent(int event_id, int key_code) throws RemoteException { 
-		Slog.v(TAG, "interpolateKeyboardEvent : event=" + event_id + " / keyCode=" + key_code);
+		if (DEBUG)
+			Slog.v(TAG, "interpolateKeyboardEvent : event=" + event_id + " / keyCode=" + key_code);
 		
 		// 윈도우에서 받는 이벤트 전달 함수 호출 
 		sendtoNativeEvent(TYPE_KEYBOARD, event_id, key_code, 0);
@@ -354,7 +363,8 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 				mNotificationManager.cancel(notificationId);	
 				
 			} catch (Exception e) {
-				e.printStackTrace();
+				if (DEBUG)
+					e.printStackTrace();
 			}
 			return true;
 		}
@@ -394,7 +404,8 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	 * @param another 변화하지 않은 다른 이벤트 값
 	 */
 	public void dispatchUsbConnectionEvent(int event_id, boolean event, boolean another) {
-		Slog.v(TAG, "EventID : " + (event_id == 1 ? "ADB" : "CONN") + " / Event : " + event + " / Another : " + another);
+		if (DEBUG)
+			Slog.v(TAG, "EventID : " + (event_id == 1 ? "ADB" : "CONN") + " / Event : " + event + " / Another : " + another);
 		
 		// 변화한 이벤트 타입에 따라 처리.
 		switch (event_id) {
@@ -425,6 +436,7 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	public void dispatchNotification(String PackageName, int id, Notification notification) {		
 		if (notification == null)
 			return;
+		
 		try {
 			invokeNotificationEvent(id, PackageName, (String)notification.tickerText); 	
 			
@@ -449,7 +461,8 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	 * @author Dhuckil.Kim
 	 */
 	private void sendtoNativeEvent(int event_type,int event_code, float value_1, float value_2 ) {
-		Slog.i("SynapsysManagerService","framework : JNI CALL ");
+		if (DEBUG)
+			Slog.i("SynapsysManagerService","framework : JNI CALL ");
 		
 		// InputManager 이벤트 전달 함수 호출 
 		mInputManager.Event_Receive(event_type, event_code, value_1, value_2);		
@@ -549,7 +562,9 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 			switch (msg.what) {
 			// *** Level C : Connection 관련 *** //
 			case MSG_PROCEED_CONTROL:
-				Slog.v(TAG, "Handler_MSG_PROCEED_CONTROL : " + msg.what);
+				if (DEBUG)
+					Slog.v(TAG, "Handler_MSG_PROCEED_CONTROL : " + msg.what);
+				
 				if (msg.obj != null) {
 					ConnectionBox box = (ConnectionBox) msg.obj;
 					
@@ -565,21 +580,30 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 				break;
 				
 			case MSG_CONNECTED_CONTROL:
-				Slog.v(TAG, "Handler_MSG_CONNECTED_CONTROL : " + msg.what);
+				if (DEBUG)
+					Slog.v(TAG, "Handler_MSG_CONNECTED_CONTROL : " + msg.what);
+				
 				broadcastSynapsysState(true, true, true);
 				break;
 				
 			case MSG_EXIT_CONTROL:
-				Slog.v(TAG, "Handler_MSG_EXIT_CONTROL : " + msg.what);
+				if (DEBUG)
+					Slog.v(TAG, "Handler_MSG_EXIT_CONTROL : " + msg.what);
+				
 				sendMessageDelayed(Message.obtain(this, MSG_PROCEED_CONTROL, msg.obj), 250);
+				// EXIT AND DESTROY...
 				
 			case MSG_DESTROY_CONTROL:
-				Slog.v(TAG, "Handler_MSG_DESTROY_CONTROL : " + msg.what);
+				if (DEBUG)
+					Slog.v(TAG, "Handler_MSG_DESTROY_CONTROL : " + msg.what);
+				
 				if (mControlThread != null) {
 					try {
 						mControlThread.destroy();
 						mControlThread.join(100);
+						
 					} catch (InterruptedException e) {
+						;
 					} finally {
 						mControlThread = null;
 					}
@@ -587,13 +611,17 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 				break;
 				
 			case MSG_DESTROYED_CONTROL:
-				Slog.v(TAG, "Handler_MSG_DESTROYED_CONTROL : " + msg.what);
+				if (DEBUG)
+					Slog.v(TAG, "Handler_MSG_DESTROYED_CONTROL : " + msg.what);
+				
 				broadcastSynapsysState(true, true, false);
 				return;
 				
 				
 			case MSG_PROCEED_MEDIA:
-				Slog.v(TAG, "Handler_MSG_PROCEED_MEDIA : " + msg.what);
+				if (DEBUG)
+					Slog.v(TAG, "Handler_MSG_PROCEED_MEDIA : " + msg.what);
+				
 				if (msg.obj != null) {
 					ConnectionBox box = (ConnectionBox) msg.obj;
 
@@ -607,21 +635,28 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 				break;
 				
 			case MSG_CONNECTED_MEDIA:
-				Slog.v(TAG, "Handler_MSG_CONNECTED_MEDIA : " + msg.what);
-				//
+				if (DEBUG)
+					Slog.v(TAG, "Handler_MSG_CONNECTED_MEDIA : " + msg.what);
 				break;
 				
 			case MSG_EXIT_MEDIA:
-				Slog.v(TAG, "Handler_MSG_EXIT_MEDIA : " + msg.what);
+				if (DEBUG)
+					Slog.v(TAG, "Handler_MSG_EXIT_MEDIA : " + msg.what);
+				
 				sendMessageDelayed(Message.obtain(this, MSG_PROCEED_MEDIA, msg.obj), 250);
+				// EXIT AND DESTROY ... 
 				
 			case MSG_DESTROY_MEDIA:
-				Slog.v(TAG, "Handler_MSG_DESTROY_MEDIA : " + msg.what);
+				if (DEBUG)
+					Slog.v(TAG, "Handler_MSG_DESTROY_MEDIA : " + msg.what);
+				
 				if (mMediaThread != null) {
 					try {
 						mMediaThread.destroy();
 						mMediaThread.join(100);
-					} catch (InterruptedException e) { ; 
+						
+					} catch (InterruptedException e) { 
+						; 
 					} finally {
 						mMediaThread = null;
 					}
@@ -629,8 +664,8 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 				break;	
 				
 			case MSG_DESTROYED_MEDIA:
-				Slog.v(TAG, "Handler_MSG_DESTROYED_MEDIA : " + msg.what);
-				//
+				if (DEBUG)
+					Slog.v(TAG, "Handler_MSG_DESTROYED_MEDIA : " + msg.what);
 				return;
 				
 				
@@ -640,21 +675,16 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 					
 					if (!box.equals(mDisplayBox)) {
 						mDisplayBox = box;
-						Slog.d(TAG, "Display_Port : " + mDisplayBox.port);
+						
+						if (DEBUG)
+							Slog.d(TAG, "Display_Port : " + mDisplayBox.port);
 					}
 				}
 				break;
 				
-				
-
-			// *** LEVEL E : Event 관련 *** //
-			case MSG_PUSH_NOTIFICATION:
-			case MSG_PUSH_TASKINFO:
-			case MSG_PULL_NOTIFICATION:
-			case MSG_PULL_TASKINFO:
-				
 			default:
-				Slog.v(TAG, "handleMessage : " + msg.what);
+				if (DEBUG)
+					Slog.v(TAG, "handleMessage : " + msg.what);
 			}
 		}
 		
@@ -672,6 +702,8 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
  *
  */
 abstract class SynapsysThread extends Thread {
+	
+	protected static final boolean DEBUG = false;
 
 	// *** CONSTANTS PART *** //
 	/**

@@ -1,12 +1,11 @@
 package org.gbssm.synapsys.global;
 
 import java.util.concurrent.RejectedExecutionException;
-
 import org.gbssm.synapsys.MainActivity;
 import org.gbssm.synapsys.SynapsysManager;
 import org.gbssm.synapsys.streaming.StreamingThread;
 import org.gbssm.synapsys.streaming.StreamingView;
-
+import android.annotation.SuppressLint;
 import android.app.Application;
 import android.content.res.Configuration;
 import android.os.Handler;
@@ -75,6 +74,7 @@ public class SynapsysApplication extends Application {
 	private boolean isControllerConnected;
 	private boolean isDisplayed;
 	
+	@SuppressLint("ShowToast")
 	@Override
 	public void onCreate() {
 		super.onCreate();

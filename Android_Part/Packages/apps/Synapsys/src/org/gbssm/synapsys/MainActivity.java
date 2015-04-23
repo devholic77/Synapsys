@@ -86,7 +86,6 @@ public class MainActivity extends Activity {
 		if (enable) {
 			mStreamingBoard.setVisibility(View.GONE);
 			
-			
 		} else {
 			mStreamingBoard.setVisibility(View.VISIBLE);
 			
