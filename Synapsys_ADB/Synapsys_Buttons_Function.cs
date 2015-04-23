@@ -36,7 +36,7 @@ namespace Synapsys_ADB
 				path = @"D:\Synapsys_Sub_Program\Synapsys_Sub_Program\bin\Release\Synapsys_Sub_Program.exe";
                 Console.WriteLine("2번 모니터 실행");
                 Synapsys_Values.Second_Device_Use = "Use";
-                Synapsys_Values.SecondSubProgram = Process.Start(path, Synapsys_Values.port[5]);
+                Synapsys_Values.SecondSubProgram = Process.Start(path, Synapsys_Values.port[5]); // 장대찬 
                 //System.Diagnostics.Process.Start(path, Synapsys_Values.port[5]);  
             }
 

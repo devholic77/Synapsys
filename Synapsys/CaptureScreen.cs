@@ -4,7 +4,6 @@ using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.Runtime.InteropServices;
 using System.IO;
 
 namespace Synapsys
@@ -23,11 +22,6 @@ namespace Synapsys
 		private static Screen[] scrs;
 
 		public static int currFPS = 0;
-
-		//private static System.Drawing.Imaging.Encoder myEncoder = System.Drawing.Imaging.Encoder.Quality;
-		//private static EncoderParameter myEncoderParameter = new EncoderParameter(myEncoder, 50L);
-		//private static EncoderParameters myEncoderParameters = new EncoderParameters(1);
-
 
 
 		// 싱글톤
@@ -55,15 +49,14 @@ namespace Synapsys
 		public void Start()
 		{
 			Stop();
-			setFPS(25);
+			setFPS(35);
 
-			Refresh();
 			thread = new Thread(new ThreadStart(captureMachine));
 			thread.Start();
 			gcThread = new Thread(new ThreadStart(gcMachine));
 			gcThread.Start();
 
-			new Thread(new ThreadStart(gcMachine2)).Start();
+			//new Thread(new ThreadStart(gcMachine2)).Start();
 		}
 
 		public void Stop()
@@ -106,15 +99,6 @@ namespace Synapsys
 			}
 		}
 
-		private static void gcMachine2()
-		{
-			while (true)
-			{
-				GC.Collect();
-				Thread.Sleep(500);
-			}
-		}
-
 		private static void captureMachine()
 		{
 			Refresh();
@@ -123,7 +107,6 @@ namespace Synapsys
 				try
 				{
 					new Thread(new ThreadStart(capture)).Start();
-					//capture();
 					Thread.Sleep(FPS);
 				}
 				catch (Exception)
@@ -137,51 +120,50 @@ namespace Synapsys
 
 		static int totalMonitor = 0;
 		static int beforeTotalMonitor = 0;
+		static int MONITOR_WIDTH = MainWindow.WIDTH;
+		static int MONITOR_HEIGHT = MainWindow.HEIGHT;
 
 		private static void capture()
 		{
+			currFPS++;
 			try
 			{
-				for (int i = 1; i < beforeTotalMonitor; i++)
+				using (Bitmap bitmap = new Bitmap(MONITOR_WIDTH * 2, MONITOR_HEIGHT))
 				{
-					Screen scr = scrs[i];
+					using (Graphics g = Graphics.FromImage(bitmap))
+					{
+						g.CopyFromScreen(new Point(-MONITOR_WIDTH * 2, 0), Point.Empty, new Size(MONITOR_WIDTH * 2, MONITOR_HEIGHT));
+					}
+					// #1
+					Rectangle rect = new Rectangle(0, 0, MONITOR_WIDTH, MONITOR_HEIGHT);
+					using (Bitmap firstHalf = bitmap.Clone(rect, bitmap.PixelFormat))
+					{
+						using (MemoryStream stream = new MemoryStream())
+						{
+							firstHalf.Save(stream, ImageFormat.Jpeg);
+							MainWindow.socketIMG1.SendScreen(stream.ToArray());
+							stream.Close();
+						}
+					}
 
-					//Bitmap bmpScreenShot1 = new Bitmap(scr.Bounds.Width, scr.Bounds.Height, PixelFormat.Format16bppRgb555);
-					Bitmap bmpScreenShot2 = new Bitmap(scr.Bounds.Width, scr.Bounds.Height, PixelFormat.Format16bppRgb555);
-
-					//Graphics g1 = Graphics.FromImage(bmpScreenShot1);
-					//g1.CopyFromScreen(scr.Bounds.X, scr.Bounds.Y, 0, 0, scr.Bounds.Size, CopyPixelOperation.SourceCopy);
-					Graphics g2 = Graphics.FromImage(bmpScreenShot2);
-					g2.CopyFromScreen(scr.Bounds.X, scr.Bounds.Y, 0, 0, scr.Bounds.Size, CopyPixelOperation.SourceCopy);
-					currFPS++;
-
-					scr = null; 
-					//g1 = null; 
-					g2 = null;
-
-					//if(!compare(bmpScreenShot1, bmpScreenShot2))
-					//{
-						// Change to Byte Array
-						MemoryStream stream = new MemoryStream();
-						bmpScreenShot2.Save(stream, System.Drawing.Imaging.ImageFormat.Jpeg);
-
-					if(i == 1)
-						MainWindow.socketIMG1.SendScreen(stream.ToArray());
-					else if (i == 2)
-						MainWindow.socketIMG2.SendScreen(stream.ToArray());
-
-						stream.Close();
-
-						stream = null;
-					//}
+					// #2
+					rect = new Rectangle(MONITOR_WIDTH, 0, MONITOR_WIDTH, MONITOR_HEIGHT);
+					using (Bitmap secondHalf = bitmap.Clone(rect, bitmap.PixelFormat))
+					{
+						using (MemoryStream stream = new MemoryStream())
+						{
+							secondHalf.Save(stream, ImageFormat.Jpeg);
+							MainWindow.socketIMG2.SendScreen(stream.ToArray());
+							stream.Close();
+						}
+					}
 					
-					//bmpScreenShot1 = null; 
-					bmpScreenShot2 = null;
 				}
 			}
 			catch (Exception)
 			{
 			}
+			
 		}
 
 		private static bool compare(Bitmap bmp1, Bitmap bmp2)
@@ -225,28 +207,28 @@ namespace Synapsys
 			return equals;
 		}
 
-		[StructLayout(LayoutKind.Sequential)]
-		struct CURSORINFO
-		{
-			public Int32 cbSize;
-			public Int32 flags;
-			public IntPtr hCursor;
-			public POINTAPI ptScreenPos;
-		}
+		//[StructLayout(LayoutKind.Sequential)]
+		//struct CURSORINFO
+		//{
+		//	public Int32 cbSize;
+		//	public Int32 flags;
+		//	public IntPtr hCursor;
+		//	public POINTAPI ptScreenPos;
+		//}
 
-		[StructLayout(LayoutKind.Sequential)]
-		struct POINTAPI
-		{
-			public int x;
-			public int y;
-		}
+		//[StructLayout(LayoutKind.Sequential)]
+		//struct POINTAPI
+		//{
+		//	public int x;
+		//	public int y;
+		//}
 
-		[DllImport("user32.dll")]
-		static extern bool GetCursorInfo(out CURSORINFO pci);
+		//[DllImport("user32.dll")]
+		//static extern bool GetCursorInfo(out CURSORINFO pci);
 
-		[DllImport("user32.dll")]
-		static extern bool DrawIcon(IntPtr hDC, int X, int Y, IntPtr hIcon);
+		//[DllImport("user32.dll")]
+		//static extern bool DrawIcon(IntPtr hDC, int X, int Y, IntPtr hIcon);
 
-		const Int32 CURSOR_SHOWING = 0x00000001;
+		//const Int32 CURSOR_SHOWING = 0x00000001;
 	}
 }

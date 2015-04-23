@@ -211,7 +211,7 @@ namespace Synapsys
 		{
 			if (CaptureScreen.getCurrentMonitor() == "2")
 			{
-				e.Handled = true;
+				//e.Handled = true;
 				if (MainWindow.socketData1 != null)
 				{
 					if (e.Button == MouseButtons.Left)
@@ -227,7 +227,7 @@ namespace Synapsys
 			}
 			else if (CaptureScreen.getCurrentMonitor() == "3")
 			{
-				e.Handled = true;
+				//e.Handled = true;
 				if (MainWindow.socketData2 != null)
 				{
 					if (e.Button == MouseButtons.Left)

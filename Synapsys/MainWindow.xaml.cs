@@ -35,7 +35,9 @@ namespace Synapsys
 
 		public static SynapsysSocket socketIMG2 = null;
 		public static SynapsysSocket socketData2 = null;
-        
+
+		public static int WIDTH = 800;
+		public static int HEIGHT = 600;        
         
         // Minhwan
 
@@ -66,7 +68,7 @@ namespace Synapsys
 			KeyboardMouse.m_KeyboardHookManager.KeyUp += Hotkey;
 
 			cs = CaptureScreen.getInstance();
-			//cs.Start();
+			cs.Start();
 
             form = new ADB_Form();
             form.Execute += new ADB_Form.execute(Clap);
