@@ -17,6 +17,4 @@ LOCAL_STEM := flo/device-partial.mk
 $(call inherit-product-if-exists, vendor/asus/$(LOCAL_STEM))
 $(call inherit-product-if-exists, vendor/broadcom/$(LOCAL_STEM))
 $(call inherit-product-if-exists, vendor/qcom/$(LOCAL_STEM))
-
-PRODUCT_PACKAGES += \
-  Phonesky GoogleServicesFramework GmsCore KoreanIme
+$(call inherit-product-if-exists, vendor/google/gapps/device-partial.mk)
