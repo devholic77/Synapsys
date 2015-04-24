@@ -86,14 +86,14 @@ PRODUCT_COPY_FILES += \
 
 PRODUCT_PACKAGES += \
     Books \
-    #CalendarGoogle \
+    CalendarGoogle \
     CalendarProvider \
 	Chrome \
     ChromeBookmarksSyncAdapter \
     CloudPrint2.apk \
     ConfigUpdater \
     Drive \
-    #GalleryGoogle \
+    GalleryGoogle \
     GenieWidget \
     Gmail2 \
     GoogleBackupTransport \
@@ -101,7 +101,7 @@ PRODUCT_PACKAGES += \
     GoogleEars \
     GoogleEarth \
     GoogleFeedback \
-    #GoogleHome \
+    GoogleHome \
     GoogleLoginService \
     GooglePartnerSetup \
     GoogleServicesFramework \
