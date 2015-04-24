@@ -204,7 +204,8 @@ namespace Synapsys_ADB
 
                                     //2번 소켓을 지우고 //연호쪽에서 포
                                     
-                                                                        
+                                    
+                                    
                                     //1번 소켓을 실행
 
                                     Synapsys_Values.First_Device_Name = Synapsys_Values.Second_Device_Name;
@@ -215,6 +216,7 @@ namespace Synapsys_ADB
                                     Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[0], Synapsys_Values.First_Device_Name);
                                     Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[1], Synapsys_Values.First_Device_Name);
                                     Synapsys_Values.ADB_Instruction.Port_Forward(Synapsys_Values.port[2], Synapsys_Values.First_Device_Name);
+
 
                                     Synapsys_Values.Second_Device_Name = "";
                                     Synapsys_Values.Second_Device_State = "";
@@ -367,11 +369,11 @@ namespace Synapsys_ADB
             String filename = "..\\..\\..\\..\\..\\portdefine.txt";
 
             String fullpath = path + filename;
-            System.IO.File.WriteAllText(fullpath, msg, Encoding.Default);
-
+           // System.IO.File.WriteAllText(fullpath, msg, Encoding.Default);
+			System.IO.File.WriteAllText(@"C:\portdefine.txt", msg, Encoding.Default);
             startInfo.WorkingDirectory = Synapsys_Values.adb_install_path;
 
-            String adb_msg = "adb -s " + device_name + " push " + fullpath + " /data/synapsys/connection.dat";
+            String adb_msg = "adb -s " + device_name + " push C:\\portdefine.txt" + " /data/synapsys/connection.dat";
 
             if (cmd_type(adb_msg))
             {

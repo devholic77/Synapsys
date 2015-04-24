@@ -19,7 +19,8 @@ namespace Synapsys
 		private Socket clientSock = null;  /* client Socket */
 		private Socket cbSock;   /* client Async Callback Socket */
 		private byte[] recvBuffer;
-		private static bool flag = true;
+		private volatile bool flag = true;
+
 
 		private const int MAXSIZE = 4096;   /* 4096  */
 
@@ -92,7 +93,7 @@ namespace Synapsys
 				/* 연결 성공시 */
 				if (flag && clientSock != null && clientSock.Connected)
 				{
-					Console.WriteLine(message);
+					//Console.WriteLine(message);
 					byte[] buffer = new UTF8Encoding().GetBytes(message);
 					clientSock.BeginSend(buffer, 0, buffer.Length, SocketFlags.None,
 										  new AsyncCallback(SendCallBack), "text");
@@ -130,7 +131,7 @@ namespace Synapsys
 				if (flag && clientSock != null && clientSock.Connected)
 				{
 					flag = false;
-					Console.WriteLine(array.Length);
+					//Console.WriteLine(array.Length);
 					imgArray = array;
 
 					if(array.Length > 0)
@@ -191,7 +192,7 @@ namespace Synapsys
 				if (nReadSize != 0)
 				{
 					string message = new UTF8Encoding().GetString(recvBuffer, 0, nReadSize);
-					Console.WriteLine("\r\n서버로 데이터 수신 : " + message);
+					//Console.WriteLine("\r\n서버로 데이터 수신 : " + message);
 					message = message.Trim();
 					if ("OK".Equals(message))
 					{
