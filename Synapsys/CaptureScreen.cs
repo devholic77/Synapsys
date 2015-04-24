@@ -164,7 +164,12 @@ namespace Synapsys
 						// Change to Byte Array
 						MemoryStream stream = new MemoryStream();
 						bmpScreenShot2.Save(stream, System.Drawing.Imaging.ImageFormat.Jpeg);
-						MainWindow.socketIMG.SendFile(stream.ToArray());
+
+					if(i == 1)
+						MainWindow.socketIMG1.SendScreen(stream.ToArray());
+					else if (i == 2)
+						MainWindow.socketIMG2.SendScreen(stream.ToArray());
+
 						stream.Close();
 
 						stream = null;

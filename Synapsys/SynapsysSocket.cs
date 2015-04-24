@@ -9,12 +9,11 @@ namespace Synapsys
 
 	public class SynapsysSocket
 	{
-		private int PORT, DEVICE_NUM;
+		private int PORT;
 
-		public SynapsysSocket(string port, string device_num)
+		public SynapsysSocket(string port)
 		{
 			this.PORT = Convert.ToInt32(port);
-			this.DEVICE_NUM = Convert.ToInt32(device_num);
 		}
 
 		private Socket clientSock = null;  /* client Socket */
@@ -29,7 +28,6 @@ namespace Synapsys
 			clientSock = new Socket(AddressFamily.InterNetwork,
 										  SocketType.Stream, ProtocolType.Tcp);
 			recvBuffer = new byte[4096];
-			queue = new ConcurrentQueue<byte[]>();
 			this.BeginConnect();
 		}
 
@@ -50,6 +48,12 @@ namespace Synapsys
 
 		}
 
+		public void Disconnect()
+		{
+			clientSock.Disconnect(false);
+			clientSock = null;
+		}
+
 		/*----------------------*
 		 * ##### CallBack ##### *
 		 *   Connection         *
@@ -60,7 +64,7 @@ namespace Synapsys
 			{
 				// 보류중인 연결을 완성
 				Socket tempSock = (Socket)IAR.AsyncState;
-				Console.WriteLine("\r\n 서버로 접속 성공 : ");
+				Console.WriteLine("서버 접속 성공 " + PORT);
 
 				tempSock.EndConnect(IAR);
 				cbSock = tempSock;
@@ -81,17 +85,17 @@ namespace Synapsys
 		 *       Send           *
 		 *----------------------*/
 
-		ulong filesize = 0L;
-		public void Send(string message)
+		public void SendString(string message)
 		{
 			try
 			{
 				/* 연결 성공시 */
-				if (clientSock != null && clientSock.Connected)
+				if (flag && clientSock != null && clientSock.Connected)
 				{
+					Console.WriteLine(message);
 					byte[] buffer = new UTF8Encoding().GetBytes(message);
 					clientSock.BeginSend(buffer, 0, buffer.Length, SocketFlags.None,
-										  new AsyncCallback(SendCallBack), message);
+										  new AsyncCallback(SendCallBack), "text");
 				}
 			}
 			catch (SocketException e)
@@ -118,36 +122,7 @@ namespace Synapsys
 		}
 
 		byte[] imgArray;
-		ConcurrentQueue<byte[]> queue;
-
-		public void addIMG(byte[] array)
-		{
-			queue.Enqueue(array);
-		}
-		byte[] array;
-		public void Sender()
-		{
-			while (true)
-			{
-				if (queue.TryPeek(out array))
-				{
-					SendFile(array);
-					System.Console.WriteLine("Send");
-					new Thread(new ThreadStart(setEmpty)).Start();
-				}
-				array = null;
-			}
-		}
-
-		public void setEmpty()
-		{
-			byte[] array;
-			while (queue.TryDequeue(out array))
-			{}
-			array = null;
-		}
-
-		public void SendFile(byte[] array)
+		public void SendScreen(byte[] array)
 		{
 			try
 			{
@@ -163,7 +138,8 @@ namespace Synapsys
 						byte[] buffer = BitConverter.GetBytes(array.Length);
 						Array.Reverse(buffer);
 						clientSock.BeginSend(buffer, 0, buffer.Length, SocketFlags.None,
-											  null, filesize.ToString());
+											  null, null);
+						buffer = null;
 					}
 				}
 			}
@@ -173,35 +149,39 @@ namespace Synapsys
 			}
 		}
 
-		/*----------------------*
-		 * ##### CallBack ##### *
-		 *        Send          *
-		 *----------------------*/
+		// Send Callback
 		private void SendCallBack(IAsyncResult IAR)
 		{
-			string message = (string)IAR.AsyncState;
-			//Console.WriteLine("\r\n전송 완료 CallBack : " + message);
-			if(message == "image")
+			try
 			{
-				flag = true;
+				string message = (string)IAR.AsyncState;
+				if (message == "image" || message == "text")
+				{
+					flag = true;
+				}
+			}
+			catch(Exception e){
+				Console.WriteLine(e);
 			}
 		}
 
-		/*----------------------*
-		 *  Receive             *
-		 *----------------------*/
+
+		// Receive
 		public void Receive()
 		{
-			cbSock.BeginReceive(this.recvBuffer, 0, recvBuffer.Length, SocketFlags.None,
+			try
+			{
+				cbSock.BeginReceive(this.recvBuffer, 0, recvBuffer.Length, SocketFlags.None,
 								 new AsyncCallback(OnReceiveCallBack), cbSock);
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine(e);
+				this.DoInit();
+			}
 		}
 
-		/*----------------------*
-		 * ##### CallBack ##### *
-		 *  Receive             *
-		 *----------------------*/
-
-		public static int currOK = 0;
+		// Receive Callback
 		private void OnReceiveCallBack(IAsyncResult IAR)
 		{
 			try
@@ -215,7 +195,6 @@ namespace Synapsys
 					message = message.Trim();
 					if ("OK".Equals(message))
 					{
-						currOK++;
 						clientSock.BeginSend(imgArray, 0, imgArray.Length, SocketFlags.None,
 										  new AsyncCallback(SendCallBack), "image");
 					}
@@ -226,6 +205,8 @@ namespace Synapsys
 			}
 			catch (SocketException se)
 			{
+				Console.WriteLine("ERROR! - Receive Callback");
+				Console.WriteLine(se);
 				if (se.SocketErrorCode == SocketError.ConnectionReset)
 				{
 					this.BeginConnect();

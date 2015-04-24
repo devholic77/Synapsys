@@ -30,9 +30,11 @@ namespace Synapsys
         ADB_Form form;
 
 		// Socket
-		public static SynapsysSocket socketIMG = null;
-		public static SynapsysSocket socketData = null;
-		public static Socket2015 socketIMG2 = null;
+		public static SynapsysSocket socketIMG1 = null;
+		public static SynapsysSocket socketData1 = null;
+
+		public static SynapsysSocket socketIMG2 = null;
+		public static SynapsysSocket socketData2 = null;
         
         
         // Minhwan
@@ -57,7 +59,7 @@ namespace Synapsys
 
 			//KEYBOARD, MOUSE HOOK
 			kb = KeyboardMouse.getInstance();
-			//kb.Activate();
+			kb.Activate();
 
 			HotkeyList = new ArrayList();
 			tempHotkeyList = new ArrayList();
@@ -80,6 +82,12 @@ namespace Synapsys
 
 			//new Thread(new ThreadStart(hz)).Start();
 
+
+			//SOCKET INIT
+			
+
+			
+			
         }
 
 		private void hz()
@@ -133,17 +141,16 @@ namespace Synapsys
 		private void btn1_start(object sender, RoutedEventArgs e)
 		{
             //Button_Function.Synapsys_Start_Monitor(Synapsys_Values.First_Device_Name); // sub program start
-			//Synapsys_Values.Buttons_Function.Synapsys_Start_Monitor(Synapsys_Values.First_Device_Name);
+			Synapsys_Values.Buttons_Function.Synapsys_Start_Monitor(Synapsys_Values.First_Device_Name);
 			btn_d1_start.IsEnabled = false;
 			btn_d1_stop.IsEnabled = true;
 
-			socketIMG = new SynapsysSocket("1234", "1");
-			socketIMG.DoInit();
-			//socketIMG2 = new Socket2015(1237);
-			//socketIMG2.Connect();
+			socketIMG1 = new SynapsysSocket("1234");
+			socketData1 = new SynapsysSocket("1235");
 
-			socketData = new SynapsysSocket("1235", "1");
-			socketData.DoInit();
+			socketIMG1.DoInit();
+			socketData1.DoInit();
+
 		}
 
 		private void btn1_stop(object sender, RoutedEventArgs e)
@@ -152,6 +159,9 @@ namespace Synapsys
             Synapsys_Values.Buttons_Function.Synapsys_Stop_Monitor(Synapsys_Values.First_Device_Name);
             btn_d1_start.IsEnabled = true;
             btn_d1_stop.IsEnabled = false;
+
+			socketIMG1.Disconnect();
+			socketData1.Disconnect();
 		}
 
 		private void btn2_start(object sender, RoutedEventArgs e)
@@ -161,6 +171,12 @@ namespace Synapsys
             btn_d2_start.IsEnabled = false;
             btn_d2_stop.IsEnabled = true;
             btn_d1_stop.IsEnabled = false;
+
+			socketIMG2 = new SynapsysSocket("1237");
+			socketData2 = new SynapsysSocket("1238");
+
+			socketIMG2.DoInit();
+			socketData2.DoInit();
 		}
 
 		private void btn2_stop(object sender, RoutedEventArgs e)
@@ -169,7 +185,10 @@ namespace Synapsys
             Synapsys_Values.Buttons_Function.Synapsys_Stop_Monitor(Synapsys_Values.Second_Device_Name); 
             btn_d1_stop.IsEnabled = true;
             btn_d2_start.IsEnabled = true;
-            btn_d2_stop.IsEnabled = false;			
+            btn_d2_stop.IsEnabled = false;
+
+			socketIMG2.Disconnect();
+			socketData2.Disconnect();
 		}
 		#endregion
 
@@ -218,7 +237,7 @@ namespace Synapsys
                 {
                     case 1:
                         btn_d1_stop.Dispatcher.Invoke(new update1Callback(this.update3), "1e");
-                           Synapsys_Values.FirstSubProgram.Kill();
+						   //Synapsys_Values.FirstSubProgram.Kill();
                         break;
                     case 2:
                         btn_d1_stop.Dispatcher.Invoke(new update1Callback(this.update3), "1se");
@@ -230,16 +249,6 @@ namespace Synapsys
                         btn_d2_stop.Dispatcher.Invoke(new update1Callback(this.update3), "2e");
                         Synapsys_Values.FirstSubProgram.Kill();
                         Synapsys_Values.SecondSubProgram.Kill();
-                        break;
-                    case 4:
-                        Synapsys_Values.SecondSubProgram.Kill();
-                        Synapsys_Values.FirstSubProgram.Kill();
-
-                        Synapsys_Values.Buttons_Function.Synapsys_Stop_Monitor(Synapsys_Values.First_Device_Name);
-                        btn_d1_stop.IsEnabled = true;
-                        btn_d1_start.IsEnabled = false;
-                        btn_d2_stop.IsEnabled = false;
-                        btn_d2_start.IsEnabled = false;
                         break;
                     default:
                         break;
