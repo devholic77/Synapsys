@@ -126,7 +126,7 @@ namespace Synapsys
 
 		private void HookManager_MouseMove(object sender, MouseEventArgs e)
 		{
-			Console.WriteLine(string.Format("x={0:0000}; y={1:0000}", e.X, e.Y));
+			//Console.WriteLine(string.Format("x={0:0000}; y={1:0000}", e.X, e.Y));
 			MOUSE_X = e.X;
 			MOUSE_Y = e.Y;
 			if(CaptureScreen.getCurrentMonitor() == "2")
