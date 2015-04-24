@@ -54,13 +54,12 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	static int SHADOW_TASK_STATE = -1;
 	static int SHADOW_TASK_ID = -1;
 	
-	public boolean device_init = false;
-	public boolean VirtualDeviceEnabled = true;
 	
 	// *** MEMBER PART *** //
 	final Context mContext;
 	
 	private boolean isServiceRunning;
+	private boolean VirtualDeviceEnabled = true;
 
 	private ActivityManager mActivityManager;
 	private PackageManager mPackageManager;
@@ -428,17 +427,12 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 			if (event && another) {
 				systemReady();
 				broadcastSynapsysState(true, false, false);
-				sendtoNativeEvent(TYPE_DEVICE_CHANGE, DEVICE_ADDED, 0, 0 );	//USB 연결 시에만 가상 마우스 활성화 
-				device_init = true;
 				return;
 			}
 		}
 		
 		// 연결이 성립하지 않는 다른 모든  경우,
 		systemStop();
-		if(device_init) {
-			sendtoNativeEvent(TYPE_DEVICE_CHANGE, DEVICE_REMOVED, 0, 0 );
-		}		
 		broadcastSynapsysState(false, false, false);
 	}
 
@@ -600,6 +594,7 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 					Slog.v(TAG, "Handler_MSG_CONNECTED_CONTROL : " + msg.what);
 				
 				broadcastSynapsysState(true, true, true);
+				sendtoNativeEvent(TYPE_DEVICE_CHANGE, DEVICE_ADDED, 0, 0 );	//USB 연결 시에만 가상 마우스 활성화 
 				break;
 				
 			case MSG_EXIT_CONTROL:
@@ -617,6 +612,9 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 					try {
 						mControlThread.destroy();
 						mControlThread.join(100);
+						
+						sendtoNativeEvent(TYPE_DEVICE_CHANGE, DEVICE_REMOVED, 0, 0 );
+						
 						
 					} catch (InterruptedException e) {
 						;
