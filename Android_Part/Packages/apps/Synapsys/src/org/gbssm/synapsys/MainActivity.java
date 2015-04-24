@@ -16,7 +16,7 @@ import android.view.WindowManager;
  * @since 2015.03.05
  * 
  */
-public class MainActivity extends Activity {
+public class MainActivity extends Activity  {
 
 	private SynapsysApplication mApplication;
 	private StreamingView mStreamingView;
@@ -76,19 +76,17 @@ public class MainActivity extends Activity {
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 		if (mTouchListener != null && mStreamingView != null)
-			if (mApplication.isControllerConnected())
-				return mTouchListener.onTouchEvent(event);
+			return mTouchListener.onTouchEvent(event);
 		
 		return false;
+	
 	}
 
 	public void notifyDisplaying(boolean enable) {
 		if (enable) {
-			mStreamingBoard.setVisibility(View.GONE);
-			
+			mStreamingBoard.setVisibility(View.GONE);			
 		} else {
-			mStreamingBoard.setVisibility(View.VISIBLE);
-			
+			mStreamingBoard.setVisibility(View.VISIBLE);			
 		}
 	}
 	

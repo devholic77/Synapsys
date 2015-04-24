@@ -21,17 +21,21 @@ import android.hardware.input.InputManager;
 public class WindowsTouchListener implements OnGestureListener, OnDoubleTapListener {
 	protected final static boolean DEBUG = false;
 
+	final static int MOUSE_MOVE = 0;
 	final static int LEFT_CLICK = 1;
-	final static int LEFT_DRAG = 2;
+	final static int RIGHT_CLICK = 2;
 	final static int LEFT_DOUBLE_CLICK = 3;
-	final static int RIGHT_CLICK = 4;
-	final static int SCROLL_UP_DOWN = 5;
-	final static int SCROLL_LEFT_RIGHT = 6;
-	final static int EVENT_END = 7;
+	final static int LEFT_UNCLICK = 4;
+	final static int RIGHT_UNCLICK = 5;
+	final static int SCROLL_UP_DOWN = 6;
+	final static int SCROLL_LEFT_RIGHT = 7;
+	final static int EVENT_END = 8;
+	final static int LEFT_DRAG = 9;
 	
 	int Doubletap_flag = 0;
 	int MultiTouch_flag = 0;
 	int Scroll_flag = 0;
+	boolean DragEnable = true;
 	int act = 0;
 	
 	private static final String DTAG = "TestServer";
@@ -168,7 +172,42 @@ public class WindowsTouchListener implements OnGestureListener, OnDoubleTapListe
 	 */
 	public void MouseEvent(int event_id, float point_x, float point_y) {
 		
-		synapsysManager.invokeMouseEventFromTouch(event_id, point_x, point_y);
+		switch(event_id)
+		{
+		case LEFT_CLICK:		//왼 클릭 이벤트 다운/업 
+			synapsysManager.invokeMouseEventFromTouch(LEFT_CLICK, point_x, point_y);
+			synapsysManager.invokeMouseEventFromTouch(LEFT_UNCLICK, point_x, point_y);
+			break;
+			
+		case RIGHT_CLICK:		//우 클릭 이벤트 다운/업 
+			synapsysManager.invokeMouseEventFromTouch(RIGHT_CLICK, point_x, point_y);
+			synapsysManager.invokeMouseEventFromTouch(RIGHT_UNCLICK, point_x, point_y);
+			break;
+			
+		case LEFT_DOUBLE_CLICK:	//좌 더블 클릭 이벤트 다운/업 2회 
+			synapsysManager.invokeMouseEventFromTouch(LEFT_CLICK, point_x, point_y);
+			synapsysManager.invokeMouseEventFromTouch(LEFT_UNCLICK, point_x, point_y);
+			synapsysManager.invokeMouseEventFromTouch(LEFT_CLICK, point_x, point_y);
+			synapsysManager.invokeMouseEventFromTouch(LEFT_UNCLICK, point_x, point_y);
+			break;
+			
+		case LEFT_DRAG:			//좌 클릭 드래그 
+			if(DragEnable)		// 초기에 좌 클릭 다운 이벤트만 전송 
+			{
+				synapsysManager.invokeMouseEventFromTouch(LEFT_CLICK, point_x, point_y);
+				DragEnable = false;
+				break;
+			}
+			synapsysManager.invokeMouseEventFromTouch(MOUSE_MOVE, point_x, point_y);	// 좌 클릭 무브 이벤트 전송 
+			break;		
+			
+		case EVENT_END:
+			synapsysManager.invokeMouseEventFromTouch(LEFT_UNCLICK, point_x, point_y);	// 좌 클릭 업 이벤트 전송 
+			break;
+			
+		default:
+			//synapsysManager.invokeMouseEventFromTouch(event_id, point_x, point_y);
+		}	
 	
 	}
 

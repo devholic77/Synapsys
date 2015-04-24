@@ -42,7 +42,11 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	
 	public static final int TYPE_KEYBOARD = 0;
 	public static final int TYPE_MOUSE= 1;
+	public static final int TYPE_DEVICE_CHANGE= 2;
 
+	public static final int DEVICE_ADDED = 0;
+	public static final int DEVICE_REMOVED = 1;
+	
 	protected static final boolean DEBUG = false;
 	
 	static final String TAG = "SynapsysManagerService";	
@@ -50,6 +54,8 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	static int SHADOW_TASK_STATE = -1;
 	static int SHADOW_TASK_ID = -1;
 	
+	public boolean device_init = false;
+	public boolean VirtualDeviceEnabled = true;
 	
 	// *** MEMBER PART *** //
 	final Context mContext;
@@ -84,8 +90,7 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 		Settings.Global.putInt(context.getContentResolver(),
                 Settings.Global.STAY_ON_WHILE_PLUGGED_IN,
                 (BatteryManager.BATTERY_PLUGGED_AC | BatteryManager.BATTERY_PLUGGED_USB));
-	}
-	
+	}	
 	
 	/**
 	 * 
@@ -187,7 +192,11 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 		}
 		
 		return false;
-	}
+
+
+	}	
+		
+
 	
 	/**
 	 * Windows PC로 Task-Info Event 전송.
@@ -321,7 +330,8 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 			Slog.v(TAG, "interpolateMouseEvent : event=" + event_id + " / x=" + event_x + " / y=" + event_y);
 				
 		// 윈도우에서 받는 이벤트 전달 함수 호출 
-		sendtoNativeEvent(TYPE_MOUSE, event_id, event_x, event_y );
+		if(VirtualDeviceEnabled)
+			sendtoNativeEvent(TYPE_MOUSE, event_id, event_x, event_y );
 		return true;
 	}
 	
@@ -338,7 +348,8 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 			Slog.v(TAG, "interpolateKeyboardEvent : event=" + event_id + " / keyCode=" + key_code);
 		
 		// 윈도우에서 받는 이벤트 전달 함수 호출 
-		sendtoNativeEvent(TYPE_KEYBOARD, event_id, key_code, 0);
+		if(VirtualDeviceEnabled)
+			sendtoNativeEvent(TYPE_KEYBOARD, event_id, key_code, 0);
 		return true;
 	}
 
@@ -417,12 +428,17 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 			if (event && another) {
 				systemReady();
 				broadcastSynapsysState(true, false, false);
+				sendtoNativeEvent(TYPE_DEVICE_CHANGE, DEVICE_ADDED, 0, 0 );	//USB 연결 시에만 가상 마우스 활성화 
+				device_init = true;
 				return;
 			}
 		}
 		
 		// 연결이 성립하지 않는 다른 모든  경우,
 		systemStop();
+		if(device_init) {
+			sendtoNativeEvent(TYPE_DEVICE_CHANGE, DEVICE_REMOVED, 0, 0 );
+		}		
 		broadcastSynapsysState(false, false, false);
 	}
 
