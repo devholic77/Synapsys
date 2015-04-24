@@ -126,7 +126,7 @@ namespace Synapsys
 
 		private void HookManager_MouseMove(object sender, MouseEventArgs e)
 		{
-			//Console.WriteLine(string.Format("x={0:0000}; y={1:0000}", e.X, e.Y));
+			Console.WriteLine(string.Format("x={0:0000}; y={1:0000}", e.X, e.Y));
 			MOUSE_X = e.X;
 			MOUSE_Y = e.Y;
 			if(CaptureScreen.getCurrentMonitor() == "2")
@@ -301,43 +301,47 @@ namespace Synapsys
 		private const int MOUSEEVENTF_MIDDLEUP = 0x0040;
 		private const int MOUSEEVENTF_MIDDLEDOWN = 0x0020;
 
-		public void MOVE_MOUSE(int x, int y, int device)
+		public void MOVE_MOUSE(int x, int y, int e, int device)
 		{
 			if(device == 1)
 			{
+				EVENT_MOUSE(x, y, e);
+			}
+			else if (device == 2)
+			{
 
 			}
-			Cursor.Position = new Point(x, y);
 		}
 
-		public void EVENT_MOUSE(int k)
+		public void EVENT_MOUSE(int x, int y, int e)
 		{
-			switch(k)
+			switch(e)
 			{
 				case 0:		// MOVE
+					Cursor.Position = new Point(x, y);
 					break;
 				case 1:		// CLICK_LEFT
-					mouse_event(MOUSEEVENTF_LEFTDOWN, Control.MousePosition.X, Control.MousePosition.Y, 0, 0);
+					mouse_event(MOUSEEVENTF_LEFTDOWN, x, y, 0, 0);
 					break;
 				case 2:		// CLICK_RIGHT
-					mouse_event(MOUSEEVENTF_RIGHTDOWN, Control.MousePosition.X, Control.MousePosition.Y, 0, 0);
+					mouse_event(MOUSEEVENTF_RIGHTDOWN, x, y, 0, 0);
 					break;
 				case 3:		// DOUBLE_CLICK_LEFT
-					mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_LEFTUP, Control.MousePosition.X, Control.MousePosition.Y, 0, 0);
+					mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_LEFTUP, x, y, 0, 0);
 					Thread.Sleep(150);
-					mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_LEFTUP, Control.MousePosition.X, Control.MousePosition.Y, 0, 0);
+					mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_LEFTUP, x, y, 0, 0);
 					break;
 				case 4:		// UNPRESS_LEFT
-					mouse_event(MOUSEEVENTF_LEFTUP, Control.MousePosition.X, Control.MousePosition.Y, 0, 0);
+					mouse_event(MOUSEEVENTF_LEFTUP, x, y, 0, 0);
 					break;
 				case 5:		// UNPRESS_RIGHT
-					mouse_event(MOUSEEVENTF_RIGHTUP, Control.MousePosition.X, Control.MousePosition.Y, 0, 0);
+					mouse_event(MOUSEEVENTF_RIGHTUP, x, y, 0, 0);
 					break;
 				case 6:		// WHEEL_UP
-					mouse_event(MOUSEEVENTF_MIDDLEUP, Control.MousePosition.X, Control.MousePosition.Y, 0, 0);
+					mouse_event(MOUSEEVENTF_MIDDLEUP, x, y, 0, 0);
 					break;
 				case 7:		// WHEEL_DOWN
-					mouse_event(MOUSEEVENTF_MIDDLEDOWN, Control.MousePosition.X, Control.MousePosition.Y, 0, 0);
+					mouse_event(MOUSEEVENTF_MIDDLEDOWN, x, y, 0, 0);
 					break;
 				default:	// DEFAULT
 					break;
