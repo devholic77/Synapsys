@@ -126,7 +126,7 @@ namespace Synapsys
 
 		private void HookManager_MouseMove(object sender, MouseEventArgs e)
 		{
-			Console.WriteLine(string.Format("x={0:0000}; y={1:0000}", e.X, e.Y));
+			//Console.WriteLine(string.Format("x={0:0000}; y={1:0000}", e.X, e.Y));
 			MOUSE_X = e.X;
 			MOUSE_Y = e.Y;
 			if(CaptureScreen.getCurrentMonitor() == "2")
@@ -301,9 +301,9 @@ namespace Synapsys
 		private const int MOUSEEVENTF_MIDDLEUP = 0x0040;
 		private const int MOUSEEVENTF_MIDDLEDOWN = 0x0020;
 
-		public void MOVE_MOUSE(int x, int y, int e, int device)
+		public static void MOVE_MOUSE(int x, int y, int e, int device)
 		{
-
+			Console.WriteLine("MOVE_MOUSE" + x + " # " + y + " # " + e + " # " + device);
 			x -= device * MainWindow.WIDTH;
 
 			switch (e)
@@ -338,6 +338,22 @@ namespace Synapsys
 					break;
 			}
 		}
+
+		[DllImport("user32.dll")]
+		static extern uint keybd_event(byte bVk, byte bScan, int dwFlags, int dwExtraInfo);
+		public static void KeyDown(byte key)
+		{
+			Console.WriteLine("KEYDOWN" + key);
+			keybd_event(key, 0, 0, 0);
+		}
+
+		public static void KeyUp(byte key)
+		{
+			Console.WriteLine("KEYUP" + key);
+			keybd_event(key, 0, 0x7F, 0);
+		}
+
+
 		#endregion
 
 	}

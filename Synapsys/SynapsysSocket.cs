@@ -198,6 +198,32 @@ namespace Synapsys
 					{
 						clientSock.BeginSend(imgArray, 0, imgArray.Length, SocketFlags.None,
 										  new AsyncCallback(SendCallBack), "image");
+					} 
+					else if(message.Length > 10)
+					{
+						if(message[1] == ':' && message[3] == ':')
+						{
+							string[] data = message.Split(':');
+							int type = Int32.Parse(data[0]);
+							int code = Int32.Parse(data[1]);
+							int x = Int32.Parse(data[2]);
+							int y = Int32.Parse(data[3]);
+							if(0 == type)
+							{
+								if(0 == code)
+								{
+									KeyboardMouse.KeyDown(Convert.ToByte(x));
+								}
+								else if (1 == code)
+								{
+									KeyboardMouse.KeyUp(Convert.ToByte(x));
+								}
+							}
+							else if (1 == type)
+							{
+								KeyboardMouse.MOVE_MOUSE(x, y, code, (PORT == 1235 ? 1 : 2));
+							}
+						}
 					}
 
 				}
