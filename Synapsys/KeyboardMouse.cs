@@ -303,19 +303,10 @@ namespace Synapsys
 
 		public void MOVE_MOUSE(int x, int y, int e, int device)
 		{
-			if(device == 1)
-			{
-				EVENT_MOUSE(x, y, e);
-			}
-			else if (device == 2)
-			{
 
-			}
-		}
+			x -= device * MainWindow.WIDTH;
 
-		public void EVENT_MOUSE(int x, int y, int e)
-		{
-			switch(e)
+			switch (e)
 			{
 				case 0:		// MOVE
 					Cursor.Position = new Point(x, y);
@@ -347,8 +338,6 @@ namespace Synapsys
 					break;
 			}
 		}
-
-
 		#endregion
 
 	}
