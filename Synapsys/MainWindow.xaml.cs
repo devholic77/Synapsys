@@ -85,7 +85,7 @@ namespace Synapsys
 			new Thread(new ThreadStart(hz)).Start();
 
 
-			//SOCKET INIT
+			//SOCKET INIT //
 			
 
 			
