@@ -4,8 +4,6 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -57,7 +55,8 @@ public class SynapsysMediaThread extends SynapsysThread {
 				}
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			if (DEBUG)
+				e.printStackTrace();
 		}
 		
 	}
@@ -75,10 +74,13 @@ public class SynapsysMediaThread extends SynapsysThread {
 			
 		} catch (Exception e) {
 			waiting(false);
-			e.printStackTrace();
+			
+			if (DEBUG)
+				e.printStackTrace();
 		} 
 
-		Log.d(TAG, "MediaThread_Destroyed!");
+		if (DEBUG)
+			Log.d(TAG, "MediaThread_Destroyed!");
 	}
 	
 	@Override
@@ -106,8 +108,10 @@ public class SynapsysMediaThread extends SynapsysThread {
 			throw new RejectedExecutionException("Another MediaThread is running.");
 			
 		waiting(true);
+
+		if (DEBUG)
+			Log.d(TAG, "MediaThread_Run()_Port : " + mBox.port);
 		
-		Log.d(TAG, "MediaThread_Run()_Port : " + mBox.port);
 		do {
 			synchronized (this) {
 				try {
@@ -126,8 +130,9 @@ public class SynapsysMediaThread extends SynapsysThread {
 	void runningConnection() {
 		if (isDestroyed)
 			return;
-		
-		Log.d(TAG, "MediaThread_Connected!");
+
+		if (DEBUG)
+			Log.d(TAG, "MediaThread_Connected!");
 		
 		running(true);
 		mHandler.sendEmptyMessage(SynapsysHandler.MSG_CONNECTED_MEDIA);
@@ -138,23 +143,25 @@ public class SynapsysMediaThread extends SynapsysThread {
 				try {
 					int state = mDIS.readInt();
 					int id = mDIS.readInt();
-					Slog.d(TAG, "MediaThread_Received : State = " + state + " / AppID = " + id);
+
+					if (DEBUG)
+						Slog.d(TAG, "MediaThread_Received : State = " + state + " / AppID = " + id);
 					
 					MediaProtocol protocol = new MediaProtocol(state);
 					protocol.id = id;
 					protocol.process(mHandler.getService());
+					protocol.destroy();
 					
 				} catch (IOException e) {
 					if (!isDestroyed) 
 						Message.obtain(mHandler, SynapsysHandler.MSG_EXIT_MEDIA, mBox).sendToTarget();
 					break;
 					
-				} finally {
-					
-				}
+				} finally { ; }
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			if (DEBUG)
+				e.printStackTrace();
 		}
 			
 		running(false);	
@@ -166,15 +173,12 @@ public class SynapsysMediaThread extends SynapsysThread {
 			if (mDOS != null && message != null) {
 				mDOS.write(message.encode());
 				mDOS.flush();
+
+				if (DEBUG)
+					Log.d(TAG, "MediaThread_Send! : " + message.toString() + " > " + message.getAppName());
 				
-				// TEST
-				File file = new File("/data/synapsys/", message.getAppName()+ "/media.dat");
-				file.createNewFile();
-				FileOutputStream fos = new FileOutputStream(file);
-				fos.write(message.encode());
-				fos.close();
-				
-				Log.d(TAG, "MediaThread_Send! : " + message.toString() + " > " + message.getAppName());
+				message.destroy();
+				message = null;
 			}
 			
 		} catch (SocketException e) {
@@ -186,8 +190,6 @@ public class SynapsysMediaThread extends SynapsysThread {
 		} catch (IOException e) { 
 			if (!isDestroyed) 
 				Message.obtain(mHandler, SynapsysHandler.MSG_EXIT_MEDIA, mBox).sendToTarget();
-			
-			e.printStackTrace();
 		}
 	}
 	
@@ -219,7 +221,8 @@ public class SynapsysMediaThread extends SynapsysThread {
 	 * @return
 	 */
 	static boolean isAbleToCreate() {
-		Slog.v(TAG, "Media_isAbleToCreate : " + waitingCount + " / " + runningCount);
+		if (DEBUG)
+			Slog.v(TAG, "Media_isAbleToCreate : " + waitingCount + " / " + runningCount);
 		
 		boolean result;
 		synchronized (LOCK) {
@@ -246,7 +249,8 @@ public class SynapsysMediaThread extends SynapsysThread {
 	 * @return
 	 */
 	static boolean isWaiting() {
-		Slog.v(TAG, "Media_isWaiting : " + waitingCount);
+		if (DEBUG)
+			Slog.v(TAG, "Media_isWaiting : " + waitingCount);
 		
 		boolean result;
 		synchronized (LOCK) {
@@ -273,7 +277,8 @@ public class SynapsysMediaThread extends SynapsysThread {
 	 * @return
 	 */
 	static boolean isRunning() {
-		Slog.v(TAG, "Media_isRunning : " + runningCount);
+		if (DEBUG)
+			Slog.v(TAG, "Media_isRunning : " + runningCount);
 		
 		boolean result;
 		synchronized(LOCK) {

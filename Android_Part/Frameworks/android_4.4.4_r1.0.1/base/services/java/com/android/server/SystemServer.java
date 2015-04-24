@@ -159,7 +159,10 @@ class ServerThread {
 		InputManagerService inputManager = null;
 		TelephonyRegistry telephonyRegistry = null;
 		ConsumerIrService consumerIr = null;
-		/* ADDED */SynapsysManagerService synapsysManager = null;
+		/**
+		 * Synapsys ADDED.
+		 */
+		SynapsysManagerService synapsysManager = null;
 
 		// Create a handler thread just for the window manager to enjoy.
 		HandlerThread wmHandlerThread = new HandlerThread("WindowManager");
@@ -225,7 +228,10 @@ class ServerThread {
 				"config.disable_noncore", false);
 		boolean disableNetwork = SystemProperties.getBoolean(
 				"config.disable_network", false);
-		/* ADDED */boolean disableSynapsys = SystemProperties.getBoolean(
+		/**
+		 * Synapsys ADDED.
+		 */
+		boolean disableSynapsys = SystemProperties.getBoolean(
 				"config.disable_synapsys", false);
 
 		try {
@@ -884,7 +890,9 @@ class ServerThread {
 				}
 			}
 
-			/* ADDED */
+			/**
+			 * Synapsys ADDED.
+			 */
 			if (!disableSynapsys) {
 				try {
 					Slog.i(TAG, "Synapsys Service");
@@ -1010,7 +1018,10 @@ class ServerThread {
 			final TelephonyRegistry telephonyRegistryF = telephonyRegistry;
 			final PrintManagerService printManagerF = printManager;
 			final MediaRouterService mediaRouterF = mediaRouter;
-			/* ADDED */final SynapsysManagerService synapsysManagerF = synapsysManager;
+			/**
+			 * Synapsys ADDED.
+			 */
+			final SynapsysManagerService synapsysManagerF = synapsysManager;
 
 			// We now tell the activity manager it is okay to run third party
 			// code. It will call back into us once it has gotten to the state

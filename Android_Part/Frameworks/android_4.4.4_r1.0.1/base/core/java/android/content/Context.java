@@ -2456,25 +2456,16 @@ public abstract class Context {
 
    
     /**
+     * Synapsys ADDED.
      * Use with {@link #getSystemService} to retrieve a
-     * {@link org.gbssm.synapsys.SynapsysManager} for performing 
+     * SynapsysManager for performing 
      * "Synapsys" operations.
      * 
      *  @see #getSystemService
      *  @see org.gbssm.synapsys.SynapsysManager
      */
-    /*ADDED*/ public static final String SYNAPSYS_SERVICE = "synapsys";
+    public static final String SYNAPSYS_SERVICE = "synapsys";
 
-     /**
-     * Use with {@link #getSystemService} to retrieve a
-     * {@link org.gbssm.synapsys.TestManager} for performing 
-     * "Test" operations.
-     * 
-     *  @see #getSystemService
-     *  @see org.gbssm.synapsys.TestManager
-     */
-    /*ADDED*/ public static final String TEST_SERVICE = "test_service";
-    
     
     /**
      * Determine whether the given permission is allowed for a particular

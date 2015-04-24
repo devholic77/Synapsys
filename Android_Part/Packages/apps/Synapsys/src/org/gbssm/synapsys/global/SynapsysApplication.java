@@ -1,17 +1,16 @@
 package org.gbssm.synapsys.global;
 
 import java.util.concurrent.RejectedExecutionException;
-
 import org.gbssm.synapsys.MainActivity;
 import org.gbssm.synapsys.SynapsysManager;
 import org.gbssm.synapsys.streaming.StreamingThread;
 import org.gbssm.synapsys.streaming.StreamingView;
-
+import android.annotation.SuppressLint;
 import android.app.Application;
 import android.content.res.Configuration;
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
+import android.widget.Toast;
 
 /**
  * 
@@ -28,6 +27,7 @@ public class SynapsysApplication extends Application {
 
 	public static final int MSG_DESTROYED_DISPLAY = 0xC31D;
 
+	public static final int MSG_TOAST = 0x0;
 	
 	protected SynapsysManager mSynapsysManager;
 	
@@ -59,18 +59,28 @@ public class SynapsysApplication extends Application {
 				if (mStreamingActivity != null)
 					mStreamingActivity.notifyDisplaying(false);
 				break;
+				
+			case MSG_TOAST:
+				if (mToast != null) {
+					mToast.setText((String)msg.obj);
+					mToast.show();
+				}
+				break;
 			}
 		}
 	};
+	private Toast mToast;
 	
 	private boolean isControllerConnected;
 	private boolean isDisplayed;
 	
+	@SuppressLint("ShowToast")
 	@Override
 	public void onCreate() {
 		super.onCreate();
 		
 		mSynapsysManager = (SynapsysManager) getSystemService(SYNAPSYS_SERVICE);
+		mToast = Toast.makeText(this, "", Toast.LENGTH_SHORT);
 	}
 	
 	@Override

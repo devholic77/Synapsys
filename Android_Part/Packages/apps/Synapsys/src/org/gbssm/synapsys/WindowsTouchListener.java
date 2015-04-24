@@ -19,6 +19,7 @@ import android.hardware.input.InputManager;
  * 
  */
 public class WindowsTouchListener implements OnGestureListener, OnDoubleTapListener {
+	protected final static boolean DEBUG = false;
 
 	final static int LEFT_CLICK = 1;
 	final static int LEFT_DRAG = 2;

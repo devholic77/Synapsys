@@ -1682,9 +1682,10 @@ final class ActivityStack {
         mTaskHistory.add(stackNdx, task);
 
 
-        /* ADDED */
+        /**
+         * Synapsys ADDED.
+         */
         try {
-            Slog.d("Synapsys_ActivityManager", "ActivityStack_insertTaskAtTop() : " + task.taskId);
         	SynapsysManagerService mSynapsys = (SynapsysManagerService) ServiceManager.getService(Context.SYNAPSYS_SERVICE);
         	if (mSynapsys != null)
         		mSynapsys.invokeTaskInfoEvents(MediaProtocol.SENDER_STATE_NEW, task.taskId, task.realActivity.getPackageName());
@@ -3602,9 +3603,10 @@ final class ActivityStack {
     }
 
     boolean removeTask(TaskRecord task) {
-        /* ADDED */
+        /**
+         * Synapsys ADDED.
+         */
         try {
-        	Slog.d("Synapsys_ActivityManager", "ActivityStack_removeTask() : " + task.taskId);
         	SynapsysManagerService mSynapsys = (SynapsysManagerService) ServiceManager.getService(Context.SYNAPSYS_SERVICE);
         	if (mSynapsys != null)
         		mSynapsys.invokeTaskInfoEvents(MediaProtocol.SENDER_STATE_END, task.taskId, task.realActivity.getPackageName());

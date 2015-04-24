@@ -27,7 +27,7 @@ import android.util.Slog;
  *
  */
 public class SynapsysControlThread extends SynapsysThread {
-
+	
 	private final ConnectionBox mBox;
 	
 	private Socket mConnectedSocket;
@@ -56,7 +56,8 @@ public class SynapsysControlThread extends SynapsysThread {
 				}
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			if (DEBUG)
+				e.printStackTrace();
 		}
 	}
 	
@@ -73,10 +74,13 @@ public class SynapsysControlThread extends SynapsysThread {
 			
 		} catch (Exception e) {
 			waiting(false);
-			e.printStackTrace();
+
+			if (DEBUG)
+				e.printStackTrace();
 		} 
 
-		Log.d(TAG, "ControlThread_Destroyed!");
+		if (DEBUG)
+			Log.d(TAG, "ControlThread_Destroyed!");
 	}
 	
 	@Override
@@ -105,7 +109,8 @@ public class SynapsysControlThread extends SynapsysThread {
 			
 		waiting(true);
 		
-		Log.d(TAG, "ControlThread_Run()_Port : " + mBox.port);
+		if (DEBUG)
+			Log.d(TAG, "ControlThread_Run()_Port : " + mBox.port);
 		do {
 			synchronized (this) {
 				try {
@@ -125,7 +130,8 @@ public class SynapsysControlThread extends SynapsysThread {
 		if (isDestroyed)
 			return;
 
-		Log.d(TAG, "ControlThread_Connected!");
+		if (DEBUG)
+			Log.d(TAG, "ControlThread_Connected!");
 		
 		running(true);
 		mHandler.sendEmptyMessage(SynapsysHandler.MSG_CONNECTED_CONTROL);
@@ -139,20 +145,21 @@ public class SynapsysControlThread extends SynapsysThread {
 					ControlProtocol<?, ?, ?>[] protocols = ControlProtocol.decode(
 							ByteBuffer.wrap(bytes, 0, read).array());
 					
-					for (ControlProtocol<?, ?, ?> protocol : protocols)
+					for (ControlProtocol<?, ?, ?> protocol : protocols) {
 						protocol.process(mHandler.getService());
+						protocol.destroy();
+					}
 					
 				} catch (IOException e) {
 					if (!isDestroyed) 
 						Message.obtain(mHandler, SynapsysHandler.MSG_EXIT_CONTROL, mBox).sendToTarget();
 					break;
 					
-				} finally {
-					
-				}
+				} finally { ; }
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			if (DEBUG)
+				e.printStackTrace();
 		}
 		
 		running(false);
@@ -165,7 +172,11 @@ public class SynapsysControlThread extends SynapsysThread {
 				mDOS.write(message.encode());
 				mDOS.flush();
 
-				Log.i("Synapsys_Message", "ControlThread : " + message.mType +" / " + message.mCode + " / " + message.mValue1 + " / " + message.mValue2 + " / " + message.mValue3);
+				if (DEBUG)
+					Log.i("Synapsys_Message", "ControlThread : " + message.mType +" / " + message.mCode + " / " + message.mValue1 + " / " + message.mValue2 + " / " + message.mValue3);
+				
+				message.destroy();
+				message = null;
 			}
 			
 		} catch (SocketException e) {
@@ -177,8 +188,9 @@ public class SynapsysControlThread extends SynapsysThread {
 		} catch (IOException e) { 
 			if (!isDestroyed) 
 				Message.obtain(mHandler, SynapsysHandler.MSG_EXIT_CONTROL, mBox).sendToTarget();
-			
-			e.printStackTrace();
+
+			if (DEBUG)
+				e.printStackTrace();
 		}
 	}
 	
@@ -211,7 +223,8 @@ public class SynapsysControlThread extends SynapsysThread {
 	 * @return
 	 */
 	static boolean isAbleToCreate() {
-		Slog.v(TAG, "Control_isAbleToCreate : " + waitingCount + " / " + runningCount);
+		if (DEBUG)
+			Slog.v(TAG, "Control_isAbleToCreate : " + waitingCount + " / " + runningCount);
 		
 		boolean result;
 		synchronized (LOCK) {
@@ -238,7 +251,8 @@ public class SynapsysControlThread extends SynapsysThread {
 	 * @return
 	 */
 	static boolean isWaiting() {
-		Slog.v(TAG, "Control_isWaiting : " + waitingCount);
+		if (DEBUG)
+			Slog.v(TAG, "Control_isWaiting : " + waitingCount);
 		
 		boolean result;
 		synchronized (LOCK) {
@@ -265,7 +279,8 @@ public class SynapsysControlThread extends SynapsysThread {
 	 * @return
 	 */
 	static boolean isRunning() {
-		Slog.v(TAG, "Control_isRunning : " + runningCount);
+		if (DEBUG)
+			Slog.v(TAG, "Control_isRunning : " + runningCount);
 		
 		boolean result;
 		synchronized(LOCK) {

@@ -21,7 +21,7 @@ import android.util.Slog;
  *
  */
 public class ConnectionDetector extends FileObserver {
-
+	
 	// *** CONSTANTS PART *** //
 	/**
 	 * Synapsys System Data 디렉토리
@@ -32,6 +32,8 @@ public class ConnectionDetector extends FileObserver {
 	 * ADB로 부터 삽입된 Connection 정보 파일에 대한 경로. 
 	 */
 	public static final String CONNECTION_FILE_DIR = SYNAPSYS_DIRECTORY + "/connection.dat";
+	
+	protected static final boolean DEBUG = false;
 	
 	private final String TAG = "Synapsys_ConnectionDetector";
 	
@@ -151,12 +153,16 @@ public class ConnectionDetector extends FileObserver {
 			File synapsysDir = new File(SYNAPSYS_DIRECTORY);
 			if (!synapsysDir.exists());
 				synapsysDir.mkdir();
-			Slog.v(TAG, "Synapsys Directory is checked. > " + SYNAPSYS_DIRECTORY);
+				
+			if (DEBUG)
+				Slog.v(TAG, "Synapsys Directory is checked. > " + SYNAPSYS_DIRECTORY);
 				
 			File connectionFile = new File(CONNECTION_FILE_DIR);
 			if (!connectionFile.exists())
 				connectionFile.createNewFile();
-			Slog.v(TAG, "Synapsys ConnectionFile is checked. > " + CONNECTION_FILE_DIR);
+
+			if (DEBUG)
+				Slog.v(TAG, "Synapsys ConnectionFile is checked. > " + CONNECTION_FILE_DIR);
 			
 		} catch (IOException e) {
 			Slog.e(TAG, e.getMessage());
@@ -185,15 +191,17 @@ public class ConnectionDetector extends FileObserver {
 				throw new IOException("ConnectionFile isn't edited properly.");
 			
 		} catch (IOException e) {
-			Slog.e(TAG, e.getMessage());
+			if (DEBUG)
+				Slog.e(TAG, e.getMessage());
 			
 		} catch (NumberFormatException e) {
-			
+			;
 		} finally {
 			try {
 				if (reader != null)
 					reader.close();
-			} catch (IOException e) { }
+				
+			} catch (IOException e) { ; }
 		}
 	}
 

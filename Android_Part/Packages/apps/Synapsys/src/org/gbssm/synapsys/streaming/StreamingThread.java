@@ -1,7 +1,6 @@
 package org.gbssm.synapsys.streaming;
 
 import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -12,10 +11,14 @@ import java.util.concurrent.RejectedExecutionException;
 
 import org.gbssm.synapsys.global.SynapsysApplication;
 
+import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Message;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.Slog;
+import android.view.WindowManager;
 
 /**
  * 
@@ -24,12 +27,15 @@ import android.util.Slog;
  *
  */
 public class StreamingThread extends Thread {
-	
+	protected final static boolean DEBUG = false;
 	private final static String TAG = "Synapsys_StreamingThread";
+	
 	private final static int TIMEOUT = 10000;	// ms
+	private final static int MAX_SCREEN_SIZE = 1000000;	// bytes
 	
 	private final SynapsysApplication mApplication;
 	
+	private DisplayMetrics mScreenMetrics;
 	private Socket mStreamingSocket;
 	private DataInputStream mInputStream;
 	private DataOutputStream mOutputStream;
@@ -38,7 +44,11 @@ public class StreamingThread extends Thread {
 	
 	public StreamingThread(SynapsysApplication application) {
 		mApplication = application;
-
+		mScreenMetrics = new DisplayMetrics();
+		
+		WindowManager mWindowManager = (WindowManager) mApplication.getSystemService(Context.WINDOW_SERVICE);
+		mWindowManager.getDefaultDisplay().getMetrics(mScreenMetrics);
+		
 		int port = mApplication.getSynapsysManager().requestDisplayConnection();
 		if (port == -1)
 			throw new RejectedExecutionException("Port Number isn't adequte.");
@@ -61,14 +71,17 @@ public class StreamingThread extends Thread {
 				}
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			if (DEBUG)
+				e.printStackTrace();
 		}
 	}
 	
 	
 	@Override
 	public void run() {
-		Log.d(TAG, "StreamingThread is running.");
+		if (DEBUG)
+			Log.d(TAG, "StreamingThread is running.");
+		
 		try {
 			waitingConnection();
 			runningConnection();
@@ -80,10 +93,13 @@ public class StreamingThread extends Thread {
 			
 		} catch (Exception e) {
 			waiting(false);
-			e.printStackTrace();
+			
+			if (DEBUG)
+				e.printStackTrace();
 		} 
-		
-		Log.d(TAG, "StreamingThread is dead.");
+
+		if (DEBUG)
+			Log.d(TAG, "StreamingThread is dead.");
 	}
 	
 	@Override
@@ -97,7 +113,7 @@ public class StreamingThread extends Thread {
 				mStreamingSocket = null;
 			}
 		} catch (IOException e) {
-			
+			;
 		} finally {
 			mInputStream = null;
 		}
@@ -109,15 +125,15 @@ public class StreamingThread extends Thread {
 			throw new RejectedExecutionException("Another DisplayThread is running.");
 			
 		waiting(true);
-		
-		//Log.d(TAG, "StreamingThread_Run()_Port : " + mBox.port);
+
+		if (DEBUG)
+			Log.d(TAG, "StreamingThread_Run()_Port : " + mListenSocket.getLocalPort());
 		do {
 			synchronized (this) {
 				try {
 					mStreamingSocket = mListenSocket.accept();
 
-					mInputStream = new DataInputStream(new BufferedInputStream(
-									mStreamingSocket.getInputStream()));
+					mInputStream = new DataInputStream(new BufferedInputStream(mStreamingSocket.getInputStream()));
 					mOutputStream = new DataOutputStream(mStreamingSocket.getOutputStream());
 
 				} catch (SocketTimeoutException e) { ; }
@@ -132,14 +148,19 @@ public class StreamingThread extends Thread {
 			return;
 		
 		running(true);
-		Log.d(TAG, "DisplayThread_Connected!");
+		
+		if (DEBUG)
+			Log.d(TAG, "DisplayThread_Connected!");
 		Message.obtain(mApplication.getHandler(), SynapsysApplication.MSG_CONNECTED_DISPLAY).sendToTarget();
 		
 		try {
+			BitmapFactory.Options option = new BitmapFactory.Options();
+			option.inPreferredConfig = Bitmap.Config.RGB_565;
+			
 			while(!isDestroyed && mInputStream != null && runningCount > 0) {
 				try {
 					int size = mInputStream.readInt();
-					if (size < 0)
+					if (size < 0 || size > MAX_SCREEN_SIZE)
 						continue;
 
 					byte[] bytes = new byte[size];
@@ -148,8 +169,24 @@ public class StreamingThread extends Thread {
 					
 					StreamingView view = mApplication.getStreamingView();
 					if (view != null) {
-						view.mStreamingImage = BitmapFactory.decodeStream(new ByteArrayInputStream(bytes));
+						option.inJustDecodeBounds = true;
+						BitmapFactory.decodeByteArray(bytes, 0, size, option);
+						
+						option.inJustDecodeBounds = false;
+						option.inPreferredConfig = Bitmap.Config.RGB_565;
+						option.inSampleSize = Math.min(	option.outWidth/mScreenMetrics.widthPixels, 
+														option.outHeight/mScreenMetrics.heightPixels );
+						
+						//view.mStreamingImage = BitmapFactory.decodeStream(new ByteArrayInputStream(bytes));
+						view.mStreamingImage = BitmapFactory.decodeByteArray(bytes, 0, size, option);	
+						
+						bytes = null;
 						view.switchSurfaceImage();
+						
+						if (view.mStreamingImage != null)
+							view.mStreamingImage.recycle();
+						
+						view.mStreamingImage = null;
 					}
 					
 				} catch (IOException e) {
@@ -162,7 +199,8 @@ public class StreamingThread extends Thread {
 				}
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			if (DEBUG)
+				e.printStackTrace();
 		}
 		
 		Message.obtain(mApplication.getHandler(), SynapsysApplication.MSG_DESTROYED_DISPLAY).sendToTarget();
@@ -198,7 +236,8 @@ public class StreamingThread extends Thread {
 	 * @return
 	 */
 	public static boolean isAbleToCreate() {
-		Slog.v(TAG, "Display_isAbleToCreate : " + waitingCount + " / " + runningCount);
+		if (DEBUG)
+			Slog.v(TAG, "Display_isAbleToCreate : " + waitingCount + " / " + runningCount);
 		
 		boolean result;
 		synchronized (LOCK) {
@@ -225,7 +264,8 @@ public class StreamingThread extends Thread {
 	 * @return
 	 */
 	static boolean isWaiting() {
-		Slog.v(TAG, "Display_isWaiting : " + waitingCount);
+		if (DEBUG)
+			Slog.v(TAG, "Display_isWaiting : " + waitingCount);
 		
 		boolean result;
 		synchronized (LOCK) {
@@ -252,7 +292,8 @@ public class StreamingThread extends Thread {
 	 * @return
 	 */
 	static boolean isRunning() {
-		Slog.v(TAG, "Display_isRunning : " + runningCount);
+		if (DEBUG)
+			Slog.v(TAG, "Display_isRunning : " + runningCount);
 		
 		boolean result;
 		synchronized(LOCK) {

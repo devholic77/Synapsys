@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry exported="true" kind="lib" path="/home/yeonho/Framework/out/target/common/obj/JAVA_LIBRARIES/framework_intermediates/classes-full-debug.jar"/>
+	<classpathentry exported="true" kind="lib" path="/home/yeonho/Framework/out/target/common/obj/JAVA_LIBRARIES/framework_intermediates/classes.jar"/>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="gen"/>
 	<classpathentry kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
