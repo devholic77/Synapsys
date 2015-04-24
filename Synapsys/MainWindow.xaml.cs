@@ -36,8 +36,8 @@ namespace Synapsys
 		public static SynapsysSocket socketIMG2 = null;
 		public static SynapsysSocket socketData2 = null;
 
-		public static int WIDTH = 800;
-		public static int HEIGHT = 600;        
+		public static int WIDTH = 600;
+		public static int HEIGHT = 960;        
         
         // Minhwan
 
@@ -82,7 +82,7 @@ namespace Synapsys
 
             //monitor
 
-			//new Thread(new ThreadStart(hz)).Start();
+			new Thread(new ThreadStart(hz)).Start();
 
 
 			//SOCKET INIT
@@ -103,18 +103,24 @@ namespace Synapsys
 					foreach (string s in tempHotkeyList)
 					{
 						HotkeyList.Add(s);
-						Console.WriteLine("Collected : " + s);
+						//Console.WriteLine(s);
 						collectedHotkey += s + "+";
 					}
 
 					collectedHotkey.Substring(0, collectedHotkey.Length - 1);
-					if (collectedHotkey.Equals(Keyup_Collector_string1))
+					//Console.WriteLine(collectedHotkey);
+					//Console.WriteLine(Keyup_Collector_string1);
+					if (!nowCollecting1 && collectedHotkey.Equals(Keyup_Collector_string1)
+						&& checkbox1_flag)
 					{
 						Console.WriteLine("Device 1 changed");
+						System.IO.File.WriteAllText(@"C:\change1.txt", "");
 					}
-					else if (collectedHotkey.Equals(Keyup_Collector_string2))
+					else if (!nowCollecting2 && collectedHotkey.Equals(Keyup_Collector_string2)
+						&& checkbox2_flag)
 					{
 						Console.WriteLine("Device 2 changed");
+						System.IO.File.WriteAllText(@"C:\change2.txt", "");
 					}
 					collectedHotkey = "";
 
@@ -343,15 +349,24 @@ namespace Synapsys
 			Popup_settings.IsOpen = false;
 		}
 
+		static bool checkbox1_flag = false;
+		static bool checkbox2_flag = false;
+
 		private void checkbox_handler(object sender, RoutedEventArgs e)
 		{
 			if(sender.Equals(checkbox1))
 			{
 				if (checkbox1.IsChecked.Value)
 				{
+					checkbox1_flag = true;
 					nowCollecting1 = true;
 					KeyboardMouse.m_KeyboardHookManager.KeyUp += HookManager_KeyUp1;
+					Keyup_Collector_string1 = "";
 					new Thread(Keyup_Collector1).Start();
+				}
+				else
+				{
+					checkbox1_flag = false;
 				}
 			}
 
@@ -359,9 +374,15 @@ namespace Synapsys
 			{
 				if (checkbox2.IsChecked.Value)
 				{
+					checkbox2_flag = true;
 					nowCollecting2 = true;
 					KeyboardMouse.m_KeyboardHookManager.KeyUp += HookManager_KeyUp2;
+					Keyup_Collector_string2 = "";
 					new Thread(Keyup_Collector2).Start();
+				}
+				else
+				{
+					checkbox2_flag = false;
 				}
 			}
 		}
@@ -397,7 +418,7 @@ namespace Synapsys
 			
 			checkbox1.Dispatcher.Invoke(new update1Callback(this.update1), Keyup_Collector_string1);
 			nowCollecting1 = false;
-			Keyup_Collector_string1 = "";
+			//Keyup_Collector_string1 = "";
 		}
 
 		private void update1(string s)
@@ -417,7 +438,7 @@ namespace Synapsys
 			KeyboardMouse.m_KeyboardHookManager.KeyUp -= HookManager_KeyUp2;
 
 			checkbox1.Dispatcher.Invoke(new update1Callback(this.update2), Keyup_Collector_string2);
-			Keyup_Collector_string2 = "";
+			//Keyup_Collector_string2 = "";
 		}
 
 		#endregion

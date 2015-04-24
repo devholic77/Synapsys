@@ -45,11 +45,11 @@ namespace Synapsys
 			return new Point(width, height); // Point 로 전달
 		}
 
-		private int timer_switch = 0;	// 0 - fadein, 1 - fadeout, else - wait
+		public int timer_switch = 0;	// 0 - fadein, 1 - fadeout, else - wait
 
 		private void timer1_Tick(object sender, EventArgs e)
 		{
-			switch(timer_switch)
+			switch (timer_switch)
 			{
 				case 0:
 					this.Opacity += .05;
@@ -61,13 +61,13 @@ namespace Synapsys
 					timer_switch--;
 					break;
 			}
-			
-			if(this.Opacity == 1)
+
+			if (this.Opacity == 1)
 			{
 				timer_switch = 80;
 				this.Opacity -= .05;
 			}
-			else if(this.Opacity == 0)
+			else if (this.Opacity == 0)
 			{
 				timer_switch = 0;
 				timer1.Stop();
