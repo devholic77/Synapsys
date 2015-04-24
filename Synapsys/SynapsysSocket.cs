@@ -178,6 +178,8 @@ namespace Synapsys
 			catch (Exception e)
 			{
 				Console.WriteLine(e);
+				cbSock.Disconnect(false);
+				clientSock = null;
 				this.DoInit();
 			}
 		}
@@ -198,10 +200,10 @@ namespace Synapsys
 					{
 						clientSock.BeginSend(imgArray, 0, imgArray.Length, SocketFlags.None,
 										  new AsyncCallback(SendCallBack), "image");
-					} 
-					else if(message.Length > 10)
+					}
+					else if (message.Length > 2 && message[1] == ':')
 					{
-						if(message[1] == ':' && message[3] == ':')
+						if(message[3] == ':')
 						{
 							string[] data = message.Split(':');
 							int type = Int32.Parse(data[0]);

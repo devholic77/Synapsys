@@ -24,7 +24,7 @@ namespace Synapsys_ADB
 
             if(Device_Name.Equals(Synapsys_Values.First_Device_Name)) // 1e대인경우
             {
-				path = @"C:\Program Files\Synapsys\SubProgram1\Synapsys_Sub_Program\bin\Release\Synapsys_Sub_Program.exe";
+                path = @"C:\Program Files\Synapsys\SubProgram1\Synapsys_Sub_Program\bin\Release\Synapsys_Sub_Program.exe";
                 Synapsys_Values.First_Device_Use = "Use";
                
                 Synapsys_Values.FirstSubProgram = Process.Start(path, Synapsys_Values.port[2]);
@@ -33,8 +33,8 @@ namespace Synapsys_ADB
             }
             else
             {
-				path = @"C:\Program Files\Synapsys\SubProgram2\Synapsys_Sub_Program\bin\Release\Synapsys_Sub_Program.exe";
-				Console.WriteLine("2번 모니터 실행");
+                path = @"C:\Program Files\Synapsys\SubProgram2\Synapsys_Sub_Program\bin\Release\Synapsys_Sub_Program.exe";
+                Console.WriteLine("2번 모니터 실행");
                 Synapsys_Values.Second_Device_Use = "Use";
                 Synapsys_Values.SecondSubProgram = Process.Start(path, Synapsys_Values.port[5]); // 장대찬 
                 //System.Diagnostics.Process.Start(path, Synapsys_Values.port[5]);  

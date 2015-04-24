@@ -49,7 +49,7 @@ namespace Synapsys
 		public void Start()
 		{
 			Stop();
-			setFPS(35);
+			setFPS(25);
 
 			thread = new Thread(new ThreadStart(captureMachine));
 			thread.Start();
@@ -128,35 +128,43 @@ namespace Synapsys
 			currFPS++;
 			try
 			{
-				using (Bitmap bitmap = new Bitmap(MONITOR_WIDTH * 2, MONITOR_HEIGHT))
+				int SUBSCREEN = (Screen.AllScreens.Length - 1);
+				using (Bitmap bitmap = new Bitmap(MONITOR_WIDTH * SUBSCREEN, MONITOR_HEIGHT))
 				{
 					using (Graphics g = Graphics.FromImage(bitmap))
 					{
-						g.CopyFromScreen(new Point(-MONITOR_WIDTH * 2, 0), Point.Empty, new Size(MONITOR_WIDTH * 2, MONITOR_HEIGHT));
+						g.CopyFromScreen(new Point(-MONITOR_WIDTH * SUBSCREEN, 0), Point.Empty, new Size(MONITOR_WIDTH * SUBSCREEN, MONITOR_HEIGHT));
 					}
 					// #1
 					Rectangle rect = new Rectangle(0, 0, MONITOR_WIDTH, MONITOR_HEIGHT);
-					using (Bitmap firstHalf = bitmap.Clone(rect, bitmap.PixelFormat))
+					if(SUBSCREEN >= 1)
 					{
-						using (MemoryStream stream = new MemoryStream())
+						using (Bitmap firstHalf = bitmap.Clone(rect, bitmap.PixelFormat))
 						{
-							firstHalf.Save(stream, ImageFormat.Jpeg);
-							MainWindow.socketIMG1.SendScreen(stream.ToArray());
-							stream.Close();
+							using (MemoryStream stream = new MemoryStream())
+							{
+								firstHalf.Save(stream, ImageFormat.Jpeg);
+								MainWindow.socketIMG1.SendScreen(stream.ToArray());
+								stream.Close();
+							}
 						}
 					}
 
-					// #2
-					rect = new Rectangle(MONITOR_WIDTH, 0, MONITOR_WIDTH, MONITOR_HEIGHT);
-					using (Bitmap secondHalf = bitmap.Clone(rect, bitmap.PixelFormat))
+					// #2					
+					if(SUBSCREEN >= 2)
 					{
-						using (MemoryStream stream = new MemoryStream())
+						rect = new Rectangle(MONITOR_WIDTH, 0, MONITOR_WIDTH, MONITOR_HEIGHT);
+						using (Bitmap secondHalf = bitmap.Clone(rect, bitmap.PixelFormat))
 						{
-							secondHalf.Save(stream, ImageFormat.Jpeg);
-							MainWindow.socketIMG2.SendScreen(stream.ToArray());
-							stream.Close();
+							using (MemoryStream stream = new MemoryStream())
+							{
+								secondHalf.Save(stream, ImageFormat.Jpeg);
+								MainWindow.socketIMG2.SendScreen(stream.ToArray());
+								stream.Close();
+							}
 						}
 					}
+					
 					
 				}
 			}
