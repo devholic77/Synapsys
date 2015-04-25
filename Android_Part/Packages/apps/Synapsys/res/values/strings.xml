@@ -4,4 +4,17 @@
 	<string name="streaming_board">Waiting for PC-connection</string>
 	<string name="pc_connected">Connected with Synapsys-PC!</string>
 	<string name="pc_disconnected">Disconnected with Synapsys-PC.</string>
+	
+	<string name="content_text">Synapsys is running..!</string>
+	
+	<string name="device_info_category">Synapsys Device Information</string>
+	<string name="synapsys_customize_category">Synapsys Configuration</string>
+	
+	<string name="device_name">Device Name</string>
+	
+	<string name="virtual_keyboard_switch_title">Synapsys SoftKeyboard</string>
+	<string name="virtual_keyboard_switch_summary">Able to use a SoftKeyboard when Connected.</string>
+	<string name="launch_synapsys_app_title">Launch Synapsys App</string>
+	<string name="launch_synapsys_app_summary">Auto-launch the Synapsys App when Connected.</string>
+	
 </resources>

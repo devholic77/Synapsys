@@ -507,7 +507,7 @@ public abstract class MessageProtocol {
 			
 			ByteArrayOutputStream iconByteStream = new ByteArrayOutputStream();
 			if (icon != null) {
-				icon.compress(CompressFormat.JPEG, 70, iconByteStream);
+				icon.compress(CompressFormat.PNG, 100, iconByteStream);
 			}
 			iconSize = iconByteStream.size();
 	

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+    
+    <PreferenceCategory android:title="@string/device_info_category">
+        
+        <EditTextPreference 
+            android:title="@string/device_name"
+            android:defaultValue=""
+            android:key="device_info_name"
+            android:enabled="false" />
+        
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/synapsys_customize_category">
+        
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="launch_synapsys_app"
+            android:summary="@string/launch_synapsys_app_summary"
+            android:switchTextOff="OFF"
+            android:switchTextOn="ON"
+            android:title="launch_synapsys_app_title" />
+        
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="virtual_keyboard_switch"
+            android:summary="@string/virtual_keyboard_switch_summary"
+            android:switchTextOff="OFF"
+            android:switchTextOn="ON"
+            android:title="virtual_keyboard_switch_title" />
+        
+    </PreferenceCategory>
+    
+</PreferenceScreen>

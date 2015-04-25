@@ -35,7 +35,10 @@ public class SynapsysManager {
 	 * Extra Boolean Value 
 	 */
 	public static final String BROADCAST_EXTRA_CONNECTION = "Synpasys_Connection";
-
+	/**
+	 * Extra Boolean Value : true = POSITIVE / false = NEGATIVE
+	 */
+	public static final String BROADCAST_EXTRA_REACTION = "Synpasys_Reaction";
 	
 	private final ISynapsysManager mService;
 	
@@ -58,6 +61,21 @@ public class SynapsysManager {
 		}
 	}
 	
+	/**
+	 * Synapsys App의 Foreground 상태를 전달한다.
+	 * 
+	 * @param foreground
+	 * @return
+	 */
+	public boolean requestSynapsysForeground(boolean foreground) {
+		try {
+			return mService.requestSynapsysForeground(foreground);
+			
+		} catch (Exception e) {
+			;
+		}
+		return false;
+	}
 	
 	/**
 	 * Android Device의 Touch Event를 PC의 Mouse Event로 발생시킨다.

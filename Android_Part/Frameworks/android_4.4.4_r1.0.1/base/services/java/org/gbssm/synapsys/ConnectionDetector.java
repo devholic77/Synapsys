@@ -111,7 +111,6 @@ public class ConnectionDetector extends FileObserver {
 					message.what = SynapsysHandler.MSG_PROCEED_DISPLAY;
 					message.obj = mDisplayBox;
 					message.sendToTarget();
-					
 				}
 			}
 			break;

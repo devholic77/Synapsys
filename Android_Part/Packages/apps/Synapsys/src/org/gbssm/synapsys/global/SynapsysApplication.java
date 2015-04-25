@@ -1,15 +1,26 @@
 package org.gbssm.synapsys.global;
 
 import java.util.concurrent.RejectedExecutionException;
+
 import org.gbssm.synapsys.MainActivity;
+import org.gbssm.synapsys.R;
 import org.gbssm.synapsys.SynapsysManager;
 import org.gbssm.synapsys.streaming.StreamingThread;
 import org.gbssm.synapsys.streaming.StreamingView;
+
 import android.annotation.SuppressLint;
 import android.app.Application;
+import android.app.Notification;
+import android.app.PendingIntent;
+import android.app.Service;
+import android.content.Intent;
 import android.content.res.Configuration;
+import android.graphics.drawable.Drawable;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Message;
+import android.view.LayoutInflater;
+import android.widget.TextView;
 import android.widget.Toast;
 
 /**
@@ -28,13 +39,14 @@ public class SynapsysApplication extends Application {
 	public static final int MSG_DESTROYED_DISPLAY = 0xC31D;
 
 	public static final int MSG_TOAST = 0x0;
+
 	
 	protected SynapsysManager mSynapsysManager;
-	
+
+	protected MainActivity mStreamingActivity;
 	protected StreamingView mStreamingView;
 	protected StreamingThread mStreamingThread;
 	
-	protected MainActivity mStreamingActivity;
 	protected Handler mHandler = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {
@@ -69,7 +81,9 @@ public class SynapsysApplication extends Application {
 			}
 		}
 	};
+	
 	private Toast mToast;
+	private Toast mSynapsysToast;
 	
 	private boolean isControllerConnected;
 	private boolean isDisplayed;
@@ -122,6 +136,11 @@ public class SynapsysApplication extends Application {
 	
 	public void setControllerConnected(boolean connected) {
 		isControllerConnected = connected;
+		
+		if (connected)
+			notifySynapsysDevice();
+		else
+			mSynapsysToast = null;
 	}
 	
 	public void notifyStreamingView(StreamingView view) {
@@ -130,6 +149,13 @@ public class SynapsysApplication extends Application {
 	
 	public void notifyStreamingActivity(MainActivity activity) {
 		mStreamingActivity = activity;
+	}
+	
+	public void notifySynapsysDevice() {
+		init();
+		
+		if (mSynapsysToast != null) 
+			mSynapsysToast.show();
 	}
 	
 	
@@ -155,4 +181,26 @@ public class SynapsysApplication extends Application {
 	public boolean isDisplaying() {
 		return isDisplayed;
 	}
+	
+
+	@SuppressLint("ShowToast")
+	private void init() {
+		int port = mSynapsysManager.requestDisplayConnection();
+		if (port == -1 || mSynapsysToast != null)
+			return ;
+		
+		int deviceOrder = (port-1234)/3;
+		int icon = (deviceOrder % 2 == 0)? R.drawable.icon1 : R.drawable.icon2;
+		
+		String deviceName = "Device" + (deviceOrder+1);
+		Drawable drawable = getResources().getDrawable(icon);
+		
+		TextView mToastView = (TextView) LayoutInflater.from(this).inflate(R.layout.synapsys_toast, null, false);
+		mToastView.setCompoundDrawablesWithIntrinsicBounds(null, drawable, null, null);
+		mToastView.setText(deviceName);
+		
+		mSynapsysToast = Toast.makeText(this, "", Toast.LENGTH_LONG);
+		mSynapsysToast.setView(mToastView);
+	}
+	
 }

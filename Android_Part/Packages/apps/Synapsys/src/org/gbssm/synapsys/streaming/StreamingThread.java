@@ -163,12 +163,13 @@ public class StreamingThread extends Thread {
 					if (size < 0 || size > MAX_SCREEN_SIZE)
 						continue;
 
-					byte[] bytes = new byte[size];
-					mOutputStream.write("OK".getBytes());
-					mInputStream.readFully(bytes);
-					
 					StreamingView view = mApplication.getStreamingView();
 					if (view != null) {
+						byte[] bytes = new byte[size];
+						mOutputStream.write("OK".getBytes());
+						mInputStream.readFully(bytes);
+						
+						// Bitmap 준비.
 						option.inJustDecodeBounds = true;
 						BitmapFactory.decodeByteArray(bytes, 0, size, option);
 						
@@ -177,7 +178,6 @@ public class StreamingThread extends Thread {
 						option.inSampleSize = Math.min(	option.outWidth/mScreenMetrics.widthPixels, 
 														option.outHeight/mScreenMetrics.heightPixels );
 						
-						//view.mStreamingImage = BitmapFactory.decodeStream(new ByteArrayInputStream(bytes));
 						view.mStreamingImage = BitmapFactory.decodeByteArray(bytes, 0, size, option);	
 						
 						bytes = null;

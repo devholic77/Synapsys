@@ -4,4 +4,13 @@
 	<string name="streaming_board">Synapsys-PC의 응답을 기다리는 중입니다</string>
 	<string name="pc_connected">Synapsys-PC와 연결되었습니다!</string>
 	<string name="pc_disconnected">Synapsys-PC와 연결이 끊어졌습니다.</string>
+	<string name="content_text">Synapsys가 실행되고 있습니다..!</string>
+	
+	<string name="device_name">디바이스 이름</string>
+	
+	<string name="virtual_keyboard_switch_title">Synapsys SoftKeyboard</string>
+	<string name="virtual_keyboard_switch_summary">연결되었을 때, SoftKeyboard를 사용합니다.</string>
+	<string name="launch_synapsys_app_title">Synapsys 애플리케이션 자동실행</string>
+	<string name="launch_synapsys_app_summary">연결되었을 때, Synapsys 애플리케이션을 자동실행합니다.</string>
+	
 </resources>
