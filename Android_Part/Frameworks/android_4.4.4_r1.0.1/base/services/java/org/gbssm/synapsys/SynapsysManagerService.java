@@ -16,8 +16,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.hardware.input.InputManager;
 import android.os.BatteryManager;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.RemoteException;
@@ -59,7 +62,7 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	final Context mContext;
 	
 	private boolean isServiceRunning;
-	private boolean VirtualDeviceEnabled = true;
+	private boolean isVirtualDeviceEnabled;
 
 	private ActivityManager mActivityManager;
 	private PackageManager mPackageManager;
@@ -105,6 +108,20 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 		
 		return -1; // Port Number
 	}
+	
+	/**
+	 * 
+	 * @param foreground
+	 * @return VirtualDevice Enabled
+	 * @throws RemoteException
+	 */
+	public boolean requestSynapsysForeground(boolean foreground) throws RemoteException {
+		if (DEBUG)
+			Slog.v(TAG, "reqeustSynapsysForeground() : " + foreground);
+		
+		return (isVirtualDeviceEnabled = !foreground);
+	}
+	
 	
 	/**
 	 * Windows PC로 Touch Event 전송.
@@ -167,23 +184,10 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	 * @param packageName
 	 * @param message
 	 * @return
-	 * @throws RemoteException
 	 */
-	public boolean invokeNotificationEvent(int notificationId, String packageName, String message) throws RemoteException {
-		if (DEBUG)
-			Slog.d(TAG, "invokeNotificationEvents :  Noti_ID = " + notificationId + " / Package = " + packageName + " / Message : " + message);
-		
+	public boolean invokeNotificationEvent(MediaProtocol protocol) {
 		if (mMediaThread != null) {
 			try {
-				ApplicationInfo info = mPackageManager.getApplicationInfo(
-						packageName, PackageManager.GET_META_DATA);
-				
-				MediaProtocol protocol = new MediaProtocol(MediaProtocol.SENDER_STATE_NOTI);
-				protocol.id = notificationId;
-				protocol.putName((String) mPackageManager.getApplicationLabel(info));
-				protocol.putIcon(mPackageManager.getApplicationIcon(info));
-				protocol.putContentMessage(message);
-				
 				mMediaThread.send(protocol);
 				return true;
 				
@@ -191,8 +195,6 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 		}
 		
 		return false;
-
-
 	}	
 		
 
@@ -209,7 +211,7 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	public boolean invokeTaskInfoEvents(int state, int taskId, String packageName) throws RemoteException {
 		
 		// *** Task Filtering *** //
-		if (SHADOW_TASK_STATE == state && SHADOW_TASK_ID == taskId) {
+		if ((SHADOW_TASK_STATE == state && SHADOW_TASK_ID == taskId) || packageName == null) {
 			// 중복 메시지 전달 방지
 			return false;
 			
@@ -218,6 +220,7 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 				// System UI 전달 방지.
 				return false;
 			}
+		
 		if (DEBUG)
 			Slog.v(TAG, "invokeTaskInfoEvents : state = " + state + " / task = " + taskId + " / package = " + packageName);
 			
@@ -288,7 +291,7 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 			try {
 				//ComponentName baseComponent = rti.baseIntent.getComponent();
 				ComponentName baseComponent = rti.baseActivity;
-				if (baseComponent == null || rti.id <= 0)
+				if (baseComponent == null || rti.id < 0)
 					continue;
 				
 				String packageName = baseComponent.getPackageName();
@@ -325,13 +328,17 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	 * @throws RemoteException
 	 */
 	public boolean interpolateMouseEvent(int event_id, float event_x, float event_y) throws RemoteException { 
+		event_x *= 2;
+		event_y *= 2;
+		
 		if (DEBUG)
 			Slog.v(TAG, "interpolateMouseEvent : event=" + event_id + " / x=" + event_x + " / y=" + event_y);
 				
 		// 윈도우에서 받는 이벤트 전달 함수 호출 
-		if(VirtualDeviceEnabled)
-			sendtoNativeEvent(TYPE_MOUSE, event_id, event_x, event_y );
-		return true;
+		if (isVirtualDeviceEnabled)
+			invokeNativeInputEvent(TYPE_MOUSE, event_id, event_x, event_y);
+		
+		return isVirtualDeviceEnabled;
 	}
 	
 	/**
@@ -347,9 +354,10 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 			Slog.v(TAG, "interpolateKeyboardEvent : event=" + event_id + " / keyCode=" + key_code);
 		
 		// 윈도우에서 받는 이벤트 전달 함수 호출 
-		if(VirtualDeviceEnabled)
-			sendtoNativeEvent(TYPE_KEYBOARD, event_id, key_code, 0);
-		return true;
+		if(isVirtualDeviceEnabled)
+			invokeNativeInputEvent(TYPE_KEYBOARD, event_id, key_code, 0);
+		
+		return isVirtualDeviceEnabled;
 	}
 
 	/**
@@ -426,14 +434,14 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 			// ConnectionFile의 변화를 감지하여, Synapsys 연결 상태를 확립한다.
 			if (event && another) {
 				systemReady();
-				broadcastSynapsysState(true, false, false);
+				broadcastSynapsysState(true, false, false, true);
 				return;
 			}
 		}
 		
 		// 연결이 성립하지 않는 다른 모든  경우,
 		systemStop();
-		broadcastSynapsysState(false, false, false);
+		broadcastSynapsysState(false, false, false, false);
 	}
 
 	/**
@@ -443,18 +451,55 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	 * @param id
 	 * @param notification
 	 */
-	public void dispatchNotification(String PackageName, int id, Notification notification) {		
-		if (notification == null)
+	public void dispatchNotification(final String packageName, final int id, Notification notification) {		
+		if (packageName == null || notification == null || id < 0)
 			return;
 		
-		try {
-			invokeNotificationEvent(id, PackageName, (String)notification.tickerText); 	
+			Bundle bundle = notification.extras;
 			
-		} catch (RemoteException e) { ; }
+			StringBuilder builder = new StringBuilder();
+			if (bundle != null) {
+				String title = bundle.getString(Notification.EXTRA_TITLE);
+				if (title == null) 
+					title = bundle.getString(Notification.EXTRA_TITLE_BIG);
+				if (title != null)
+					builder.append("[ ").append(title).append(" ]").append("\r\n");
+				
+				
+				String text = bundle.getString(Notification.EXTRA_TEXT);
+				if (text == null)
+					text = bundle.getString(Notification.EXTRA_TEXT_LINES);
+				if (text != null)
+					builder.append(" : ").append(text).append("\r\n");
+				
+				String subtext = bundle.getString(Notification.EXTRA_SUB_TEXT);
+				if (subtext == null)
+					subtext = bundle.getString(Notification.EXTRA_SUMMARY_TEXT);
+				if (subtext != null)
+					builder.append("\t").append(subtext);
+			}
+
+			MediaProtocol protocol = new MediaProtocol(MediaProtocol.SENDER_STATE_NOTI);
+			protocol.id = id;
+			protocol.putContentMessage(builder.toString());
+		
+			try {
+				ApplicationInfo info = mPackageManager.getApplicationInfo(
+						packageName, PackageManager.GET_META_DATA);
+
+				protocol.putName((String) mPackageManager.getApplicationLabel(info));
+				
+				Bitmap icon = notification.largeIcon;
+				protocol.putIcon((icon != null)? icon : 
+					((BitmapDrawable)mPackageManager.getApplicationIcon(info)).getBitmap());
+	
+			} catch (Exception e) { ; }
+			
+			invokeNotificationEvent(protocol); 	
 		
 		// 읽어온 최신 Noti 정보 임시 저장 
 		mRecentNoti = notification;
-		mRecentPackageName = PackageName;
+		mRecentPackageName = packageName;
 		mRecentNotificationID = id;
 		return;
 	}
@@ -470,7 +515,7 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	 * 
 	 * @author Dhuckil.Kim
 	 */
-	private void sendtoNativeEvent(int event_type,int event_code, float value_1, float value_2 ) {
+	private void invokeNativeInputEvent(int event_type,int event_code, float value_1, float value_2 ) {
 		if (DEBUG)
 			Slog.i("SynapsysManagerService","framework : JNI CALL ");
 		
@@ -512,7 +557,6 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	 * System Phase-1 Stop : {@link ConnectionDetector} stop.
 	 */
 	void systemStop() {
-		isServiceRunning = false;
 		if (mConnectionDetector != null) {
 			mConnectionDetector.stop();
 			mConnectionDetector = null;
@@ -535,8 +579,14 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 				
 			} catch (IOException e) { ; }
 		}
+
+		isServiceRunning = false;
 		
-		broadcastSynapsysState(true, false, false);
+		mConnectionBox = null;
+		mMediaBox = null;
+		mDisplayBox = null;
+		
+		broadcastSynapsysState(true, false, false, false);
 	}
 	
 	/**
@@ -545,11 +595,12 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	 * @param pc
 	 * @param connection
 	 */
-	void broadcastSynapsysState(boolean usb, boolean pc, boolean connection) {
+	void broadcastSynapsysState(boolean usb, boolean pc, boolean connection, boolean reaction) {
         Intent intent = new Intent(SynapsysManager.BROADCAST_ACTION_SYNAPSYS);
         intent.putExtra(SynapsysManager.BROADCAST_EXTRA_USB_READY, usb);
         intent.putExtra(SynapsysManager.BROADCAST_EXTRA_PC_READY, pc);
         intent.putExtra(SynapsysManager.BROADCAST_EXTRA_CONNECTION, connection);
+        intent.putExtra(SynapsysManager.BROADCAST_EXTRA_REACTION, reaction);
 
         mContext.sendStickyBroadcastAsUser(intent, UserHandle.ALL);
 	}
@@ -582,7 +633,7 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 						mControlThread = new SynapsysControlThread(this, mConnectionBox = box);
 						mControlThread.start();
 						
-						broadcastSynapsysState(true, true, false);
+						broadcastSynapsysState(true, true, false, true);
 						
 					} else if (!box.equals(mConnectionBox))
 						Message.obtain(this, MSG_EXIT_CONTROL, box).sendToTarget();
@@ -593,8 +644,8 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 				if (DEBUG)
 					Slog.v(TAG, "Handler_MSG_CONNECTED_CONTROL : " + msg.what);
 				
-				broadcastSynapsysState(true, true, true);
-				sendtoNativeEvent(TYPE_DEVICE_CHANGE, DEVICE_ADDED, 0, 0 );	//USB 연결 시에만 가상 마우스 활성화 
+				broadcastSynapsysState(true, true, true, true);
+				invokeNativeInputEvent(TYPE_DEVICE_CHANGE, DEVICE_ADDED, 0, 0 );	//USB 연결 시에만 가상 마우스 활성화 
 				break;
 				
 			case MSG_EXIT_CONTROL:
@@ -613,9 +664,6 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 						mControlThread.destroy();
 						mControlThread.join(100);
 						
-						sendtoNativeEvent(TYPE_DEVICE_CHANGE, DEVICE_REMOVED, 0, 0 );
-						
-						
 					} catch (InterruptedException e) {
 						;
 					} finally {
@@ -627,8 +675,10 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 			case MSG_DESTROYED_CONTROL:
 				if (DEBUG)
 					Slog.v(TAG, "Handler_MSG_DESTROYED_CONTROL : " + msg.what);
-				
-				broadcastSynapsysState(true, true, false);
+
+				broadcastSynapsysState(true, true, false, false);
+				invokeNativeInputEvent(TYPE_DEVICE_CHANGE, DEVICE_REMOVED, 0, 0 );
+				isVirtualDeviceEnabled = false;
 				return;
 				
 				

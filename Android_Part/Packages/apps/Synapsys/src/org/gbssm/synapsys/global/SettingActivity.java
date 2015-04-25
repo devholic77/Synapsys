@@ -1,7 +1,10 @@
 package org.gbssm.synapsys.global;
 
-import android.app.Activity;
+import org.gbssm.synapsys.R;
+
 import android.os.Bundle;
+import android.preference.Preference;
+import android.preference.PreferenceActivity;
 
 /**
  * 
@@ -9,11 +12,20 @@ import android.os.Bundle;
  * @since 2015.03.30
  *
  */
-public class SettingActivity extends Activity {
+public class SettingActivity extends PreferenceActivity implements Preference.OnPreferenceChangeListener {
+	
+	@Override
+	protected void onCreate(Bundle savedInstanceBundle) {
+		super.onCreate(savedInstanceBundle);
+		addPreferencesFromResource(R.xml.setting_activity);
+		
+	}
 
 	@Override
-	protected void onCreate(Bundle arg0) {
-		// TODO Auto-generated method stub
-		super.onCreate(arg0);
+	public boolean onPreferenceChange(Preference pref, Object newValue) {
+		
+		
+		return false;
 	}
+
 }

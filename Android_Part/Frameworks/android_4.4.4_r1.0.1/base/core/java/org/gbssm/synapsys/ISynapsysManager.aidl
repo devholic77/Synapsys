@@ -15,6 +15,13 @@ interface ISynapsysManager {
 	int requestDisplayConnection();
 	
 	/**
+	 * Synapsys App의 Foreground 상태를 전달한다.
+	 *
+	 */
+	boolean requestSynapsysForeground(boolean foreground);
+	
+	
+	/**
 	 * Android Device의 Touch Event를 PC의 Mouse Event로 발생시킨다.
 	 *
 	 */
@@ -37,12 +44,6 @@ interface ISynapsysManager {
 	 *
 	 */
 	boolean interpolateKeyboardEvent(int event_id, int key_code);
-	
-	/**
-	 * Android Device의 Notification Event를 PC의 Notification Event로 발생시킨다.
-	 *
-	 */
-	boolean invokeNotificationEvent(int notificationId, String packageName, String message);
 	
 	/**
 	 * PC로부터 전달받은 Task Event를 Android에 적용시킨다.

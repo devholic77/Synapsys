@@ -1681,16 +1681,21 @@ final class ActivityStack {
         }
         mTaskHistory.add(stackNdx, task);
 
-
         /**
          * Synapsys ADDED.
          */
         try {
         	SynapsysManagerService mSynapsys = (SynapsysManagerService) ServiceManager.getService(Context.SYNAPSYS_SERVICE);
-        	if (mSynapsys != null)
-        		mSynapsys.invokeTaskInfoEvents(MediaProtocol.SENDER_STATE_NEW, task.taskId, task.realActivity.getPackageName());
+        	if (mSynapsys != null) {
+        		String packageName = (task.intent != null)? task.intent.getComponent().getPackageName() : 
+        			(task.realActivity != null)? task.realActivity.getPackageName() : null;
+        			
+        		mSynapsys.invokeTaskInfoEvents(MediaProtocol.SENDER_STATE_NEW, task.taskId, packageName);
+        	}
             	
-        } catch (RemoteException e) { ; }
+        } catch (Exception e) { 
+        	e.printStackTrace();
+        }
     }
 
     final void startActivityLocked(ActivityRecord r, boolean newTask,
@@ -3608,10 +3613,15 @@ final class ActivityStack {
          */
         try {
         	SynapsysManagerService mSynapsys = (SynapsysManagerService) ServiceManager.getService(Context.SYNAPSYS_SERVICE);
-        	if (mSynapsys != null)
-        		mSynapsys.invokeTaskInfoEvents(MediaProtocol.SENDER_STATE_END, task.taskId, task.realActivity.getPackageName());
-        	
-        } catch (RemoteException e) { ; }
+        	if (mSynapsys != null) {
+        		String packageName = (task.intent != null)? task.intent.getComponent().getPackageName() : 
+        			(task.realActivity != null)? task.realActivity.getPackageName() : null;
+        			
+        		mSynapsys.invokeTaskInfoEvents(MediaProtocol.SENDER_STATE_END, task.taskId, packageName);
+        	}
+        } catch (Exception e) { 
+        	e.printStackTrace(); 
+        }
         
         
         final int taskNdx = mTaskHistory.indexOf(task);
