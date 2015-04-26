@@ -167,7 +167,6 @@ namespace Synapsys
 					{
 						using (Bitmap firstHalf = bitmap.Clone(rect, bitmap.PixelFormat))
 						{
-							firstHalf.Save(@"c:\bitmap.jpg", ImageFormat.Jpeg);
 							using (MemoryStream stream = new MemoryStream())
 							{
 								firstHalf.Save(stream, ImageFormat.Jpeg);
