@@ -203,9 +203,7 @@ namespace Synapsys_ADB
                                     //Console.WriteLine("1번 모니터가 제거된 경우");
 
                                     //2번 소켓을 지우고 //연호쪽에서 포
-                                    
-                                    
-                                    
+                                                                        
                                     //1번 소켓을 실행
 
                                     Synapsys_Values.First_Device_Name = Synapsys_Values.Second_Device_Name;
@@ -263,7 +261,7 @@ namespace Synapsys_ADB
                 catch (Exception ex)
                 {
                     startInfo.WorkingDirectory = Synapsys_Values.adb_install_path;
-                    Console.WriteLine(ex.ToString());
+                    //Console.WriteLine(ex.ToString());
                 }
 
             }
@@ -299,13 +297,13 @@ namespace Synapsys_ADB
                     process.StandardInput.Close();
                     ret = process.StandardOutput.ReadToEnd();
                     String ret_buf = ret.Substring(ret.IndexOf(cmd_string) + cmd_string.Length);
-                    Console.Write(ret_buf);
+                    //Console.Write(ret_buf);
 
                 }
                 catch (Exception ex)
                 {
                     startInfo.WorkingDirectory = Synapsys_Values.adb_install_path;
-                    Console.WriteLine(ex.ToString());
+                    //Console.WriteLine(ex.ToString());
                 }
             }
         }
@@ -320,7 +318,7 @@ namespace Synapsys_ADB
             {
                 msg = msg.ToUpper();
                 startInfo.WorkingDirectory = msg[0].ToString() + @":\";
-                Console.Write("\r\n" + startInfo.WorkingDirectory + ">");
+                //Console.Write("\r\n" + startInfo.WorkingDirectory + ">");
                 return false;
             }
             return true;
@@ -331,7 +329,7 @@ namespace Synapsys_ADB
             path = path.Substring(0, path.IndexOf("Synapsys"));
             path = @path + "portdefine.txt";
             String text = System.IO.File.ReadAllText(path);
-            Console.WriteLine(text);
+            //Console.WriteLine(text);
 
             text = text.Replace("\r\n", " ");
             Synapsys_Values.Synapsys_Auto_Connect_List = text.Split(' ');
@@ -352,7 +350,7 @@ namespace Synapsys_ADB
         }
         public void Port_Define(String display_port, String data_port, String thumbnail_port, String device_name) //안드로이드에 파일 저장하기 
         {                                                                                  //PC에서 저장하도록 변경
-            Console.WriteLine("");
+            //Console.WriteLine("");
             process = new Process();
             startInfo = new ProcessStartInfo();
             startInfo.FileName = "CMD.exe";
@@ -387,21 +385,21 @@ namespace Synapsys_ADB
                     process.StandardInput.Close();
                     ret = process.StandardOutput.ReadToEnd();
                     ret_buf = ret.Substring(ret.IndexOf(adb_msg) + adb_msg.Length);
-                    Console.WriteLine(ret_buf);
+                    //Console.WriteLine(ret_buf);
                     //Console.Write(adb_msg);
 
                 }
                 catch (Exception ex)
                 {
                     //startInfo.WorkingDirectory = Synapsys_Values.adb_install_path;
-                    Console.WriteLine(ex.ToString());
+                    //Console.WriteLine(ex.ToString());
                 }
 
             }
         }
         public void Get_Root_Permission(String device_name)
         {
-            Console.WriteLine("");
+            //Console.WriteLine("");
             process = new Process();
             startInfo = new ProcessStartInfo();
             startInfo.FileName = "CMD.exe";
@@ -429,7 +427,7 @@ namespace Synapsys_ADB
 
                 if (!ret_buf.Equals("\r\nadbd is already running as root"))
                     Thread.Sleep(2000);
-                Console.WriteLine(ret_buf);
+                //Console.WriteLine(ret_buf);
 
                 //Console.Write(adb_msg);
 
@@ -438,7 +436,7 @@ namespace Synapsys_ADB
             catch (Exception ex)
             {
                 //startInfo.WorkingDirectory = Synapsys_Values.adb_install_path;
-                Console.WriteLine(ex.ToString());
+                //Console.WriteLine(ex.ToString());
 
             }
         }

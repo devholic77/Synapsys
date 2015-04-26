@@ -14,75 +14,78 @@ namespace Synapsys
     /// <summary>
     /// MainWindow.xaml에 대한 상호 작용 논리
     /// </summary>\
-	/// 
-	/// Daechan!!!!
-	/// 
+    /// 
+    /// Daechan!!!!
+    /// 
     public partial class MainWindow : Elysium.Controls.Window
     {
-		private static KeyboardMouse kb = null;
-		private static CaptureScreen cs = null;
+        private static KeyboardMouse kb = null;
+        private static CaptureScreen cs = null;
 
-		//HOTKEY
-		string collectedHotkey = "";
-		ArrayList tempHotkeyList, HotkeyList;
+        //HOTKEY
+        string collectedHotkey = "";
+        ArrayList tempHotkeyList, HotkeyList;
 
         //Form
         ADB_Form form;
 
-		// Socket
-		public static SynapsysSocket socketIMG1 = null;
-		public static SynapsysSocket socketData1 = null;
+        // Socket
+        public static SynapsysSocket socketIMG1 = null;
+        public static SynapsysSocket socketData1 = null;
 
-		public static SynapsysSocket socketIMG2 = null;
-		public static SynapsysSocket socketData2 = null;
+        public static SynapsysSocket socketIMG2 = null;
+        public static SynapsysSocket socketData2 = null;
 
-		public static int WIDTH = 600;
-		public static int HEIGHT = 960;        
-        
+        public static int WIDTH = 600;
+        public static int HEIGHT = 960;
+
         // Minhwan
 
         public MainWindow()
         {
-			//System.Diagnostics.Process myProcess = System.Diagnostics.Process.GetCurrentProcess();
-			//myProcess.PriorityClass = System.Diagnostics.ProcessPriorityClass.High;
+            //System.Diagnostics.Process myProcess = System.Diagnostics.Process.GetCurrentProcess();
+            //myProcess.PriorityClass = System.Diagnostics.ProcessPriorityClass.High;
 
             InitializeComponent();
 
-			Closing += new CancelEventHandler(Exit);
+            Closing += new CancelEventHandler(Exit);
 
-			Show_Log("Synapsys Started");
-			Show_Log("Please Connect devices..");
+            Show_Log("Synapsys Started");
+            Show_Log("Please Connect devices..");
 
-			// Deactivate Buttons
-			btn_d1_start.IsEnabled = false;
-			btn_d1_stop.IsEnabled = false;
-			btn_d2_start.IsEnabled = false;
-			btn_d2_stop.IsEnabled = false;
+            // Deactivate Buttons
+            btn_d1_start.IsEnabled = false;
+            btn_d1_stop.IsEnabled = false;
+            btn_d2_start.IsEnabled = false;
+            btn_d2_stop.IsEnabled = false;
 
-			//KEYBOARD, MOUSE HOOK
-			kb = KeyboardMouse.getInstance();
-			kb.Activate();
+            //KEYBOARD, MOUSE HOOK
+            kb = KeyboardMouse.getInstance();
+            kb.Activate();
 
-			HotkeyList = new ArrayList();
-			tempHotkeyList = new ArrayList();
-			KeyboardMouse.m_KeyboardHookManager.KeyUp += Hotkey;
+            HotkeyList = new ArrayList();
+            tempHotkeyList = new ArrayList();
+            KeyboardMouse.m_KeyboardHookManager.KeyUp += Hotkey;
 
-			cs = CaptureScreen.getInstance();
-			cs.Start();
+            cs = CaptureScreen.getInstance();
+            cs.Start();
 
             form = new ADB_Form();
             form.Execute += new ADB_Form.execute(Clap);
-            form.Usb_Check();            
+            form.Usb_Check();
             form.Visible = false;
             form.Show();
 
 
             Synapsys_Values.Monitor_Control.Synapsys_Check_Monitor(); // 설치된 드라이버 확인하기 
-            
+
 
             //monitor
 
-			new Thread(new ThreadStart(hz)).Start();
+            new Thread(new ThreadStart(hz)).Start();
+
+            //btn_d1_start.RaiseEvent(new RoutedEventArgs(B, btn_d1_start));
+            //SOCKET INIT //
         }
 
 		public void Window_Closing(object sender, CancelEventArgs e)
@@ -97,7 +100,7 @@ namespace Synapsys
 
 		private void hz()
 		{
-			while(true)
+			while (true)
 			{
 				Thread.Sleep(200);
 				HotkeyList.Clear();
@@ -147,81 +150,84 @@ namespace Synapsys
 				socketData1.Disconnect();
 				socketIMG2.Disconnect();
 				socketData2.Disconnect();
+
+				cs.Stop();
+				kb.Deactivate();
 			}
 			catch (Exception)
 			{
 
 			}
-
-			cs.Stop();
-			kb.Deactivate();
 		}
 
-		#region BUTTON EVENTS
+
+        #region BUTTON EVENTS
 
         //1번과 2번이 동시에 켜져있을 때 1번만 stop 불가능 2번이 stop되야 1번이 stop 가능 //장대찬 처리해주세용~
-        
-		private void btn1_start(object sender, RoutedEventArgs e)
-		{
+
+        private void btn1_start(object sender, RoutedEventArgs e)
+        {
             //Button_Function.Synapsys_Start_Monitor(Synapsys_Values.First_Device_Name); // sub program start
-			Synapsys_Values.Buttons_Function.Synapsys_Start_Monitor(Synapsys_Values.First_Device_Name);
-			btn_d1_start.IsEnabled = false;
-			btn_d1_stop.IsEnabled = true;
+            Synapsys_Values.Buttons_Function.Synapsys_Start_Monitor(Synapsys_Values.First_Device_Name);
+            btn_d1_start.IsEnabled = false;
+            btn_d1_stop.IsEnabled = true;
 
-			socketIMG1 = new SynapsysSocket("1234");
-			socketData1 = new SynapsysSocket("1235");
+            socketIMG1 = new SynapsysSocket("1234");
+            socketData1 = new SynapsysSocket("1235");
 
-			socketIMG1.DoInit();
-			socketData1.DoInit();
+            socketIMG1.DoInit();
+            socketData1.DoInit();
 
-		}
+        }
 
-		private void btn1_stop(object sender, RoutedEventArgs e)
-		{
-			Console.WriteLine("btn1_stop");
+        private void btn1_stop(object sender, RoutedEventArgs e)
+        {
+            Console.WriteLine("btn1_stop");
             Synapsys_Values.Buttons_Function.Synapsys_Stop_Monitor(Synapsys_Values.First_Device_Name);
             btn_d1_start.IsEnabled = true;
             btn_d1_stop.IsEnabled = false;
 
-			socketIMG1.Disconnect();
-			socketData1.Disconnect();
-		}
+            socketIMG1.Disconnect();
+            socketData1.Disconnect();
+        }
 
-		private void btn2_start(object sender, RoutedEventArgs e)
-		{
+
+
+        private void btn2_start(object sender, RoutedEventArgs e)
+        {
             Synapsys_Values.Buttons_Function.Synapsys_Start_Monitor(Synapsys_Values.Second_Device_Name);
-			Console.WriteLine("btn2_start");
+            Console.WriteLine("btn2_start");
             btn_d2_start.IsEnabled = false;
             btn_d2_stop.IsEnabled = true;
             btn_d1_stop.IsEnabled = false;
 
-			socketIMG2 = new SynapsysSocket("1237");
-			socketData2 = new SynapsysSocket("1238");
+            socketIMG2 = new SynapsysSocket("1237");
+            socketData2 = new SynapsysSocket("1238");
 
-			socketIMG2.DoInit();
-			socketData2.DoInit();
-		}
+            socketIMG2.DoInit();
+            socketData2.DoInit();
+        }
 
-		private void btn2_stop(object sender, RoutedEventArgs e)
-		{
+        private void btn2_stop(object sender, RoutedEventArgs e)
+        {
             Console.WriteLine("btn2_stop");
-            Synapsys_Values.Buttons_Function.Synapsys_Stop_Monitor(Synapsys_Values.Second_Device_Name); 
-            btn_d1_stop.IsEnabled = true;
+            Synapsys_Values.Buttons_Function.Synapsys_Stop_Monitor(Synapsys_Values.Second_Device_Name);
+      
             btn_d2_start.IsEnabled = true;
             btn_d2_stop.IsEnabled = false;
 
-			socketIMG2.Disconnect();
-			socketData2.Disconnect();
-		}
-		#endregion
+            socketIMG2.Disconnect();
+            socketData2.Disconnect();
+        }
+        #endregion
 
-		#region ADB
+        #region ADB
 
-		void Clap(object sender, ConnEvent e) // 이벤트 발생시 실행하고픈 함수. 델리게이트 선언의 파라미터를 따라갸아 한다.
-		{
-			//Console.WriteLine("Clap");
-			//Console.WriteLine(e.Device);
-			//Console.WriteLine(e.Message);
+        void Clap(object sender, ConnEvent e) // 이벤트 발생시 실행하고픈 함수. 델리게이트 선언의 파라미터를 따라갸아 한다.
+        {
+            //Console.WriteLine("Clap");
+            //Console.WriteLine(e.Device);
+            //Console.WriteLine(e.Message);
             Console.WriteLine(e.Check_Deivce_Msg + " : " + e.Check_Device_Flag);
             //Console.WriteLine(e.Check_Device_Flag);
 
@@ -236,9 +242,9 @@ namespace Synapsys
             //     연결되는 포트가 port[0],port[1],port[2]로 변경되야됨
             //      Android에서도 서버를 다시 열어야됨 포트를 변경해서 <- 아마될거임
 
-            if(e.Check_Deivce_Msg.Equals("Add"))
+            if (e.Check_Deivce_Msg.Equals("Add"))
             {
-                switch(e.Check_Device_Flag)
+                switch (e.Check_Device_Flag)
                 {
                     case 1:
                         btn_d1_start.Dispatcher.Invoke(new update1Callback(this.update3), "1s");
@@ -256,22 +262,89 @@ namespace Synapsys
             }
             else // Remove
             {
-                switch(e.Check_Device_Flag) // 제거제거제거  장대찬
+                switch (e.Check_Device_Flag) // 제거제거제거  장대찬
                 {
+
                     case 1:
+                        Console.WriteLine("삭제1");
                         btn_d1_stop.Dispatcher.Invoke(new update1Callback(this.update3), "1e");
-						   //Synapsys_Values.FirstSubProgram.Kill();
+                        Synapsys_Values.Buttons_Function.Synapsys_Remove_Monitor(Synapsys_Values.First_Device_Name);
+
+                        if(btn_d1_stop.IsEnabled == true)
+                        {
+                            socketIMG1.Disconnect();
+                            socketData1.Disconnect();
+                        }
+
+                        // 이부분 수정 없는데 끈어서 
+                        //socketIMG1.Disconnect();
+                        //socketData1.Disconnect();
+                        // 1번 스탑버튼 누르기
                         break;
                     case 2:
+                        Console.WriteLine("삭제2");
                         btn_d1_stop.Dispatcher.Invoke(new update1Callback(this.update3), "1se");
                         btn_d2_stop.Dispatcher.Invoke(new update1Callback(this.update3), "2e");
-                        Synapsys_Values.SecondSubProgram.Kill();
+
+                        Synapsys_Values.Buttons_Function.Synapsys_Remove_Monitor(Synapsys_Values.Second_Device_Name);
+
+                        if (btn_d2_stop.IsEnabled == true)
+                        {
+                            socketIMG2.Disconnect();
+                            socketData2.Disconnect();
+                        }
+                        //socketIMG2.Disconnect();
+                       // socketData2.Disconnect();
+
+                        // 2번 스탑버튼 누르기
                         break;
                     case 3:
                         btn_d1_stop.Dispatcher.Invoke(new update1Callback(this.update3), "1e");
                         btn_d2_stop.Dispatcher.Invoke(new update1Callback(this.update3), "2e");
-                        Synapsys_Values.FirstSubProgram.Kill();
-                        Synapsys_Values.SecondSubProgram.Kill();
+                        Synapsys_Values.Buttons_Function.Synapsys_Remove_Monitor(Synapsys_Values.First_Device_Name);
+                        Synapsys_Values.Buttons_Function.Synapsys_Remove_Monitor(Synapsys_Values.Second_Device_Name);
+
+                        if (btn_d1_stop.IsEnabled == true)
+                        {
+                            socketIMG1.Disconnect();
+                            socketData1.Disconnect();
+                        }
+
+
+                        if (btn_d2_stop.IsEnabled == true)
+                        {
+                            socketIMG2.Disconnect();
+                            socketData2.Disconnect();
+                        }
+
+                       // socketIMG1.Disconnect();
+                       // socketData1.Disconnect();
+                       // socketIMG2.Disconnect();
+                       // socketData2.Disconnect();
+
+               
+                        // 2번,1번 스탑버튼 누르기                   
+                        break;
+                    case 4:
+                        // 2번스탑 1번스탑
+                        // 1번 실행 
+                        //btn_d1_start.RaiseEvent(new RoutedEventArgs(Button.ClickEvent, btn_d1_start));
+
+                        Synapsys_Values.Buttons_Function.Synapsys_Stop_Monitor(Synapsys_Values.First_Device_Name);
+                        Synapsys_Values.Buttons_Function.Synapsys_Stop_Monitor(Synapsys_Values.Second_Device_Name);
+
+                        Synapsys_Values.Buttons_Function.Synapsys_Start_Monitor(Synapsys_Values.First_Device_Name);
+                        //이부분 대찬이형
+                        //socketIMG1.Disconnect();
+                       // socketData1.Disconnect();
+                        //socketIMG2.Disconnect();
+                       // socketData2.Disconnect();
+
+  
+
+
+                     
+
                         break;
                     default:
                         break;
@@ -290,22 +363,20 @@ namespace Synapsys
             }
              * */
 
+        }
+        private void update3(string s)
+        {
+            if (s.Equals("1s"))
+            {
+                btn_d1_start.IsEnabled = true;
+                Show_Log("Device 1 Connected!");
+            }
+            else if (s.Equals("2s"))
+            {
 
-			
-		}
-		private void update3(string s)
-		{
-			if (s.Equals("1s"))
-			{
-				btn_d1_start.IsEnabled = true;
-				Show_Log("Device 1 Connected!");
-			}
-			else if (s.Equals("2s"))
-			{
-                
-				btn_d2_start.IsEnabled = true;
-				Show_Log("Device 2 Connected!");
-			}
+                btn_d2_start.IsEnabled = true;
+                Show_Log("Device 2 Connected!");
+            }
             else if (s.Equals("1e"))
             {
                 btn_d1_stop.IsEnabled = false;
@@ -322,33 +393,9 @@ namespace Synapsys
             {
                 if (btn_d1_stop.IsEnabled == false && btn_d2_stop.IsEnabled == true)
                     btn_d1_stop.IsEnabled = true;
-		}
             }
-		#endregion
-
-		#region Popup
-		public Popup popup = new Popup();
-
-		private void Button_Click_1(object sender, RoutedEventArgs e)
-		{
-
-			string title = "KakaoTalk KakaoTalk KakaoTalk KakaoTalk KakaoTalk";
-			string message = "동해물과 백두산이 마르고 닳도록 하느님이 보우하사 우리 나라 만세 무궁화 삼천리 화려강산 대한사람 대한으로";
-			
-			//Popup popup = new Popup();
-			//popup.Set(title, message);
-			//popup.AnimateWindow();
-			////popup.Close();
-
-			TaskbarPopup popup = new TaskbarPopup();
-			popup.Gogo(title, message);
-
-		}
-		#endregion
-
-
-
-
+        }
+        #endregion
 
 		#region Option
 
@@ -369,7 +416,7 @@ namespace Synapsys
 
 		private void checkbox_handler(object sender, RoutedEventArgs e)
 		{
-			if(sender.Equals(checkbox1))
+			if (sender.Equals(checkbox1))
 			{
 				if (checkbox1.IsChecked.Value)
 				{
@@ -404,11 +451,11 @@ namespace Synapsys
 
 		private void HookManager_KeyUp1(object sender, KeyEventArgs e)
 		{
-			if(nowCollecting1)
+			if (nowCollecting1)
 			{
 				Keyup_Collector_string1 += e.KeyCode + "+";
 			}
-				
+
 		}
 		private void HookManager_KeyUp2(object sender, KeyEventArgs e)
 		{
@@ -430,7 +477,7 @@ namespace Synapsys
 		{
 			Thread.Sleep(1500);
 			KeyboardMouse.m_KeyboardHookManager.KeyUp -= HookManager_KeyUp1;
-			
+
 			checkbox1.Dispatcher.Invoke(new update1Callback(this.update1), Keyup_Collector_string1);
 			nowCollecting1 = false;
 			//Keyup_Collector_string1 = "";
@@ -460,15 +507,15 @@ namespace Synapsys
 
 
 
-		// Input Log to Listbox
-		private void Show_Log(string s)
-		{
-			Listbox1.Items.Add(s);
-			Listbox1.Items.MoveCurrentToLast();
-			Listbox1.UpdateLayout();
-		}
+        // Input Log to Listbox
+        private void Show_Log(string s)
+        {
+            Listbox1.Items.Add(s);
+            Listbox1.Items.MoveCurrentToLast();
+            Listbox1.UpdateLayout();
+        }
 
 
-	}
-	
+    }
+
 }

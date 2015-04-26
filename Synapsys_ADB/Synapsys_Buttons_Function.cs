@@ -29,6 +29,9 @@ namespace Synapsys_ADB
                
                 Synapsys_Values.FirstSubProgram = Process.Start(path, Synapsys_Values.port[2]);
                 Console.WriteLine("1번 모니터 실행");
+                
+                //Synapsys_Values.FirstSubProgram.WaitForExit();
+
                 //asdf.Close();
             }
             else
@@ -37,10 +40,14 @@ namespace Synapsys_ADB
                 Console.WriteLine("2번 모니터 실행");
                 Synapsys_Values.Second_Device_Use = "Use";
                 Synapsys_Values.SecondSubProgram = Process.Start(path, Synapsys_Values.port[5]); // 장대찬 
+
+                //Synapsys_Values.SecondSubProgram.WaitForExit();
+
                 //System.Diagnostics.Process.Start(path, Synapsys_Values.port[5]);  
             }
 
         }
+
         public void Synapsys_Remove_Monitor(String Device_Name) // usb 선이 빠진 경우
 		{
             if(Device_Name.Equals(Synapsys_Values.First_Device_Name))
