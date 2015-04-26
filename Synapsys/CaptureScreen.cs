@@ -23,7 +23,7 @@ namespace Synapsys
 		private static Screen[] scrs;
 
 		public static int currFPS = 0;
-		public static int MONITOR_FIRST_WIDTH = 0;
+
 		// 싱글톤
 		public static CaptureScreen getInstance()
 		{
@@ -50,9 +50,9 @@ namespace Synapsys
 				} else if(beforeTotalMonitor >= 2)
 				{
 					MainWindow.DEVICE1_MARGIN = Screen.AllScreens[1].Bounds.Top;
-					MONITOR_FIRST_WIDTH = Screen.AllScreens[0].Bounds.Width;
+					MainWindow.MONITOR_FIRST_WIDTH = Screen.AllScreens[0].Bounds.Width;
 					MONITOR_LR = (Screen.AllScreens[1].Bounds.X > 0 ? 1 : -1);
-					Console.WriteLine(MONITOR_FIRST_WIDTH);
+					Console.WriteLine(MainWindow.MONITOR_FIRST_WIDTH);
 				}
 			}
 		}
@@ -160,7 +160,7 @@ namespace Synapsys
 				{
 					using (Graphics g = Graphics.FromImage(bitmap))
 					{
-						g.CopyFromScreen(new Point(MONITOR_FIRST_WIDTH, 0), Point.Empty, new Size(MONITOR_WIDTH * SUBSCREEN, MONITOR_HEIGHT));
+						g.CopyFromScreen(new Point(MainWindow.MONITOR_FIRST_WIDTH, 0), Point.Empty, new Size(MONITOR_WIDTH * SUBSCREEN, MONITOR_HEIGHT));
 						
 
 						CURSORINFO pci;
@@ -168,9 +168,9 @@ namespace Synapsys
 
 						if (GetCursorInfo(out pci))
 						{
-							if (pci.flags == CURSOR_SHOWING && pci.ptScreenPos.x >= MONITOR_FIRST_WIDTH)
+							if (pci.flags == CURSOR_SHOWING && pci.ptScreenPos.x >= MainWindow.MONITOR_FIRST_WIDTH)
 							{
-								DrawIcon(g.GetHdc(), pci.ptScreenPos.x - MONITOR_FIRST_WIDTH, pci.ptScreenPos.y, pci.hCursor);
+								DrawIcon(g.GetHdc(), pci.ptScreenPos.x - MainWindow.MONITOR_FIRST_WIDTH, pci.ptScreenPos.y, pci.hCursor);
 								g.ReleaseHdc();
 							}
 						}
@@ -193,7 +193,7 @@ namespace Synapsys
 					// #2
 					if(SUBSCREEN >= 2)
 					{
-						rect = new Rectangle(MONITOR_FIRST_WIDTH + MONITOR_WIDTH, 0, MONITOR_WIDTH, MONITOR_HEIGHT);
+						rect = new Rectangle(MainWindow.MONITOR_FIRST_WIDTH + MONITOR_WIDTH, 0, MONITOR_WIDTH, MONITOR_HEIGHT);
 						using (Bitmap secondHalf = bitmap.Clone(rect, bitmap.PixelFormat))
 						{
 							using (MemoryStream stream = new MemoryStream())

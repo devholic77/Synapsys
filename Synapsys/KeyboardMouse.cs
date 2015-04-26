@@ -128,10 +128,9 @@ namespace Synapsys
 			MOUSE_Y = e.Y;
 			if(CaptureScreen.getCurrentMonitor() == "2")
 			{
-				if (MOUSE_X < 0)
-					MOUSE_X += MainWindow.WIDTH;
-				else
-					MOUSE_X -= MainWindow.WIDTH;
+
+				MOUSE_X -= MainWindow.MONITOR_FIRST_WIDTH;
+
 				if (MOUSE_X < 0)
 					MOUSE_X = 0;
 
@@ -144,10 +143,8 @@ namespace Synapsys
 			}
 			else if (CaptureScreen.getCurrentMonitor() == "3")
 			{
-				if (MOUSE_X < 0)
-					MOUSE_X += 2 * MainWindow.WIDTH;
-				else
-					MOUSE_X -= 2 * MainWindow.WIDTH;
+				MOUSE_X -= MainWindow.MONITOR_FIRST_WIDTH;
+
 				if (MOUSE_X < 0)
 					MOUSE_X = 0;
 
@@ -305,7 +302,7 @@ namespace Synapsys
 		public static void MOVE_MOUSE(int x, int y, int e, int device)
 		{
 			Console.WriteLine("MOVE_MOUSE" + x + " # " + y + " # " + e + " # " + device);
-			x -= device * MainWindow.WIDTH;
+			x += MainWindow.MONITOR_FIRST_WIDTH + (device - 1) * MainWindow.WIDTH;
 
 			switch (e)
 			{

@@ -40,6 +40,8 @@ namespace Synapsys
         public static int HEIGHT = 960;
 		public static int DEVICE1_MARGIN = 0;
 		public static int DEVICE2_MARGIN = 0;
+		public static int MONITOR_FIRST_WIDTH = 0;
+
 
         // Minhwan
 
