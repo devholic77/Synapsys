@@ -490,7 +490,7 @@ namespace Synapsys
 			if (s.Length > 1)
 				checkbox1.Content = s.Substring(0, s.Length - 1);
 			else
-				checkbox1.Content = "No Input";
+				checkbox1.Content = "Check and press again..";
 		}
 
 		private void update2(string s)
@@ -498,7 +498,7 @@ namespace Synapsys
 			if(s.Length > 1)
 				checkbox2.Content = s.Substring(0, s.Length - 1);
 			else
-				checkbox1.Content = "No Input";
+				checkbox1.Content = "Check and press again..";
 		}
 
 		private void Keyup_Collector2()
