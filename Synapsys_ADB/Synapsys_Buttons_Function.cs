@@ -17,7 +17,7 @@ namespace Synapsys_ADB
         {
 
             
-            String path = System.IO.Directory.GetCurrentDirectory(); // sub program 실행 
+            String path = System.IO.Directory.GetCurrentDirectory(); // sub program 실행 //
            
            
 
