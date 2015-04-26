@@ -38,6 +38,8 @@ namespace Synapsys
 
         public static int WIDTH = 600;
         public static int HEIGHT = 960;
+		public static int DEVICE1_MARGIN = 0;
+		public static int DEVICE2_MARGIN = 0;
 
         // Minhwan
 
@@ -328,7 +330,7 @@ namespace Synapsys
                     case 4:
                         // 2번스탑 1번스탑
                         // 1번 실행 
-                        //btn_d1_start.RaiseEvent(new RoutedEventArgs(Button.ClickEvent, btn_d1_start));
+						//btn_d1_start.RaiseEvent(new RoutedEventArgs(Button., btn_d1_start));
 
                         Synapsys_Values.Buttons_Function.Synapsys_Stop_Monitor(Synapsys_Values.First_Device_Name);
                         Synapsys_Values.Buttons_Function.Synapsys_Stop_Monitor(Synapsys_Values.Second_Device_Name);

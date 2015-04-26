@@ -118,9 +118,6 @@ namespace Synapsys
 		//{
 		//	Console.WriteLine(string.Format("KeyPress - {0}\n", e.KeyChar));
 		//}
-
-		const int MONITOR_WIDTH = 1600;
-		const int MONITOR_HEIGHT = 900;
 		static int MOUSE_X = 0;
 		static int MOUSE_Y = 0;
 
@@ -132,11 +129,13 @@ namespace Synapsys
 			if(CaptureScreen.getCurrentMonitor() == "2")
 			{
 				if (MOUSE_X < 0)
-					MOUSE_X += MONITOR_WIDTH;
+					MOUSE_X += MainWindow.WIDTH;
 				else
-					MOUSE_X -= MONITOR_WIDTH;
+					MOUSE_X -= MainWindow.WIDTH;
 				if (MOUSE_X < 0)
 					MOUSE_X = 0;
+
+				MOUSE_Y -= MainWindow.DEVICE1_MARGIN;
 
 				if (MainWindow.socketData1 != null)
 				{
@@ -146,11 +145,13 @@ namespace Synapsys
 			else if (CaptureScreen.getCurrentMonitor() == "3")
 			{
 				if (MOUSE_X < 0)
-					MOUSE_X += 2 * MONITOR_WIDTH;
+					MOUSE_X += 2 * MainWindow.WIDTH;
 				else
-					MOUSE_X -= 2 * MONITOR_WIDTH;
+					MOUSE_X -= 2 * MainWindow.WIDTH;
 				if (MOUSE_X < 0)
 					MOUSE_X = 0;
+
+				MOUSE_Y -= MainWindow.DEVICE2_MARGIN;
 
 				if (MainWindow.socketData2 != null)
 				{

@@ -42,6 +42,18 @@ namespace Synapsys
 			{
 				scrs = Screen.AllScreens;
 				beforeTotalMonitor = totalMonitor;
+
+				if(beforeTotalMonitor == 3)
+				{
+					MainWindow.DEVICE1_MARGIN = Screen.AllScreens[1].Bounds.Top;
+					MainWindow.DEVICE2_MARGIN = Screen.AllScreens[2].Bounds.Top;
+					Console.WriteLine(MainWindow.DEVICE1_MARGIN);
+					Console.WriteLine(MainWindow.DEVICE2_MARGIN);
+				} else if(beforeTotalMonitor == 2)
+				{
+					MainWindow.DEVICE1_MARGIN = Screen.AllScreens[1].Bounds.Top;
+					Console.WriteLine(MainWindow.DEVICE1_MARGIN);
+				}
 			}
 		}
 
