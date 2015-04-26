@@ -22,7 +22,7 @@ namespace Synapsys
 		private static Screen[] scrs;
 
 		public static int currFPS = 0;
-
+		public static int MONITOR_FIRST_WIDTH = 0;
 		// 싱글톤
 		public static CaptureScreen getInstance()
 		{
@@ -42,16 +42,16 @@ namespace Synapsys
 				scrs = Screen.AllScreens;
 				beforeTotalMonitor = totalMonitor;
 
-				if(beforeTotalMonitor == 3)
+				if(beforeTotalMonitor >= 3)
 				{
 					MainWindow.DEVICE1_MARGIN = Screen.AllScreens[1].Bounds.Top;
 					MainWindow.DEVICE2_MARGIN = Screen.AllScreens[2].Bounds.Top;
-					Console.WriteLine(MainWindow.DEVICE1_MARGIN);
-					Console.WriteLine(MainWindow.DEVICE2_MARGIN);
-				} else if(beforeTotalMonitor == 2)
+				} else if(beforeTotalMonitor >= 2)
 				{
 					MainWindow.DEVICE1_MARGIN = Screen.AllScreens[1].Bounds.Top;
-					Console.WriteLine(MainWindow.DEVICE1_MARGIN);
+					MONITOR_FIRST_WIDTH = Screen.AllScreens[0].Bounds.Width;
+					MONITOR_LR = (Screen.AllScreens[1].Bounds.X > 0 ? 1 : -1);
+					Console.WriteLine(MONITOR_FIRST_WIDTH);
 				}
 			}
 		}
@@ -147,6 +147,7 @@ namespace Synapsys
 		static int beforeTotalMonitor = 0;
 		static int MONITOR_WIDTH = MainWindow.WIDTH;
 		static int MONITOR_HEIGHT = MainWindow.HEIGHT;
+		static int MONITOR_LR = 0;
 
 		private static void capture()
 		{
@@ -158,7 +159,7 @@ namespace Synapsys
 				{
 					using (Graphics g = Graphics.FromImage(bitmap))
 					{
-						g.CopyFromScreen(new Point(-MONITOR_WIDTH * SUBSCREEN, 0), Point.Empty, new Size(MONITOR_WIDTH * SUBSCREEN, MONITOR_HEIGHT));
+						g.CopyFromScreen(new Point(MONITOR_FIRST_WIDTH, 0), Point.Empty, new Size(MONITOR_WIDTH * SUBSCREEN, MONITOR_HEIGHT));
 					}
 					// #1
 					Rectangle rect = new Rectangle(0, 0, MONITOR_WIDTH, MONITOR_HEIGHT);
@@ -166,6 +167,7 @@ namespace Synapsys
 					{
 						using (Bitmap firstHalf = bitmap.Clone(rect, bitmap.PixelFormat))
 						{
+							firstHalf.Save(@"c:\bitmap.jpg", ImageFormat.Jpeg);
 							using (MemoryStream stream = new MemoryStream())
 							{
 								firstHalf.Save(stream, ImageFormat.Jpeg);
@@ -175,10 +177,10 @@ namespace Synapsys
 						}
 					}
 
-					// #2					
+					// #2
 					if(SUBSCREEN >= 2)
 					{
-						rect = new Rectangle(MONITOR_WIDTH, 0, MONITOR_WIDTH, MONITOR_HEIGHT);
+						rect = new Rectangle(MONITOR_FIRST_WIDTH + MONITOR_WIDTH, 0, MONITOR_WIDTH, MONITOR_HEIGHT);
 						using (Bitmap secondHalf = bitmap.Clone(rect, bitmap.PixelFormat))
 						{
 							using (MemoryStream stream = new MemoryStream())
