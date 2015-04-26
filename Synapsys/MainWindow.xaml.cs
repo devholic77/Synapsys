@@ -487,12 +487,18 @@ namespace Synapsys
 
 		private void update1(string s)
 		{
-			checkbox1.Content = s.Substring(0, s.Length - 1);
+			if (s.Length > 1)
+				checkbox1.Content = s.Substring(0, s.Length - 1);
+			else
+				checkbox1.Content = "No Input";
 		}
 
 		private void update2(string s)
 		{
-			checkbox2.Content = s.Substring(0, s.Length - 1);
+			if(s.Length > 1)
+				checkbox2.Content = s.Substring(0, s.Length - 1);
+			else
+				checkbox1.Content = "No Input";
 		}
 
 		private void Keyup_Collector2()
