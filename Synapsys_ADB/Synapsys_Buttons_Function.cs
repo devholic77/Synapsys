@@ -55,14 +55,16 @@ namespace Synapsys_ADB
                 Synapsys_Values.First_Device_Use = "Disuse";
                 Synapsys_Values.First_Device_Name = "";
                 Synapsys_Values.First_Device_State = "";
-                Synapsys_Values.FirstSubProgram.Kill();
+                if (Synapsys_Values.FirstSubProgram != null)
+                    Synapsys_Values.FirstSubProgram.Kill();
             }
             else
             {
                 Synapsys_Values.Second_Device_Use = "Disuse";
                 Synapsys_Values.Second_Device_Name = "";
                 Synapsys_Values.Second_Device_State = "";
-                Synapsys_Values.SecondSubProgram.Kill();
+                if (Synapsys_Values.SecondSubProgram != null)
+                    Synapsys_Values.SecondSubProgram.Kill();
             }
         }
 
@@ -71,12 +73,17 @@ namespace Synapsys_ADB
             if(Device_Name.Equals(Synapsys_Values.First_Device_Name))
             {
                 Synapsys_Values.First_Device_Use = "Disuse";
-                Synapsys_Values.FirstSubProgram.Kill();
+                if (Synapsys_Values.SecondSubProgram != null)
+                    Synapsys_Values.SecondSubProgram.Kill();
+
+                
                 // 안드로이드 과제와 협의하기. 종료했을때 소켓을 닫을지 안닫을지.
             }
             else
             {
-                Synapsys_Values.SecondSubProgram.Kill();
+                if (Synapsys_Values.SecondSubProgram != null)
+                    Synapsys_Values.SecondSubProgram.Kill();
+
                 Synapsys_Values.Second_Device_Use = "Disuse";
             }
 
