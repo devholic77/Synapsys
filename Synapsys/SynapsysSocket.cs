@@ -100,7 +100,6 @@ namespace Synapsys
 				/* 연결 성공시 */
 				if (flag && clientSock != null && clientSock.Connected)
 				{
-					Console.WriteLine(message);
 					byte[] buffer = new UTF8Encoding().GetBytes(message);
 					clientSock.BeginSend(buffer, 0, buffer.Length, SocketFlags.None,
 										  new AsyncCallback(SendCallBack), "text");

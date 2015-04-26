@@ -21,9 +21,7 @@ namespace Synapsys
 		private static int MAX_MONITOR = 3;
 		private static Screen[] scrs;
 
-		public static int currFPS = 0;
-		public static int totFPS = 0;
-
+		public static volatile int currFPS = 0;
 
 		// 싱글톤
 		public static CaptureScreen getInstance()
@@ -104,7 +102,6 @@ namespace Synapsys
 					System.Windows.Forms.Cursor.Position.Y)).DeviceName,
 					@"[^\d]", string.Empty);
 		}
-
 		private static void gcMachine()
 		{
 			while(true)
@@ -112,7 +109,6 @@ namespace Synapsys
 				try
 				{
 					Console.WriteLine("Current FPS : " + currFPS);
-					totFPS += currFPS;
 					//Console.WriteLine("OK FPS : " + SynapsysSocket.currOK);
 					currFPS = 0;
 					//SynapsysSocket.currOK = 0;
@@ -154,7 +150,7 @@ namespace Synapsys
 
 		private static void capture()
 		{
-			currFPS++;
+			//currFPS++;
 			try
 			{
 				int SUBSCREEN = (Screen.AllScreens.Length - 1);
@@ -168,15 +164,39 @@ namespace Synapsys
 					Rectangle rect = new Rectangle(0, 0, MONITOR_WIDTH, MONITOR_HEIGHT);
 					if(SUBSCREEN >= 1)
 					{
-						using (Bitmap firstHalf = bitmap.Clone(rect, bitmap.PixelFormat))
+
+						using (Bitmap firstHalf1 = bitmap.Clone(rect, bitmap.PixelFormat))
 						{
-							using (MemoryStream stream = new MemoryStream())
+							using (Graphics g = Graphics.FromImage(bitmap))
 							{
-								firstHalf.Save(stream, ImageFormat.Jpeg);
-								MainWindow.socketIMG1.SendScreen(stream.ToArray());
-								stream.Close();
+								g.CopyFromScreen(new Point(-MONITOR_WIDTH * SUBSCREEN, 0), Point.Empty, new Size(MONITOR_WIDTH * SUBSCREEN, MONITOR_HEIGHT));
 							}
+
+							using (Bitmap firstHalf2 = bitmap.Clone(rect, bitmap.PixelFormat))
+							{
+								//if (!compare(firstHalf1, firstHalf2))
+								
+									using (MemoryStream stream = new MemoryStream())
+									{
+										currFPS++;
+										firstHalf2.Save(stream, ImageFormat.Jpeg);
+										MainWindow.socketIMG1.SendScreen(stream.ToArray());
+										stream.Close();
+									}
+							}
+
 						}
+
+
+						//using (Bitmap firstHalf = bitmap.Clone(rect, bitmap.PixelFormat))
+						//{
+						//	using (MemoryStream stream = new MemoryStream())
+						//	{
+						//		firstHalf.Save(stream, ImageFormat.Jpeg);
+						//		MainWindow.socketIMG1.SendScreen(stream.ToArray());
+						//		stream.Close();
+						//	}
+						//}
 					}
 
 					// #2					
