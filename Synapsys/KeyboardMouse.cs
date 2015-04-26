@@ -262,11 +262,11 @@ namespace Synapsys
 					//Console.WriteLine(string.Format("Wheel={0:000}", e.Delta));
 					if (e.Delta > 0)
 					{
-						MainWindow.socketData1.SendString("1:6:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
+						MainWindow.socketData1.SendString("1:7:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
 					}
 					else
 					{
-						MainWindow.socketData1.SendString("1:7:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
+						MainWindow.socketData1.SendString("1:6:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
 					}
 				}
 			}
@@ -277,11 +277,11 @@ namespace Synapsys
 					//Console.WriteLine(string.Format("Wheel={0:000}", e.Delta));
 					if (e.Delta > 0)
 					{
-						MainWindow.socketData2.SendString("1:6:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
+						MainWindow.socketData2.SendString("1:7:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
 					}
 					else
 					{
-						MainWindow.socketData2.SendString("1:7:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
+						MainWindow.socketData2.SendString("1:6:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
 					}
 				}
 			}

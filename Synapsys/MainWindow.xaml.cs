@@ -180,7 +180,14 @@ namespace Synapsys
             socketIMG1.DoInit();
             socketData1.DoInit();
 
+			new Thread(new ThreadStart(FPSCHECK)).Start();
         }
+
+		private void FPSCHECK()
+		{
+			Thread.Sleep(10000);
+			Console.WriteLine("Total >> " + CaptureScreen.totFPS);
+		}
 
         private void btn1_stop(object sender, RoutedEventArgs e)
         {

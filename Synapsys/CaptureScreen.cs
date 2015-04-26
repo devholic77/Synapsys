@@ -22,6 +22,7 @@ namespace Synapsys
 		private static Screen[] scrs;
 
 		public static int currFPS = 0;
+		public static int totFPS = 0;
 
 
 		// 싱글톤
@@ -111,6 +112,7 @@ namespace Synapsys
 				try
 				{
 					Console.WriteLine("Current FPS : " + currFPS);
+					totFPS += currFPS;
 					//Console.WriteLine("OK FPS : " + SynapsysSocket.currOK);
 					currFPS = 0;
 					//SynapsysSocket.currOK = 0;
