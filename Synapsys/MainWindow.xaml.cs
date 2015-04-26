@@ -176,6 +176,9 @@ namespace Synapsys
         private void btn1_start(object sender, RoutedEventArgs e)
         {
             //Button_Function.Synapsys_Start_Monitor(Synapsys_Values.First_Device_Name); // sub program start
+
+            Synapsys_Values.ADB_Instruction.Port_Define(Synapsys_Values.port[0], Synapsys_Values.port[1], Synapsys_Values.port[2], Synapsys_Values.First_Device_Name);
+
             Synapsys_Values.Buttons_Function.Synapsys_Start_Monitor(Synapsys_Values.First_Device_Name);
             btn_d1_start.IsEnabled = false;
             btn_d1_stop.IsEnabled = true;
@@ -203,6 +206,10 @@ namespace Synapsys
 
         private void btn2_start(object sender, RoutedEventArgs e)
         {
+
+            Synapsys_Values.ADB_Instruction.Port_Define(Synapsys_Values.port[3], Synapsys_Values.port[4], Synapsys_Values.port[5], Synapsys_Values.Second_Device_Name);
+
+
             Synapsys_Values.Buttons_Function.Synapsys_Start_Monitor(Synapsys_Values.Second_Device_Name);
             Console.WriteLine("btn2_start");
             btn_d2_start.IsEnabled = false;
