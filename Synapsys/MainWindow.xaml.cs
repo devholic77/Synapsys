@@ -93,10 +93,14 @@ namespace Synapsys
 		public void Window_Closing(object sender, CancelEventArgs e)
 		{
 			//this.Close();
-			if (Synapsys_Values.FirstSubProgram != null)
+            if (Synapsys_Values.FirstSubProgram != null) { 
 				Synapsys_Values.FirstSubProgram.Kill();
-			if (Synapsys_Values.SecondSubProgram != null)
+                Synapsys_Values.FirstSubProgram = null;
+            }
+            if (Synapsys_Values.SecondSubProgram != null) { 
 				Synapsys_Values.SecondSubProgram.Kill();
+                Synapsys_Values.SecondSubProgram = null;
+            }
 
 		}
 
@@ -176,7 +180,7 @@ namespace Synapsys
 
             socketIMG1 = new SynapsysSocket("1234");
             socketData1 = new SynapsysSocket("1235");
-
+            Synapsys_Values.First_Monitor_Stop_Enable = true;
             socketIMG1.DoInit();
             socketData1.DoInit();
 
@@ -188,7 +192,7 @@ namespace Synapsys
             Synapsys_Values.Buttons_Function.Synapsys_Stop_Monitor(Synapsys_Values.First_Device_Name);
             btn_d1_start.IsEnabled = true;
             btn_d1_stop.IsEnabled = false;
-
+            Synapsys_Values.First_Monitor_Stop_Enable = false;
             socketIMG1.Disconnect();
             socketData1.Disconnect();
         }
@@ -206,6 +210,7 @@ namespace Synapsys
             socketIMG2 = new SynapsysSocket("1237");
             socketData2 = new SynapsysSocket("1238");
 
+            Synapsys_Values.Second_Monitor_Stop_Enable = true;
             socketIMG2.DoInit();
             socketData2.DoInit();
         }
@@ -214,7 +219,9 @@ namespace Synapsys
         {
             Console.WriteLine("btn2_stop");
             Synapsys_Values.Buttons_Function.Synapsys_Stop_Monitor(Synapsys_Values.Second_Device_Name);
-      
+
+            Synapsys_Values.Second_Monitor_Stop_Enable = false;
+
             btn_d2_start.IsEnabled = true;
             btn_d2_stop.IsEnabled = false;
 
@@ -272,7 +279,7 @@ namespace Synapsys
                         btn_d1_stop.Dispatcher.Invoke(new update1Callback(this.update3), "1e");
                         Synapsys_Values.Buttons_Function.Synapsys_Remove_Monitor(Synapsys_Values.First_Device_Name);
 
-                        if(btn_d1_stop.IsEnabled == true)
+                        if(Synapsys_Values.First_Monitor_Stop_Enable  == true)
                         {
                             socketIMG1.Disconnect();
                             socketData1.Disconnect();
@@ -290,7 +297,7 @@ namespace Synapsys
 
                         Synapsys_Values.Buttons_Function.Synapsys_Remove_Monitor(Synapsys_Values.Second_Device_Name);
 
-                        if (btn_d2_stop.IsEnabled == true)
+                        if (Synapsys_Values.Second_Monitor_Stop_Enable == true)
                         {
                             socketIMG2.Disconnect();
                             socketData2.Disconnect();
@@ -306,24 +313,19 @@ namespace Synapsys
                         Synapsys_Values.Buttons_Function.Synapsys_Remove_Monitor(Synapsys_Values.First_Device_Name);
                         Synapsys_Values.Buttons_Function.Synapsys_Remove_Monitor(Synapsys_Values.Second_Device_Name);
 
-                        if (btn_d1_stop.IsEnabled == true)
+
+                        if (Synapsys_Values.First_Monitor_Stop_Enable == true)
                         {
                             socketIMG1.Disconnect();
                             socketData1.Disconnect();
                         }
 
 
-                        if (btn_d2_stop.IsEnabled == true)
+                        if (Synapsys_Values.Second_Monitor_Stop_Enable == true)
                         {
                             socketIMG2.Disconnect();
                             socketData2.Disconnect();
                         }
-
-                       // socketIMG1.Disconnect();
-                       // socketData1.Disconnect();
-                       // socketIMG2.Disconnect();
-                       // socketData2.Disconnect();
-
                
                         // 2번,1번 스탑버튼 누르기                   
                         break;
@@ -336,34 +338,12 @@ namespace Synapsys
                         Synapsys_Values.Buttons_Function.Synapsys_Stop_Monitor(Synapsys_Values.Second_Device_Name);
 
                         Synapsys_Values.Buttons_Function.Synapsys_Start_Monitor(Synapsys_Values.First_Device_Name);
-                        //이부분 대찬이형
-                        //socketIMG1.Disconnect();
-                       // socketData1.Disconnect();
-                        //socketIMG2.Disconnect();
-                       // socketData2.Disconnect();
-
-  
-
-
-                     
-
+                        
                         break;
                     default:
                         break;
                 }
             }
-            /*
-            if (e.Check_Deivce_Msg.Equals("Add"))
-            {
-               for(int i=0; Synapsys_Values.Synapsys_Auto_Connect_List[i] != null; i++)
-               {
-                   if( Synapsys_Values.Synapsys_Auto_Connect_List[i].Equals(e.Message))
-                   {
-                       //auto ㄱㄱ 
-                   }
-               }
-            }
-             * */
 
         }
         private void update3(string s)

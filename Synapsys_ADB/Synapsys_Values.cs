@@ -55,5 +55,8 @@ namespace Synapsys_ADB
 
         public static Synapsys_Monitor_Control Monitor_Control = new Synapsys_Monitor_Control();
 
+
+        public static bool First_Monitor_Stop_Enable = false;
+        public static bool Second_Monitor_Stop_Enable = false;
     }
 }

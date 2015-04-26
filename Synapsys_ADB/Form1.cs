@@ -7,6 +7,8 @@ namespace Synapsys_ADB
 {
 	public partial class ADB_Form : Form
 	{
+       
+
 		public ADB_Form()
 		{
 			InitializeComponent();
@@ -25,7 +27,16 @@ namespace Synapsys_ADB
 				//Console.WriteLine(m);
 				if (device_check_flag == true && (m.WParam.ToInt32() != DBT_DEVICEARRIVAL))
 				{
-					new Thread(new ThreadStart(Usb_Check)).Start();
+                    Thread asdf = new Thread(new ThreadStart(Usb_Check));
+                    try
+                    {
+                        asdf.Start();
+                    }
+                    catch(Exception)
+                    {
+                        Console.WriteLine("error");
+                    }
+
 					Console.WriteLine("Usb Checked");
 				}
 			}
@@ -51,13 +62,13 @@ namespace Synapsys_ADB
 					e.Message = Synapsys_Values.Current_Device_Name;
                     e.Check_Deivce_Msg = Synapsys_Values.Check_Deivce_Msg;
                     e.Check_Device_Flag = Synapsys_Values.Check_Device_Flag;
-      
-                   
-
+                        
 					Execute(this, e);  // 이벤트 실행. this는 이 객체를 말하는것.
 				}
 			}
 			device_check_flag = true;
+            Console.WriteLine("end");
+  
 		}
 
 

@@ -18,8 +18,7 @@ namespace Synapsys_ADB
 
             
             String path = System.IO.Directory.GetCurrentDirectory(); // sub program 실행 
-            path.IndexOf("Synapsys");
-            path = path.Substring(0, path.IndexOf("Synapsys\\")) + "Synapsys_Sub_Program\\Synapsys_Sub_Program\\bin\\Release\\Synapsys_Sub_Program.exe";
+           
            
 
             if(Device_Name.Equals(Synapsys_Values.First_Device_Name)) // 1e대인경우
@@ -55,16 +54,21 @@ namespace Synapsys_ADB
                 Synapsys_Values.First_Device_Use = "Disuse";
                 Synapsys_Values.First_Device_Name = "";
                 Synapsys_Values.First_Device_State = "";
-                if (Synapsys_Values.FirstSubProgram != null)
+                if (Synapsys_Values.FirstSubProgram != null) { 
                     Synapsys_Values.FirstSubProgram.Kill();
+                    Synapsys_Values.FirstSubProgram = null;
+
+                }
             }
             else
             {
                 Synapsys_Values.Second_Device_Use = "Disuse";
                 Synapsys_Values.Second_Device_Name = "";
                 Synapsys_Values.Second_Device_State = "";
-                if (Synapsys_Values.SecondSubProgram != null)
+                if (Synapsys_Values.SecondSubProgram != null) { 
                     Synapsys_Values.SecondSubProgram.Kill();
+                Synapsys_Values.SecondSubProgram = null;
+                }
             }
         }
 
@@ -73,18 +77,21 @@ namespace Synapsys_ADB
             if(Device_Name.Equals(Synapsys_Values.First_Device_Name))
             {
                 Synapsys_Values.First_Device_Use = "Disuse";
-                if (Synapsys_Values.SecondSubProgram != null)
-                    Synapsys_Values.SecondSubProgram.Kill();
+                if (Synapsys_Values.FirstSubProgram != null) { 
+                    Synapsys_Values.FirstSubProgram.Kill();
+                    Synapsys_Values.FirstSubProgram = null;
 
-                
+                }
+
                 // 안드로이드 과제와 협의하기. 종료했을때 소켓을 닫을지 안닫을지.
             }
             else
             {
-                if (Synapsys_Values.SecondSubProgram != null)
-                    Synapsys_Values.SecondSubProgram.Kill();
-
                 Synapsys_Values.Second_Device_Use = "Disuse";
+                if (Synapsys_Values.SecondSubProgram != null) { 
+                    Synapsys_Values.SecondSubProgram.Kill();
+                    Synapsys_Values.SecondSubProgram = null;
+                }
             }
 
         }
