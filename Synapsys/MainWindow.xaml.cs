@@ -428,7 +428,7 @@ namespace Synapsys
 					Keyup_Collector_string1 = "";
 					new Thread(Keyup_Collector1).Start();
 				}
-				else
+				else//
 				{
 					checkbox1_flag = false;
 				}
