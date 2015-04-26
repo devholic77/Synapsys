@@ -63,11 +63,18 @@ namespace Synapsys
 		{
 			if (thread != null && thread.IsAlive)
 			{
-				thread.Interrupt();
-				thread = null;
+				try
+				{
+					thread.Interrupt();
+					thread = null;
 
-				gcThread.Interrupt();
-				gcThread = null;
+					gcThread.Interrupt();
+					gcThread = null;
+				}
+				catch (Exception)
+				{
+
+				}
 			}
 		}
 
@@ -89,13 +96,21 @@ namespace Synapsys
 		{
 			while(true)
 			{
-				Console.WriteLine("Current FPS : " + currFPS);
-				//Console.WriteLine("OK FPS : " + SynapsysSocket.currOK);
-				currFPS = 0; 
-				//SynapsysSocket.currOK = 0;
-				//GC.Collect();
-				//Refresh();
-				Thread.Sleep(1000);
+				try
+				{
+					Console.WriteLine("Current FPS : " + currFPS);
+					//Console.WriteLine("OK FPS : " + SynapsysSocket.currOK);
+					currFPS = 0;
+					//SynapsysSocket.currOK = 0;
+					//GC.Collect();
+					//Refresh();
+					Thread.Sleep(1000);
+				}
+				catch (Exception)
+				{
+
+				}
+				
 			}
 		}
 

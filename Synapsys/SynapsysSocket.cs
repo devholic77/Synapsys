@@ -51,8 +51,15 @@ namespace Synapsys
 
 		public void Disconnect()
 		{
-			clientSock.Disconnect(false);
-			clientSock = null;
+			try
+			{
+				clientSock.Disconnect(false);
+				clientSock = null;
+			}
+			catch (Exception)
+			{
+
+			}
 		}
 
 		/*----------------------*
@@ -93,7 +100,7 @@ namespace Synapsys
 				/* 연결 성공시 */
 				if (flag && clientSock != null && clientSock.Connected)
 				{
-					//Console.WriteLine(message);
+					Console.WriteLine(message);
 					byte[] buffer = new UTF8Encoding().GetBytes(message);
 					clientSock.BeginSend(buffer, 0, buffer.Length, SocketFlags.None,
 										  new AsyncCallback(SendCallBack), "text");

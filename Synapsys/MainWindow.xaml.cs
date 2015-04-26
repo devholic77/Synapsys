@@ -83,14 +83,17 @@ namespace Synapsys
             //monitor
 
 			new Thread(new ThreadStart(hz)).Start();
-
-
-			//SOCKET INIT //
-			
-
-			
-			
         }
+
+		public void Window_Closing(object sender, CancelEventArgs e)
+		{
+			//this.Close();
+			if (Synapsys_Values.FirstSubProgram != null)
+				Synapsys_Values.FirstSubProgram.Kill();
+			if (Synapsys_Values.SecondSubProgram != null)
+				Synapsys_Values.SecondSubProgram.Kill();
+
+		}
 
 		private void hz()
 		{
@@ -138,6 +141,18 @@ namespace Synapsys
 
 		void Exit(object sender, CancelEventArgs e)
 		{
+			try
+			{
+				socketIMG1.Disconnect();
+				socketData1.Disconnect();
+				socketIMG2.Disconnect();
+				socketData2.Disconnect();
+			}
+			catch (Exception)
+			{
+
+			}
+
 			cs.Stop();
 			kb.Deactivate();
 		}
