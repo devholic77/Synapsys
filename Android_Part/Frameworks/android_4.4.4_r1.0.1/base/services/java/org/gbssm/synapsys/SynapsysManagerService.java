@@ -2,6 +2,8 @@ package org.gbssm.synapsys;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.gbssm.synapsys.MessageProtocol.ControlProtocol;
 import org.gbssm.synapsys.MessageProtocol.MediaProtocol;
@@ -80,7 +82,10 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	private HashMap<Integer, String> mCurrentTaskMap = new HashMap<Integer, String>();
 	private int mCurrentTopTaskID = -1;
 	
+	private ConcurrentHashMap<Integer, Notification> mCurrentNotiMap = new ConcurrentHashMap<Integer, Notification>(10);
+	private ConcurrentLinkedQueue<Integer> mCurrentNotiQueue = new ConcurrentLinkedQueue<Integer>();
 	private Notification mRecentNoti;
+	private String mRecentNotiText;
 	private String mRecentPackageName;
 	private int mRecentNotificationID;	
 	
@@ -119,7 +124,19 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 		if (DEBUG)
 			Slog.v(TAG, "reqeustSynapsysForeground() : " + foreground);
 		
-		return (isVirtualDeviceEnabled = !foreground);
+		isVirtualDeviceEnabled = !foreground;
+		
+		if (mControlThread != null) {
+			try {
+				ControlProtocol<Integer, Integer, Integer> protocol = new ControlProtocol<Integer, Integer, Integer>(ControlProtocol.TYPE_APP_EVENT); 
+				protocol.mCode = foreground? ControlProtocol.CODE_APP_START : ControlProtocol.CODE_APP_STOP;
+
+				mControlThread.send(protocol);
+				
+			} catch (Exception e) { ; }
+		}
+		
+		return isVirtualDeviceEnabled;
 	}
 	
 	
@@ -373,9 +390,12 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 		switch (state) {
 		case MediaProtocol.RECEIVED_STATE_NOTI:
 			try {
-				if (mRecentNoti != null)
+				mCurrentNotiQueue.remove(notificationId);
+				Notification noti = mCurrentNotiMap.remove(notificationId);
+				
+				if (noti != null)
 					// Notification 제거 intent 실행 
-					mRecentNoti.contentIntent.send();	
+					noti.contentIntent.send();	
 				
 				//Notification 상태바에서 제거 
 				mNotificationManager.cancel(notificationId);	
@@ -413,6 +433,13 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 		return false;
 	}
 	
+	/**
+	 * Synapsys Service가 구동 중인지 여부를 반환한다. 
+	 * @return
+	 */
+	public boolean isServiceRunning() {
+		return isServiceRunning;
+	}
 	
 	/**
 	 * USB 연결 상태를 탐지하여 이벤트를 발생시킨다.   
@@ -454,51 +481,64 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 	public void dispatchNotification(final String packageName, final int id, Notification notification) {		
 		if (packageName == null || notification == null || id < 0)
 			return;
-		
-			Bundle bundle = notification.extras;
-			
-			StringBuilder builder = new StringBuilder();
-			if (bundle != null) {
-				String title = bundle.getString(Notification.EXTRA_TITLE);
-				if (title == null) 
-					title = bundle.getString(Notification.EXTRA_TITLE_BIG);
-				if (title != null)
-					builder.append("[ ").append(title).append(" ]").append("\r\n");
-				
-				
-				String text = bundle.getString(Notification.EXTRA_TEXT);
-				if (text == null)
-					text = bundle.getString(Notification.EXTRA_TEXT_LINES);
-				if (text != null)
-					builder.append(" : ").append(text).append("\r\n");
-				
-				String subtext = bundle.getString(Notification.EXTRA_SUB_TEXT);
-				if (subtext == null)
-					subtext = bundle.getString(Notification.EXTRA_SUMMARY_TEXT);
-				if (subtext != null)
-					builder.append("\t").append(subtext);
-			}
 
-			MediaProtocol protocol = new MediaProtocol(MediaProtocol.SENDER_STATE_NOTI);
-			protocol.id = id;
-			protocol.putContentMessage(builder.toString());
-		
-			try {
-				ApplicationInfo info = mPackageManager.getApplicationInfo(
-						packageName, PackageManager.GET_META_DATA);
+		Bundle bundle = notification.extras;
 
-				protocol.putName((String) mPackageManager.getApplicationLabel(info));
-				
-				Bitmap icon = notification.largeIcon;
-				protocol.putIcon((icon != null)? icon : 
-					((BitmapDrawable)mPackageManager.getApplicationIcon(info)).getBitmap());
-	
-			} catch (Exception e) { ; }
-			
-			invokeNotificationEvent(protocol); 	
+		StringBuilder builder = new StringBuilder();
+		if (bundle != null) {
+			String title = bundle.getString(Notification.EXTRA_TITLE);
+			if (title == null)
+				title = bundle.getString(Notification.EXTRA_TITLE_BIG);
+			if (title != null)
+				builder.append(title).append("; ");
+
+			String text = bundle.getString(Notification.EXTRA_TEXT);
+			if (text == null)
+				text = bundle.getString(Notification.EXTRA_TEXT_LINES);
+			if (text != null)
+				builder.append(text).append("; ");
+
+			String subtext = bundle.getString(Notification.EXTRA_SUB_TEXT);
+			if (subtext == null)
+				subtext = bundle.getString(Notification.EXTRA_SUMMARY_TEXT);
+			if (subtext != null)
+				builder.append(subtext);
+		}
+		
+		String builtStr = builder.toString();
+		
+		if (packageName.equals(mRecentPackageName))
+			if (builtStr.equals(mRecentNotiText))
+				if (notification.number == mRecentNoti.number)
+					return ;
+
+		MediaProtocol protocol = new MediaProtocol(MediaProtocol.SENDER_STATE_NOTI);
+		protocol.id = id;
+		protocol.putContentMessage(builtStr);
+
+		try {
+			ApplicationInfo info = mPackageManager.getApplicationInfo(
+					packageName, PackageManager.GET_META_DATA);
+
+			protocol.putName((String) mPackageManager.getApplicationLabel(info));
+
+			Bitmap icon = notification.largeIcon;
+			protocol.putIcon((icon != null) ? icon
+					: ((BitmapDrawable) mPackageManager
+							.getApplicationIcon(info)).getBitmap());
+
+		} catch (Exception e) { ; }
+
+		invokeNotificationEvent(protocol);	
 		
 		// 읽어온 최신 Noti 정보 임시 저장 
+		if (mCurrentNotiQueue.size() >= 10) 
+			mCurrentNotiMap.remove(mCurrentNotiQueue.poll());
+		mCurrentNotiQueue.add(id);
+		mCurrentNotiMap.put(id, notification);
+		
 		mRecentNoti = notification;
+		mRecentNotiText = builtStr;
 		mRecentPackageName = packageName;
 		mRecentNotificationID = id;
 		return;
@@ -535,7 +575,10 @@ public class SynapsysManagerService extends ISynapsysManager.Stub {
 		mCurrentTaskMap.clear();
 		mCurrentTopTaskID = -1;
 		
+		mCurrentNotiQueue.clear();
+		mCurrentNotiMap.clear();
 		mRecentNoti = null;
+		mRecentNotiText = null;
 		mRecentPackageName = null;
 		mRecentNotificationID = -1;
 	}

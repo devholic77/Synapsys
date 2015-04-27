@@ -57,11 +57,12 @@ public class SynapsysBroadcastReceiver extends BroadcastReceiver {
 			mApplication.setControllerConnected(false);
 			mApplication.stopStreaming();
 			
-			if ((!usbReady && !reaction) || (!pcReady && !reaction)) {
+			if ((usbReady && !pcReady && !reaction)) {
 				String message = context.getString(R.string.pc_disconnected);
 				mToast.setText(message);
 				mToast.show();
 			}
 		}
+		
 	}
 }

@@ -39,6 +39,9 @@
 // Log debug messages about the vibrator.
 #define DEBUG_VIBRATOR 0
 
+// Log debug for Synapsys. (ADDED)
+#define DEBUG_SYNAPSYS 0
+
 #include "InputReader.h"
 
 #include <cutils/log.h>
@@ -324,6 +327,7 @@ void InputReader::loopOnce() {
         if (count) {
             processEventsLocked(mEventBuffer, count);
         }
+        
         /* added =============================================*/
       
 		if (once) {
@@ -381,8 +385,8 @@ void InputReader::loopOnce() {
     // which occasionally calls into the input reader.
     mQueuedListener->flush();
 }
-/* added */
 
+/* added */
 void InputReader::virtualDeviceEvent(int32_t event_type, int32_t event_code, float value_1, float value_2){
 	//	TODO : Framework 레벨에서 내려오는 이벤트를 처리하는 함수
 	// 	가상 마우스, 가상 키보드 이벤트 처리 
@@ -400,8 +404,6 @@ void InputReader::virtualDeviceEvent(int32_t event_type, int32_t event_code, flo
 		
 			if(event_code == DEVICE_ADD)
 			{
-				
-				
 				event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
 				event[0].deviceId = (int32_t)21;
 				event[0].type = 0x10000000;
@@ -415,8 +417,6 @@ void InputReader::virtualDeviceEvent(int32_t event_type, int32_t event_code, flo
 				event[1].value = 0x00000000;
 				
 				processEventsLocked(event,2);
-				
-
 			}
 			else if(event_code == DEVICE_REMOVE)
 			{
@@ -436,14 +436,23 @@ void InputReader::virtualDeviceEvent(int32_t event_type, int32_t event_code, flo
 				
 				processEventsLocked(event,1);
 			}
-		
 		break;
+		
 		//가상 키보드 
 		case KEYBOARD_EVENT:			
 
 			deviceIndex = mDevices.indexOfKey((int32_t)dev_number);
+			if (deviceIndex < 0) {
+				ALOGW("Ignoring spurious device removed event for deviceId %d.", (int32_t)dev_number);
+				break;
+			}
+	
 			device = mDevices.valueAt(deviceIndex);
-			
+			if (device->isIgnored()) {
+				//ALOGD("Discarding event for ignored deviceId %d.", deviceId);
+				break;
+			}
+		
 			// 키가 눌려졌을 때				
 			if(event_code == KEYBOARD_KEY)
 			{
@@ -539,14 +548,22 @@ void InputReader::virtualDeviceEvent(int32_t event_type, int32_t event_code, flo
 				virtual_event[2].value = 0x00000000;
 	
 				processEventsLocked(&virtual_event[0] ,3);
-			}			
-			
+			}		
 		break;
 		
 		//가상 마우스 
 		case MOUSE_EVENT:		
 			deviceIndex = mDevices.indexOfKey((int32_t)VIRTURE_MOUSE_ID);
+			if (deviceIndex < 0) {
+				ALOGW("Ignoring spurious device removed event for deviceId %d.", (int32_t)VIRTURE_MOUSE_ID);
+				break;
+			}
+			
 			device = mDevices.valueAt(deviceIndex);		
+			if (device->isIgnored()) {
+				//ALOGD("Discarding event for ignored deviceId %d.", deviceId);
+				break;
+			}
 			
 			if(event_code == MOUSE_L_CLICK)	//when mouse left click event
 			{				
@@ -688,9 +705,11 @@ void InputReader::virtualDeviceEvent(int32_t event_type, int32_t event_code, flo
 				pre_mouse_y = mouse_y;
 				mouse_x = value_1;
 				mouse_y = value_2;
-				device->process(event, 3);	
+				device->process(event, 3);
 				
+				return;
 			}
+			
 			if(event_code == MOUSE_WHELL_UP)	
 			{
 				// mouse 휠 업 이벤트 생성, 발생 
@@ -709,7 +728,8 @@ void InputReader::virtualDeviceEvent(int32_t event_type, int32_t event_code, flo
 				mouse_x = value_1;
 				mouse_y = value_2;
 				device->process(event, 2);	
-			}		
+			}	
+				
 			if(event_code == MOUSE_WHELL_DOWN)	
 			{
 				// mouse 휠 업 이벤트 생성, 발생 
@@ -728,22 +748,14 @@ void InputReader::virtualDeviceEvent(int32_t event_type, int32_t event_code, flo
 				mouse_x = value_1;
 				mouse_y = value_2;
 				device->process(event, 2);	
-			}				
-		
+			}	
 		break;		
 		
 		default:
-		
 		break;
 	}	
 	
-	// Flush queued events out to the listener.
-    // This must happen outside of the lock because the listener could potentially call
-    // back into the InputReader's methods, such as getScanCodeState, or become blocked
-    // on another thread similarly waiting to acquire the InputReader lock thereby
-    // resulting in a deadlock.  This situation is actually quite plausible because the
-    // listener is actually the input dispatcher, which calls into the window manager,
-    // which occasionally calls into the input reader.
+	
 	mQueuedListener->flush();
 }
 
@@ -772,27 +784,35 @@ void InputReader::processEventsLocked( RawEvent* rawEvents, size_t count) {
         } else {
             switch (rawEvent->type) {
             case EventHubInterface::DEVICE_ADDED:
-                       
                 addDeviceLocked(rawEvent->when, rawEvent->deviceId);
+                
                 /* added ===========================ADDED==== */
+                #if DEBUG_SYNAPSYS
                  ALOGD("**************** BatchSize: %d Count: %d", batchSize, count);
                  ALOGD("**************** ADD event: device=%d type=0x%04x code=0x%04x value=0x%08x when=%lld",
                 rawEvent->deviceId, rawEvent->type, rawEvent->code, rawEvent->value,
                 rawEvent->when);
+                 
                  ALOGD("**************** ADD event[0]: device=%d type=0x%04x code=0x%04x value=0x%08x when=%lld",
                 rawEvent[0].deviceId, rawEvent[0].type, rawEvent[0].code, rawEvent[0].value,
                 rawEvent[0].when);
+                
                 ALOGD("**************** ADD event[1]: device=%d type=0x%04x code=0x%04x value=0x%08x when=%lld",
                 rawEvent[1].deviceId, rawEvent[1].type, rawEvent[1].code, rawEvent[1].value,
                 rawEvent[1].when);
+                
                 ALOGD("**************** ADD event[2]: device=%d type=0x%04x code=0x%04x value=0x%08x when=%lld",
                 rawEvent[2].deviceId, rawEvent[2].type, rawEvent[2].code, rawEvent[2].value,
                 rawEvent[2].when);
+                #endif
                  /* ==================================== */
                 break;
+                
             case EventHubInterface::DEVICE_REMOVED:
                 removeDeviceLocked(rawEvent->when, rawEvent->deviceId);
+                
                 /* added ===========================ADDED==== */
+                #if DEBUG_SYNAPSYS
                  ALOGD("**************** BatchSize: %d Count: %d", batchSize, count);
                  ALOGD("**************** DEVICE_REMOVED event: device=%d type=0x%04x code=0x%04x value=0x%08x when=%lld",
                 rawEvent->deviceId, rawEvent->type, rawEvent->code, rawEvent->value,
@@ -806,16 +826,22 @@ void InputReader::processEventsLocked( RawEvent* rawEvents, size_t count) {
                 ALOGD("**************** DEVICE_REMOVED event[2]: device=%d type=0x%04x code=0x%04x value=0x%08x when=%lld",
                 rawEvent[2].deviceId, rawEvent[2].type, rawEvent[2].code, rawEvent[2].value,
                 rawEvent[2].when);
+                #endif
                  /* ==================================== */
                 break;
+                
             case EventHubInterface::FINISHED_DEVICE_SCAN:
                 handleConfigurationChangedLocked(rawEvent->when);
+                
                  /* added =============================== */
+                #if DEBUG_SYNAPSYS
                  ALOGD("**************** Change event: device=%d type=0x%04x code=0x%04x value=0x%08x when=%lld",
                 rawEvent->deviceId, rawEvent->type, rawEvent->code, rawEvent->value,
                 rawEvent->when);
+                #endif
                  /* ==================================== */
                 break;
+                
             default:
                 ALOG_ASSERT(false); // can't happen
                 break;
@@ -856,6 +882,7 @@ void InputReader::addDeviceLocked(nsecs_t when, int32_t deviceId) {
 		controllerNumber = 1;
 	}
  /* ===================================== */
+ 
     InputDevice* device = createDeviceLocked(deviceId, controllerNumber, identifier, classes);
     device->configure(when, &mConfig, 0);
     device->reset(when);
@@ -3018,6 +3045,7 @@ void CursorInputMapper::sync(nsecs_t when) {
 		
 	}
 	/*===============================*/
+	
     // Send motion event.
     if (downChanged || moved || scrolled || buttonsChanged) {
         int32_t metaState = mContext->getGlobalMetaState();

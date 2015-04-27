@@ -54,19 +54,26 @@ public class MainActivity extends Activity {
 		super.onResume();
 		
 		mApplication.getSynapsysManager().requestSynapsysForeground(true);
-		mApplication.notifyStreamingView(mStreamingView);
+		
+		// Synapsys Streaming 준비
 		mApplication.notifyStreamingActivity(this);
-		mApplication.notifySynapsysDevice();
+		mApplication.notifyStreamingView(mStreamingView);
+		
+		// Synapsys Toast를 띄운다.
+		mApplication.notifySynapsysDeviceByToast();
+		
+		// Synapsys Streaming 시작.
 		mApplication.startStreaming();
 		
-		notifyDisplaying(mApplication.isDisplaying());
+		// SynapsysBoard를 띄울지 말지 결정한다.
+		notifyStreamingStateByBoard(mApplication.isDisplaying());
 	}
 
 	@Override
 	protected void onPause() {
-		mApplication.getSynapsysManager().requestSynapsysForeground(false);
 		mApplication.notifyStreamingView(null);
 		mApplication.notifyStreamingActivity(null);
+		mApplication.getSynapsysManager().requestSynapsysForeground(false);
 		
 		super.onPause();
 	}
@@ -90,8 +97,13 @@ public class MainActivity extends Activity {
 		return false;
 	}
 
-	public void notifyDisplaying(boolean enable) {
-		mStreamingBoard.setVisibility(enable? View.GONE : View.VISIBLE);
+	/**
+	 * StreamingBoard를 통해 Streaming 상태를 나타낸다. 
+	 * 
+	 * @param isStreamingNow true: StreamingBoard OFF / false: StreamingBoard ON
+	 */
+	public synchronized void notifyStreamingStateByBoard(boolean isStreamingNow) {
+		mStreamingBoard.setVisibility(isStreamingNow? View.GONE : View.VISIBLE);
 	}
 	
 }

@@ -57,6 +57,8 @@ public class StreamingView extends SurfaceView implements SurfaceHolder.Callback
 		init();
 
 		mSurfaceHandler.isRunning = true;
+		if (mSurfaceImage != null)
+			mSurfaceHandler.sendEmptyMessage(SurfaceHandler.SWITCH);
 	}
 
 	@Override
@@ -70,10 +72,6 @@ public class StreamingView extends SurfaceView implements SurfaceHolder.Callback
 		mApplication.notifyStreamingView(null);
 		
 		// Bitmap Memory Release!
-		if (mSurfaceImage != null)
-			mSurfaceImage.recycle();
-		mSurfaceImage = null;
-		
 		if (mStreamingImage != null)
 			mStreamingImage.recycle();
 		mStreamingImage = null;
@@ -102,7 +100,6 @@ public class StreamingView extends SurfaceView implements SurfaceHolder.Callback
 		}
 
 		mSurfaceHandler.sendEmptyMessage(SurfaceHandler.SWITCH);
-		
 	}
 	
 	/**

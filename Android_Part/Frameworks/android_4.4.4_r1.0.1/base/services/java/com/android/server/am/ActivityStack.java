@@ -3617,6 +3617,10 @@ final class ActivityStack {
         		String packageName = (task.intent != null)? task.intent.getComponent().getPackageName() : 
         			(task.realActivity != null)? task.realActivity.getPackageName() : null;
         			
+        		// SynapsysManagerService가 구동 중일 땐, SynapsysApplication을 종료하지 않는다!
+        		if (packageName != null && packageName.contains("org.gbssm.synapsys") && mSynapsys.isServiceRunning())
+        			return false;
+        		
         		mSynapsys.invokeTaskInfoEvents(MediaProtocol.SENDER_STATE_END, task.taskId, packageName);
         	}
         } catch (Exception e) { 

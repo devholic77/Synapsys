@@ -167,6 +167,10 @@ public abstract class MessageProtocol {
 		 * TYPE : 마우스 이벤트
 		 */
 		static final int TYPE_MOUSE_EVENT = 1;
+		/**
+		 * TYPE : Synapsys App 이벤트
+		 */
+		static final int TYPE_APP_EVENT = 10;
 	
 		// === CODE === //
 		/**
@@ -189,7 +193,6 @@ public abstract class MessageProtocol {
 		 * CODE : Type::애플리케이션이벤트_중지
 		 */
 		static final int CODE_APP_STOP = 1;
-		
 		
 		
 		// *** MEMBER PART *** //

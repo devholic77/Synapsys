@@ -27,20 +27,13 @@
             </intent-filter>
         </activity>
         
-        <activity 
-            android:name="org.gbssm.synapsys.global.SettingActivity"
-            android:theme="@android:style/Theme.DeviceDefault" />
-            
         <receiver android:name="org.gbssm.synapsys.global.SynapsysBroadcastReceiver"
             android:permission="android.Manifest.permission.BROADCAST_STICKY" >
             <intent-filter >
                 <action android:name="org.gbssm.synapsys.system_broadcast.action"/>
             </intent-filter>
         </receiver>
-        
-        <service android:name="org.gbssm.synapsys.global.SynapsysService">
             
-        </service>
     </application>
 
 </manifest>

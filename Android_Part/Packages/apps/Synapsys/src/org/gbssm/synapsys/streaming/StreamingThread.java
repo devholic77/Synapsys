@@ -120,6 +120,19 @@ public class StreamingThread extends Thread {
 		
 	}
 	
+	public void send(String str) {
+		if (str == null)
+			return;
+		
+		if (!isDestroyed && mOutputStream != null && runningCount > 0) {
+			try {
+				mOutputStream.write(str.getBytes());
+				mOutputStream.flush();
+				
+			} catch (Exception e) { ; }
+		}
+	}
+	
 	void waitingConnection() throws Exception {
 		if (waitingCount > 0 || runningCount > 0)
 			throw new RejectedExecutionException("Another DisplayThread is running.");
@@ -163,11 +176,12 @@ public class StreamingThread extends Thread {
 					if (size < 0 || size > MAX_SCREEN_SIZE)
 						continue;
 
+					byte[] bytes = new byte[size];
+					mOutputStream.write("OK".getBytes());
+					mInputStream.readFully(bytes);
+					
 					StreamingView view = mApplication.getStreamingView();
 					if (view != null) {
-						byte[] bytes = new byte[size];
-						mOutputStream.write("OK".getBytes());
-						mInputStream.readFully(bytes);
 						
 						// Bitmap 준비.
 						option.inJustDecodeBounds = true;
@@ -187,24 +201,22 @@ public class StreamingThread extends Thread {
 							view.mStreamingImage.recycle();
 						
 						view.mStreamingImage = null;
-					}
+					} 
 					
 				} catch (IOException e) {
 					if (!isDestroyed) 
 						Message.obtain(mApplication.getHandler(), SynapsysApplication.MSG_EXIT_DISPLAY).sendToTarget();
 					break;
 					
-				} finally {
-					
-				}
+				} finally { ; }
 			}
 		} catch (Exception e) {
 			if (DEBUG)
 				e.printStackTrace();
 		}
-		
-		Message.obtain(mApplication.getHandler(), SynapsysApplication.MSG_DESTROYED_DISPLAY).sendToTarget();
+
 		running(false);
+		Message.obtain(mApplication.getHandler(), SynapsysApplication.MSG_DESTROYED_DISPLAY).sendToTarget();
 	}
 
 	

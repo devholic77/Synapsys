@@ -10,14 +10,9 @@ import org.gbssm.synapsys.streaming.StreamingView;
 
 import android.annotation.SuppressLint;
 import android.app.Application;
-import android.app.Notification;
-import android.app.PendingIntent;
-import android.app.Service;
-import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
-import android.os.IBinder;
 import android.os.Message;
 import android.view.LayoutInflater;
 import android.widget.TextView;
@@ -55,29 +50,29 @@ public class SynapsysApplication extends Application {
 				if (msg.obj != null) 
 					startStreaming();
 				break;
+
+			case MSG_CONNECTED_DISPLAY:
+				isDisplayed = true;
+				if (mStreamingActivity != null)
+					mStreamingActivity.notifyStreamingStateByBoard(true);
+				break;
 				
 			case MSG_EXIT_DISPLAY:
 				sendEmptyMessageDelayed(MSG_PROCEED_DISPLAY, 250);
 				break;
 				
-			case MSG_CONNECTED_DISPLAY:
-				isDisplayed = true;
-				if (mStreamingActivity != null)
-					mStreamingActivity.notifyDisplaying(true);
-				break;
-				
 			case MSG_DESTROYED_DISPLAY:
 				isDisplayed = false;
 				if (mStreamingActivity != null)
-					mStreamingActivity.notifyDisplaying(false);
-				break;
+					mStreamingActivity.notifyStreamingStateByBoard(false);
+				return;
 				
 			case MSG_TOAST:
 				if (mToast != null) {
 					mToast.setText((String)msg.obj);
 					mToast.show();
 				}
-				break;
+				return;
 			}
 		}
 	};
@@ -98,8 +93,7 @@ public class SynapsysApplication extends Application {
 	}
 	
 	@Override
-	public void onConfigurationChanged(Configuration newConfig) {
-		
+	public void onConfigurationChanged(Configuration newConfig) {	
 	}
 	
 	@Override
@@ -134,24 +128,24 @@ public class SynapsysApplication extends Application {
 		}
 	}
 	
-	public void setControllerConnected(boolean connected) {
+	public synchronized void setControllerConnected(boolean connected) {
 		isControllerConnected = connected;
 		
 		if (connected)
-			notifySynapsysDevice();
+			notifySynapsysDeviceByToast();
 		else
 			mSynapsysToast = null;
 	}
 	
-	public void notifyStreamingView(StreamingView view) {
+	public synchronized void notifyStreamingView(StreamingView view) {
 		mStreamingView = view;
 	}
 	
-	public void notifyStreamingActivity(MainActivity activity) {
+	public synchronized void notifyStreamingActivity(MainActivity activity) {
 		mStreamingActivity = activity;
 	}
 	
-	public void notifySynapsysDevice() {
+	public void notifySynapsysDeviceByToast() {
 		init();
 		
 		if (mSynapsysToast != null) 
@@ -159,26 +153,26 @@ public class SynapsysApplication extends Application {
 	}
 	
 	
-	public SynapsysManager getSynapsysManager() {
+	public final SynapsysManager getSynapsysManager() {
 		if (mSynapsysManager == null)
 			mSynapsysManager = (SynapsysManager) getSystemService(SYNAPSYS_SERVICE);
 			
 		return mSynapsysManager;
 	}
 	
-	public Handler getHandler() {
+	public final Handler getHandler() {
 		return mHandler;
 	}
 	
-	public StreamingView getStreamingView() {
+	public final StreamingView getStreamingView() {
 		return mStreamingView;
 	}
 	
-	public boolean isControllerConnected() {
+	public final boolean isControllerConnected() {
 		return isControllerConnected;
 	}
 	
-	public boolean isDisplaying() {
+	public final boolean isDisplaying() {
 		return isDisplayed;
 	}
 	

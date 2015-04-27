@@ -1254,10 +1254,9 @@ public class InputManagerService extends IInputManager.Stub
 
 	/* by dhuck added */
 	//Native callback
-	public void Event_Receive(int event_type, int event_code, float value_1, float value_2 )
-	{
+	public void Event_Receive(int event_type, int event_code, float value_1, float value_2 ) {
 		// Slog.d(TAG, "Inputmanagerservice jnicall id :" + event_type + "mouse_x :"+value_1+", mouse_y :" + value_2);
-		 nativeEventReceive(event_type,event_code,value_1,value_2);
+		 nativeEventReceive(event_type, event_code, value_1, value_2);
 	}
 
     // Native callback.
