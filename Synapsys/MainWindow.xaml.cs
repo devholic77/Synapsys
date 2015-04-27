@@ -229,6 +229,7 @@ namespace Synapsys
 
             Synapsys_Values.Second_Monitor_Stop_Enable = false;
 
+            btn_d1_stop.IsEnabled = true;
             btn_d2_start.IsEnabled = true;
             btn_d2_stop.IsEnabled = false;
 
