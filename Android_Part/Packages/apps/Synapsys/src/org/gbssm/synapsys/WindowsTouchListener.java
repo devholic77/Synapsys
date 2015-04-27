@@ -18,7 +18,7 @@ import android.hardware.input.InputManager;
  * 
  */
 public class WindowsTouchListener implements OnGestureListener, OnDoubleTapListener {
-	protected final static boolean DEBUG = false;
+	protected final static boolean DEBUG = true;
 
 	final static int MOUSE_MOVE = 0;
 	final static int LEFT_CLICK = 1;
@@ -26,16 +26,21 @@ public class WindowsTouchListener implements OnGestureListener, OnDoubleTapListe
 	final static int LEFT_DOUBLE_CLICK = 3;
 	final static int LEFT_UNCLICK = 4;
 	final static int RIGHT_UNCLICK = 5;
-	final static int SCROLL_UP_DOWN = 6;
-	final static int SCROLL_LEFT_RIGHT = 7;
-	final static int EVENT_END = 8;
-	final static int LEFT_DRAG = 9;
-
+	final static int SCROLL_UP = 6;
+	final static int SCROLL_DOWN = 7;
+	final static int SCROLL_LEFT = 8;
+	final static int SCROLL_RIGHT = 9;
+	final static int EVENT_END = 10;
+	final static int LEFT_DRAG = 11;	
+	
+	
 	int Doubletap_flag = 0;
 	int MultiTouch_flag = 0;
 	int Scroll_flag = 0;
 	boolean DragEnable = true;
 	int act = 0;
+	int pre_point_x;
+	int pre_point_y;
 
 	private static final String DTAG = "TestServer";
 
@@ -63,21 +68,16 @@ public class WindowsTouchListener implements OnGestureListener, OnDoubleTapListe
 	public boolean onTouchEvent(MotionEvent e) {
 		temp_e = e;
 		act = temp_e.getAction();
-		if (act == MotionEvent.ACTION_POINTER_2_DOWN) { // 멀티 터치가 되었을 때
+		if (act == MotionEvent.ACTION_POINTER_2_DOWN) { // 멀티 터치가 되었을 때생성된 가상 이벤트는 processEventLocked함수로 실행가능한 형태의 Argument로 구성된 후 InputDispatcherThread의 이벤트 큐에 넣어 시스템에서 동작하도록 하였다.
 			MultiTouch_flag = 1;
 			
 		} else if (Scroll_flag == 1 && act == MotionEvent.ACTION_UP) { // 스크롤이
 																		// 되고
 																		// 이벤트가
 																		// 끝났을 때
-
-			Scroll_flag = 0;
-
+			Scroll_flag = 0;			
 			if (DEBUG)
-				Log.d("Touch listener",
-						"On Scroll End" + " AXIS_X :"
-								+ e.getAxisValue(e.AXIS_X) + " AXIS_Y :"
-								+ e.getAxisValue(e.AXIS_Y));
+				Log.d("Touch listener",	"On Scroll End" + " AXIS_X :"+ e.getAxisValue(e.AXIS_X) + " AXIS_Y :"+ e.getAxisValue(e.AXIS_Y));
 
 			MouseEvent(EVENT_END, e.getAxisValue(e.AXIS_X), e.getAxisValue(e.AXIS_Y));
 			MultiTouch_flag = 0;
@@ -106,24 +106,29 @@ public class WindowsTouchListener implements OnGestureListener, OnDoubleTapListe
 
 		if (MultiTouch_flag == 1) {
 			if (DEBUG)
-				Log.d("Touch listener",
-						"On Double Scroll" + " AXIS_X :"
-								+ e2.getAxisValue(e2.AXIS_X) + " AXIS_Y :"
-								+ e2.getAxisValue(e2.AXIS_Y));
-
-			MouseEvent(SCROLL_UP_DOWN, e2.getAxisValue(e2.AXIS_X),
-					e2.getAxisValue(e2.AXIS_Y));
+				Log.d("Touch listener","On Double Scroll" + " AXIS_X :"	+ e2.getAxisValue(e2.AXIS_X) + " AXIS_Y :"+ e2.getAxisValue(e2.AXIS_Y));
+			
+			if( distanceX > distanceY ) {				
+				if( distanceX > 0 ) {
+					MouseEvent(SCROLL_LEFT, e2.getAxisValue(e2.AXIS_X),e2.getAxisValue(e2.AXIS_Y));
+				} else if( distanceX < 0 ) {				
+					MouseEvent(SCROLL_DOWN, e2.getAxisValue(e2.AXIS_X),e2.getAxisValue(e2.AXIS_Y));
+				}					
+			} else if( distanceX < distanceY ) {
+				if( distanceY > 0 ) {
+					MouseEvent(SCROLL_UP, e2.getAxisValue(e2.AXIS_X),e2.getAxisValue(e2.AXIS_Y));
+				} else if( distanceY < 0 ) {
+					MouseEvent(SCROLL_RIGHT, e2.getAxisValue(e2.AXIS_X),e2.getAxisValue(e2.AXIS_Y));
+				}				
+			}
 			
 		} else if (MultiTouch_flag == 0) {
 			if (DEBUG)
 				Log.d("Touch listener",
-						"On Drag" + " AXIS_X :" + e2.getAxisValue(e2.AXIS_X)
-								+ " AXIS_Y :" + e2.getAxisValue(e2.AXIS_Y));
+						"On Drag" + " AXIS_X :" + e2.getAxisValue(e2.AXIS_X)+ " AXIS_Y :" + e2.getAxisValue(e2.AXIS_Y));
 
-			MouseEvent(LEFT_DRAG, e2.getAxisValue(e2.AXIS_X),
-					e2.getAxisValue(e2.AXIS_Y));
+			MouseEvent(LEFT_DRAG, e2.getAxisValue(e2.AXIS_X),e2.getAxisValue(e2.AXIS_Y));
 		}
-
 		return false;
 	}
 
@@ -131,7 +136,6 @@ public class WindowsTouchListener implements OnGestureListener, OnDoubleTapListe
 	public void onShowPress(MotionEvent e) {
 		if (DEBUG)
 			Log.d("Touch listener", "On show Press");
-
 	}
 
 	@Override
@@ -215,14 +219,8 @@ public class WindowsTouchListener implements OnGestureListener, OnDoubleTapListe
 			break;
 
 		case LEFT_DOUBLE_CLICK: // 좌 더블 클릭 이벤트 다운/업 2회
-			synapsysManager.invokeMouseEventFromTouch(LEFT_CLICK, point_x,
-					point_y);
-			synapsysManager.invokeMouseEventFromTouch(LEFT_UNCLICK, point_x,
-					point_y);
-			synapsysManager.invokeMouseEventFromTouch(LEFT_CLICK, point_x,
-					point_y);
-			synapsysManager.invokeMouseEventFromTouch(LEFT_UNCLICK, point_x,
-					point_y);
+			synapsysManager.invokeMouseEventFromTouch(LEFT_DOUBLE_CLICK, point_x, point_y);
+			
 			break;
 
 		case LEFT_DRAG: // 좌 클릭 드래그
@@ -235,13 +233,30 @@ public class WindowsTouchListener implements OnGestureListener, OnDoubleTapListe
 			}
 			synapsysManager.invokeMouseEventFromTouch(MOUSE_MOVE, point_x,
 					point_y); // 좌 클릭 무브 이벤트 전송
+			break;			
+			
+		case SCROLL_UP:
+			synapsysManager.invokeMouseEventFromTouch(SCROLL_UP, point_x,point_y);		
 			break;
-
+		
+		case SCROLL_DOWN:
+			synapsysManager.invokeMouseEventFromTouch(SCROLL_DOWN, point_x,point_y);			
+			break;
+			
+		case SCROLL_LEFT:
+			synapsysManager.invokeMouseEventFromTouch(SCROLL_LEFT, point_x,point_y);			
+			break;
+			
+		case SCROLL_RIGHT:
+			synapsysManager.invokeMouseEventFromTouch(SCROLL_RIGHT, point_x,point_y);			
+			break;
+			
 		case EVENT_END:
-			synapsysManager.invokeMouseEventFromTouch(LEFT_UNCLICK, point_x,
-					point_y); // 좌 클릭 업 이벤트 전송
+			synapsysManager.invokeMouseEventFromTouch(LEFT_UNCLICK, point_x,point_y); // 좌 클릭 업 이벤트 전송
+			DragEnable = true;
 			break;
 
+		
 		default:
 			// synapsysManager.invokeMouseEventFromTouch(event_id, point_x,
 			// point_y);
