@@ -97,6 +97,7 @@ bool keyboard_once = true;
 int click_once = 0;
 int click_count = 0;
 int32_t dev_number = (int32_t)1;
+int32_t keyboard_device_number = (int32_t)21;
 int32_t move_test = 0;
 int32_t char_num = 16;
 float pre_mouse_x = 20.0;
@@ -104,6 +105,7 @@ float pre_mouse_y = 20.0;
 float mouse_x = 20.0;
 float mouse_y = 20.0;
 int current_state = 0;
+
 
 
 
@@ -294,38 +296,43 @@ InputReader::~InputReader() {
 }
 
 void InputReader::loopOnce() {
-    int32_t oldGeneration;
-    int32_t timeoutMillis;
-    bool inputDevicesChanged = false;
-    Vector<InputDeviceInfo> inputDevices;
-    { // acquire lock
-        AutoMutex _l(mLock);
 
-        oldGeneration = mGeneration;
-        timeoutMillis = -1;
-
-        uint32_t changes = mConfigurationChangesToRefresh;
-        if (changes) {
-            mConfigurationChangesToRefresh = 0;
-            timeoutMillis = 0;
-            refreshConfigurationLocked(changes);
-        } else if (mNextTimeout != LLONG_MAX) {
-            nsecs_t now = systemTime(SYSTEM_TIME_MONOTONIC);
-            timeoutMillis = toMillisecondTimeoutDelay(now, mNextTimeout);
-        }
-    } // release lock
-
-    size_t count = mEventHub->getEvents(timeoutMillis, mEventBuffer, EVENT_BUFFER_SIZE);
 	
-    { // acquire lock
-        AutoMutex _l(mLock);
-        mReaderIsAliveCondition.broadcast();
+	int32_t oldGeneration;
+	int32_t timeoutMillis;
+	bool inputDevicesChanged = false;
+	Vector<InputDeviceInfo> inputDevices;
+	{ // acquire lock
 
-        if (count) {
-            processEventsLocked(mEventBuffer, count);
-        }
-        /* added =============================================*/
-      
+		AutoMutex _l(mLock);
+		
+		oldGeneration = mGeneration;
+		timeoutMillis = -1;
+
+		uint32_t changes = mConfigurationChangesToRefresh;
+		if (changes) {
+			mConfigurationChangesToRefresh = 0;
+			timeoutMillis = 0;
+			refreshConfigurationLocked(changes);
+		} else if (mNextTimeout != LLONG_MAX) {
+			nsecs_t now = systemTime(SYSTEM_TIME_MONOTONIC);
+			timeoutMillis = toMillisecondTimeoutDelay(now, mNextTimeout);
+		}
+
+	} // release lock
+
+	size_t count = mEventHub->getEvents(timeoutMillis, mEventBuffer, EVENT_BUFFER_SIZE);
+	
+	{ // acquire lock
+		
+		AutoMutex _l(mLock);		
+		mReaderIsAliveCondition.broadcast();
+
+		if (count) {			
+				processEventsLocked(mEventBuffer, count);						
+		}
+		/* added =============================================*/
+	  
 		if (once) {
 			// 초기 부팅시 가상 디바이스 추가  
 			// Add 이벤트를 생성하여 가상 마우스 추가
@@ -350,36 +357,37 @@ void InputReader::loopOnce() {
 		
 		/*====================================================*/
 
-        if (mNextTimeout != LLONG_MAX) {
-            nsecs_t now = systemTime(SYSTEM_TIME_MONOTONIC);
-            if (now >= mNextTimeout) {
+		if (mNextTimeout != LLONG_MAX) {
+			nsecs_t now = systemTime(SYSTEM_TIME_MONOTONIC);
+			if (now >= mNextTimeout) {
 #if DEBUG_RAW_EVENTS
-                ALOGD("Timeout expired, latency=%0.3fms", (now - mNextTimeout) * 0.000001f);
+				ALOGD("Timeout expired, latency=%0.3fms", (now - mNextTimeout) * 0.000001f);
 #endif
-                mNextTimeout = LLONG_MAX;
-                timeoutExpiredLocked(now);
-            }
-        }
+				mNextTimeout = LLONG_MAX;
+				timeoutExpiredLocked(now);
+			}
+		}
 
-        if (oldGeneration != mGeneration) {
-            inputDevicesChanged = true;
-            getInputDevicesLocked(inputDevices);
-        }
-    } // release lock
+		if (oldGeneration != mGeneration) {
+			inputDevicesChanged = true;
+			getInputDevicesLocked(inputDevices);
+		}	
+	} // release lock
 
-    // Send out a message that the describes the changed input devices.
-    if (inputDevicesChanged) {
-        mPolicy->notifyInputDevicesChanged(inputDevices);
-    }
+	// Send out a message that the describes the changed input devices.
+	if (inputDevicesChanged) {
+		mPolicy->notifyInputDevicesChanged(inputDevices);
+	}
 
-    // Flush queued events out to the listener.
-    // This must happen outside of the lock because the listener could potentially call
-    // back into the InputReader's methods, such as getScanCodeState, or become blocked
-    // on another thread similarly waiting to acquire the InputReader lock thereby
-    // resulting in a deadlock.  This situation is actually quite plausible because the
-    // listener is actually the input dispatcher, which calls into the window manager,
-    // which occasionally calls into the input reader.
-    mQueuedListener->flush();
+	// Flush queued events out to the listener.
+	// This must happen outside of the lock because the listener could potentially call
+	// back into the InputReader's methods, such as getScanCodeState, or become blocked
+	// on another thread similarly waiting to acquire the InputReader lock thereby
+	// resulting in a deadlock.  This situation is actually quite plausible because the
+	// listener is actually the input dispatcher, which calls into the window manager,
+	// which occasionally calls into the input reader.
+	mQueuedListener->flush();
+	
 }
 /* added */
 
@@ -387,113 +395,144 @@ void InputReader::virtualDeviceEvent(int32_t event_type, int32_t event_code, flo
 	//	TODO : Framework 레벨에서 내려오는 이벤트를 처리하는 함수
 	// 	가상 마우스, 가상 키보드 이벤트 처리 
 	
+
 	ALOGD("native  call type = %d , code = %d , value_1 = %f, value_2 = %f",event_type,event_code,value_1,value_2);	
 	ssize_t deviceIndex ;
 	InputDevice* device ;
 	RawEvent event[5];
 	int32_t Key_number = (int32_t)value_1; 
 	
-	switch(event_type)	
-	{
-		//가상 디바이스 추가 / 제거 
-		case DEVICE_CHANGE:
+	{ // acquire lock
 		
-			if(event_code == DEVICE_ADD)
-			{
-				
-				
-				event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
-				event[0].deviceId = (int32_t)21;
-				event[0].type = 0x10000000;
-				event[0].code = 0x00000039;
-				event[0].value = 0xffffffff;
-				
-				event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
-				event[1].deviceId = (int32_t)6;
-				event[1].type = 0x30000000;
-				event[1].code = 0x00000000;
-				event[1].value = 0x00000000;
-				
-				processEventsLocked(event,2);
-				
-
-			}
-			else if(event_code == DEVICE_REMOVE)
-			{
-				event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
-				event[0].deviceId = (int32_t)21;
-				event[0].type = 0x20000000;
-				event[0].code = 0x00000000;
-				event[0].value = 0x00000001;
-				
-				processEventsLocked(event,1);
-				
-				event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
-				event[0].deviceId = (int32_t)21;
-				event[0].type = 0x30000000;
-				event[0].code = 0x0000001e;
-				event[0].value = 0x00000000;
-				
-				processEventsLocked(event,1);
-			}
-		
-		break;
-		//가상 키보드 
-		case KEYBOARD_EVENT:			
-
-			deviceIndex = mDevices.indexOfKey((int32_t)dev_number);
-			device = mDevices.valueAt(deviceIndex);
+		AutoMutex _l(mLock);
+		switch(event_type)	
+		{
+			//가상 디바이스 추가 / 제거 
+			case DEVICE_CHANGE:
 			
-			// 키가 눌려졌을 때				
-			if(event_code == KEYBOARD_KEY)
-			{
-					// 6번 터치 디바이스에게 현재 디바이스 변경 이벤트 생성, 발생 
-					event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
-					event[0].deviceId = (int32_t)6;
-					event[0].type = 0x30000000;
-					event[0].code = 0x00000000;
-					event[0].value = 0x00000000;					
-					processEventsLocked(event,1);	
-					
-				if(keyboard_once)
+				if(event_code == DEVICE_ADD)
 				{					
-					/* device change event */										
-					virtual_event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
-					virtual_event[0].deviceId = (int32_t)dev_number;
-					virtual_event[0].type = 0x00000014;
-					virtual_event[0].code = 0x00000000;
-					virtual_event[0].value = 0x00000000;
-
-					virtual_event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
-					virtual_event[1].deviceId = (int32_t)dev_number;
-					virtual_event[1].type = 0x00000014;
-					virtual_event[1].code = 0x00000001;
-					virtual_event[1].value = 0x00000000;
-
-					virtual_event[2].when = systemTime(SYSTEM_TIME_MONOTONIC);
-					virtual_event[2].deviceId = (int32_t)dev_number;
-					virtual_event[2].type = 0x00000004;
-					virtual_event[2].code = 0x00000004;
-					virtual_event[2].value = 0x00070004;
+					event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
+					event[0].deviceId = (int32_t)keyboard_device_number;
+					event[0].type = 0x10000000;
+					event[0].code = 0x00000039;
+					event[0].value = 0xffffffff;
 					
-					virtual_event[3].when = systemTime(SYSTEM_TIME_MONOTONIC);
-					virtual_event[3].deviceId = (int32_t)dev_number;
-					virtual_event[3].type = 0x00000001;
-					virtual_event[3].code = Key_number;
-					virtual_event[3].value = 0x00000001;
+					event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
+					event[1].deviceId = (int32_t)6;
+					event[1].type = 0x30000000;
+					event[1].code = 0x00000000;
+					event[1].value = 0x00000000;
 					
-					virtual_event[4].when = systemTime(SYSTEM_TIME_MONOTONIC);
-					virtual_event[4].deviceId = (int32_t)dev_number;
-					virtual_event[4].type = 0x00000000;
-					virtual_event[4].code = 0x00000000;
-					virtual_event[4].value = 0x00000000;
-					
-					processEventsLocked(&virtual_event[0] ,5);
-					keyboard_once = false;
-				}				
-				else 
+					processEventsLocked(event,2);
+					mQueuedListener->flush();
+				}
+				else if(event_code == DEVICE_REMOVE)
 				{
-					// deviceid = dev_number 로 키가 눌려질 때의 이벤트 발생 
+					event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
+					event[0].deviceId = (int32_t)keyboard_device_number;
+					event[0].type = 0x20000000;
+					event[0].code = 0x00000000;
+					event[0].value = 0x00000001;
+					
+					processEventsLocked(event,1);
+					
+					
+					event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
+					event[0].deviceId = (int32_t)keyboard_device_number;
+					event[0].type = 0x30000000;
+					event[0].code = 0x0000001e;
+					event[0].value = 0x00000000;
+					
+					processEventsLocked(event,1);
+					mQueuedListener->flush();
+				}
+			
+			break;
+			//가상 키보드 
+			case KEYBOARD_EVENT:			
+
+				deviceIndex = mDevices.indexOfKey((int32_t)dev_number);
+				device = mDevices.valueAt(deviceIndex);
+				
+				// 키가 눌려졌을 때				
+				if(event_code == KEYBOARD_KEY)
+				{
+						// 6번 터치 디바이스에게 현재 디바이스 변경 이벤트 생성, 발생 
+						event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
+						event[0].deviceId = (int32_t)6;
+						event[0].type = 0x30000000;
+						event[0].code = 0x00000000;
+						event[0].value = 0x00000000;					
+						processEventsLocked(event,1);	
+						mQueuedListener->flush();
+						
+					if(keyboard_once)
+					{					
+						/* device change event */										
+						virtual_event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
+						virtual_event[0].deviceId = (int32_t)dev_number;
+						virtual_event[0].type = 0x00000014;
+						virtual_event[0].code = 0x00000000;
+						virtual_event[0].value = 0x00000000;
+
+						virtual_event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
+						virtual_event[1].deviceId = (int32_t)dev_number;
+						virtual_event[1].type = 0x00000014;
+						virtual_event[1].code = 0x00000001;
+						virtual_event[1].value = 0x00000000;
+
+						virtual_event[2].when = systemTime(SYSTEM_TIME_MONOTONIC);
+						virtual_event[2].deviceId = (int32_t)dev_number;
+						virtual_event[2].type = 0x00000004;
+						virtual_event[2].code = 0x00000004;
+						virtual_event[2].value = 0x00070004;
+						
+						virtual_event[3].when = systemTime(SYSTEM_TIME_MONOTONIC);
+						virtual_event[3].deviceId = (int32_t)dev_number;
+						virtual_event[3].type = 0x00000001;
+						virtual_event[3].code = Key_number;
+						virtual_event[3].value = 0x00000001;
+						
+						virtual_event[4].when = systemTime(SYSTEM_TIME_MONOTONIC);
+						virtual_event[4].deviceId = (int32_t)dev_number;
+						virtual_event[4].type = 0x00000000;
+						virtual_event[4].code = 0x00000000;
+						virtual_event[4].value = 0x00000000;
+						
+						processEventsLocked(&virtual_event[0] ,5);
+						keyboard_once = false;
+						mQueuedListener->flush();
+					}				
+					else 
+					{
+						// deviceid = dev_number 로 키가 눌려질 때의 이벤트 발생 
+						virtual_event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
+						virtual_event[0].deviceId = (int32_t)dev_number;
+						virtual_event[0].type = 0x00000004;
+						virtual_event[0].code = 0x00000004;
+						virtual_event[0].value = 0x00070004;
+						
+						virtual_event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
+						virtual_event[1].deviceId = (int32_t)dev_number;
+						virtual_event[1].type = 0x00000001;
+						virtual_event[1].code = Key_number;
+						virtual_event[1].value = 0x00000001;
+						
+						virtual_event[2].when = systemTime(SYSTEM_TIME_MONOTONIC);
+						virtual_event[2].deviceId = (int32_t)dev_number;
+						virtual_event[2].type = 0x00000000;
+						virtual_event[2].code = 0x00000000;
+						virtual_event[2].value = 0x00000000;
+			
+						processEventsLocked(&virtual_event[0] ,3);			
+						mQueuedListener->flush();
+					}
+				}
+				//키가 떨어 졌을 때 
+				else if(event_code == KEYBOARD_UNKEY)
+				{	
+					// deviceid = dev_number 로 키가 떨어질 때의 이벤트 발생 
 					virtual_event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
 					virtual_event[0].deviceId = (int32_t)dev_number;
 					virtual_event[0].type = 0x00000004;
@@ -504,7 +543,8 @@ void InputReader::virtualDeviceEvent(int32_t event_type, int32_t event_code, flo
 					virtual_event[1].deviceId = (int32_t)dev_number;
 					virtual_event[1].type = 0x00000001;
 					virtual_event[1].code = Key_number;
-					virtual_event[1].value = 0x00000001;
+					virtual_event[1].value = 0x00000000;
+					
 					
 					virtual_event[2].when = systemTime(SYSTEM_TIME_MONOTONIC);
 					virtual_event[2].deviceId = (int32_t)dev_number;
@@ -512,239 +552,213 @@ void InputReader::virtualDeviceEvent(int32_t event_type, int32_t event_code, flo
 					virtual_event[2].code = 0x00000000;
 					virtual_event[2].value = 0x00000000;
 		
-					processEventsLocked(&virtual_event[0] ,3);			
+					processEventsLocked(&virtual_event[0] ,3);
+					mQueuedListener->flush();
+				}			
+				
+			break;
+			
+			//가상 마우스 
+			case MOUSE_EVENT:		
+				deviceIndex = mDevices.indexOfKey((int32_t)VIRTURE_MOUSE_ID);
+				device = mDevices.valueAt(deviceIndex);		
+				
+				if(event_code == MOUSE_MOVE)	//when mouse move event
+				{
+					// mouse 이동 이벤트 생성, 발생 
+					event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
+					event[0].deviceId = (int32_t)VIRTURE_MOUSE_ID;
+					event[0].type = 0x00000002;
+					event[0].code = 0x00000000;
+					event[0].value = 0x00000004;
+
+					event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
+					event[1].deviceId = (int32_t)VIRTURE_MOUSE_ID;
+					event[1].type = 0x00000002;
+					event[1].code = 0x00000001;
+					event[1].value = 0x00000004;
+
+					event[2].when = systemTime(SYSTEM_TIME_MONOTONIC);
+					event[2].deviceId = (int32_t)VIRTURE_MOUSE_ID;
+					event[2].type = 0x00000000;
+					event[2].code = 0x00000000;
+					event[2].value = 0x00000000;
+					
+					pre_mouse_x = mouse_x;
+					pre_mouse_y = mouse_y;
+					mouse_x = value_1;
+					mouse_y = value_2;
+					device->process(event, 3);	
+					
+				} else if(event_code == MOUSE_L_CLICK)	//when mouse left click event
+				{				
+					// mouse 왼 클릭 이벤트 생성, 발생 
+					event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
+					event[0].deviceId = (int32_t)VIRTURE_MOUSE_ID;
+					event[0].type = 0x00000004;
+					event[0].code = 0x00000004;
+					event[0].value = 0x00090001;
+
+					event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
+					event[1].deviceId = (int32_t)VIRTURE_MOUSE_ID;
+					event[1].type = 0x00000001;
+					event[1].code = 0x00000110;
+					event[1].value = 0x00000001;
+
+					event[2].when = systemTime(SYSTEM_TIME_MONOTONIC);
+					event[2].deviceId = (int32_t)VIRTURE_MOUSE_ID;
+					event[2].type = 0x00000000;
+					event[2].code = 0x00000000;
+					event[2].value = 0x00000000;
+					
+					pre_mouse_x = mouse_x;
+					pre_mouse_y = mouse_y;
+					mouse_x = value_1;
+					mouse_y = value_2;
+					
+					device->process(event, 3);	
+					current_state = MOUSE_CLICKED;
+					mQueuedListener->flush();
 				}
-			}
-			//키가 떨어 졌을 때 
-			else if(event_code == KEYBOARD_UNKEY)
-			{	
-				// deviceid = dev_number 로 키가 떨어질 때의 이벤트 발생 
-				virtual_event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
-				virtual_event[0].deviceId = (int32_t)dev_number;
-				virtual_event[0].type = 0x00000004;
-				virtual_event[0].code = 0x00000004;
-				virtual_event[0].value = 0x00070004;
+				else if(event_code == MOUSE_R_CLICK)	
+				{
+					// mouse 우 클릭 이벤트 생성, 발생 
+					event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
+					event[0].deviceId = (int32_t)VIRTURE_MOUSE_ID;
+					
+					event[0].type = 0x00000004;
+					event[0].code = 0x00000004;
+					event[0].value = 0x00090002;
+
+					event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
+					event[1].deviceId = (int32_t)VIRTURE_MOUSE_ID;
+					event[1].type = 0x00000001;
+					event[1].code = 0x00000111;
+					event[1].value = 0x00000001;
+
+					event[2].when = systemTime(SYSTEM_TIME_MONOTONIC);
+					event[2].deviceId = (int32_t)VIRTURE_MOUSE_ID;
+					event[2].type = 0x00000000;
+					event[2].code = 0x00000000;
+					event[2].value = 0x00000000;
+					
+					pre_mouse_x = mouse_x;
+					pre_mouse_y = mouse_y;
+					mouse_x = value_1;
+					mouse_y = value_2;
+					device->process(event, 3);	
+					current_state = MOUSE_CLICKED;
+					mQueuedListener->flush();
+				}
+				else if(event_code == MOUSE_L_UNCLICK)	
+				{
+					
+					// mouse 왼 클릭 떨어짐 이벤트 생성, 발생 
+					event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
+					event[0].deviceId = (int32_t)VIRTURE_MOUSE_ID;
+					event[0].type = 0x00000004;
+					event[0].code = 0x00000004;
+					event[0].value = 0x00090001;
+
+					event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
+					event[1].deviceId = (int32_t)VIRTURE_MOUSE_ID;
+					event[1].type = 0x00000001;
+					event[1].code = 0x00000110;
+					event[1].value = 0x00000000;
+
+					event[2].when = systemTime(SYSTEM_TIME_MONOTONIC);
+					event[2].deviceId = (int32_t)VIRTURE_MOUSE_ID;
+					event[2].type = 0x00000000;
+					event[2].code = 0x00000000;
+					event[2].value = 0x00000000;
+					
+					pre_mouse_x = mouse_x;
+					pre_mouse_y = mouse_y;
+					mouse_x = value_1;
+					mouse_y = value_2;
+					device->process(event, 3);	
+					current_state = MOUSE_IDLE;
+					mQueuedListener->flush();
+				}
+				else if(event_code == MOUSE_R_UNCLICK)	//when mouse right unclick event
+				{
+					// mouse 우 클릭 떨어짐 이벤트 생성, 발생 
+					event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
+					event[0].deviceId = (int32_t)VIRTURE_MOUSE_ID;
+					event[0].type = 0x00000004;
+					event[0].code = 0x00000004;
+					event[0].value = 0x00090002;
+
+					event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
+					event[1].deviceId = (int32_t)VIRTURE_MOUSE_ID;
+					event[1].type = 0x00000001;
+					event[1].code = 0x00000111;
+					event[1].value = 0x00000000;
+
+					event[2].when = systemTime(SYSTEM_TIME_MONOTONIC);
+					event[2].deviceId = (int32_t)VIRTURE_MOUSE_ID;
+					event[2].type = 0x00000000;
+					event[2].code = 0x00000000;
+					event[2].value = 0x00000000;
+					
+					pre_mouse_x = mouse_x;
+					pre_mouse_y = mouse_y;
+					mouse_x = value_1;
+					mouse_y = value_2;
+					device->process(event, 3);	
+					current_state = MOUSE_IDLE;
+					mQueuedListener->flush();
+				}		
 				
-				virtual_event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
-				virtual_event[1].deviceId = (int32_t)dev_number;
-				virtual_event[1].type = 0x00000001;
-				virtual_event[1].code = Key_number;
-				virtual_event[1].value = 0x00000000;
-				
-				
-				virtual_event[2].when = systemTime(SYSTEM_TIME_MONOTONIC);
-				virtual_event[2].deviceId = (int32_t)dev_number;
-				virtual_event[2].type = 0x00000000;
-				virtual_event[2].code = 0x00000000;
-				virtual_event[2].value = 0x00000000;
-	
-				processEventsLocked(&virtual_event[0] ,3);
-			}			
+				if(event_code == MOUSE_WHELL_UP)	
+				{
+					// mouse 휠 업 이벤트 생성, 발생 
+					event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
+					event[0].deviceId = (int32_t)VIRTURE_MOUSE_ID;
+					event[0].type = 0x00000002;
+					event[0].code = 0x00000008;
+					event[0].value = 0xffffffff;
+
+					event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
+					event[1].deviceId = (int32_t)VIRTURE_MOUSE_ID;
+					event[1].type = 0x00000000;
+					event[1].code = 0x00000000;
+					event[1].value = 0x00000000;
+					
+					mouse_x = value_1;
+					mouse_y = value_2;
+					device->process(event, 2);	
+					mQueuedListener->flush();
+				}		
+				if(event_code == MOUSE_WHELL_DOWN)	
+				{
+					// mouse 휠 업 이벤트 생성, 발생 
+					event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
+					event[0].deviceId = (int32_t)VIRTURE_MOUSE_ID;
+					event[0].type = 0x00000002;
+					event[0].code = 0x00000008;
+					event[0].value = 0x00000001;
+
+					event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
+					event[1].deviceId = (int32_t)VIRTURE_MOUSE_ID;
+					event[1].type = 0x00000000;
+					event[1].code = 0x00000000;
+					event[1].value = 0x00000000;
+					
+					mouse_x = value_1;
+					mouse_y = value_2;
+					device->process(event, 2);	
+					mQueuedListener->flush();
+				}				
 			
-		break;
-		
-		//가상 마우스 
-		case MOUSE_EVENT:		
-			deviceIndex = mDevices.indexOfKey((int32_t)VIRTURE_MOUSE_ID);
-			device = mDevices.valueAt(deviceIndex);		
+			break;		
 			
-			if(event_code == MOUSE_L_CLICK)	//when mouse left click event
-			{				
-				// mouse 왼 클릭 이벤트 생성, 발생 
-				event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
-				event[0].deviceId = (int32_t)VIRTURE_MOUSE_ID;
-				event[0].type = 0x00000004;
-				event[0].code = 0x00000004;
-				event[0].value = 0x00090001;
-
-				event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
-				event[1].deviceId = (int32_t)VIRTURE_MOUSE_ID;
-				event[1].type = 0x00000001;
-				event[1].code = 0x00000110;
-				event[1].value = 0x00000001;
-
-				event[2].when = systemTime(SYSTEM_TIME_MONOTONIC);
-				event[2].deviceId = (int32_t)VIRTURE_MOUSE_ID;
-				event[2].type = 0x00000000;
-				event[2].code = 0x00000000;
-				event[2].value = 0x00000000;
-				
-				pre_mouse_x = mouse_x;
-				pre_mouse_y = mouse_y;
-				mouse_x = value_1;
-				mouse_y = value_2;
-				
-				device->process(event, 3);	
-				current_state = MOUSE_CLICKED;
-			}
-			else if(event_code == MOUSE_R_CLICK)	
-			{
-				// mouse 우 클릭 이벤트 생성, 발생 
-				event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
-				event[0].deviceId = (int32_t)VIRTURE_MOUSE_ID;
-				
-				event[0].type = 0x00000004;
-				event[0].code = 0x00000004;
-				event[0].value = 0x00090002;
-
-				event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
-				event[1].deviceId = (int32_t)VIRTURE_MOUSE_ID;
-				event[1].type = 0x00000001;
-				event[1].code = 0x00000111;
-				event[1].value = 0x00000001;
-
-				event[2].when = systemTime(SYSTEM_TIME_MONOTONIC);
-				event[2].deviceId = (int32_t)VIRTURE_MOUSE_ID;
-				event[2].type = 0x00000000;
-				event[2].code = 0x00000000;
-				event[2].value = 0x00000000;
-				
-				pre_mouse_x = mouse_x;
-				pre_mouse_y = mouse_y;
-				mouse_x = value_1;
-				mouse_y = value_2;
-				device->process(event, 3);	
-				current_state = MOUSE_CLICKED;
-			}
-			else if(event_code == MOUSE_L_UNCLICK)	
-			{
-				
-				// mouse 왼 클릭 떨어짐 이벤트 생성, 발생 
-				event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
-				event[0].deviceId = (int32_t)VIRTURE_MOUSE_ID;
-				event[0].type = 0x00000004;
-				event[0].code = 0x00000004;
-				event[0].value = 0x00090001;
-
-				event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
-				event[1].deviceId = (int32_t)VIRTURE_MOUSE_ID;
-				event[1].type = 0x00000001;
-				event[1].code = 0x00000110;
-				event[1].value = 0x00000000;
-
-				event[2].when = systemTime(SYSTEM_TIME_MONOTONIC);
-				event[2].deviceId = (int32_t)VIRTURE_MOUSE_ID;
-				event[2].type = 0x00000000;
-				event[2].code = 0x00000000;
-				event[2].value = 0x00000000;
-				
-				pre_mouse_x = mouse_x;
-				pre_mouse_y = mouse_y;
-				mouse_x = value_1;
-				mouse_y = value_2;
-				device->process(event, 3);	
-				current_state = MOUSE_IDLE;
-			}
-			else if(event_code == MOUSE_R_UNCLICK)	//when mouse right unclick event
-			{
-				// mouse 우 클릭 떨어짐 이벤트 생성, 발생 
-				event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
-				event[0].deviceId = (int32_t)VIRTURE_MOUSE_ID;
-				event[0].type = 0x00000004;
-				event[0].code = 0x00000004;
-				event[0].value = 0x00090002;
-
-				event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
-				event[1].deviceId = (int32_t)VIRTURE_MOUSE_ID;
-				event[1].type = 0x00000001;
-				event[1].code = 0x00000111;
-				event[1].value = 0x00000000;
-
-				event[2].when = systemTime(SYSTEM_TIME_MONOTONIC);
-				event[2].deviceId = (int32_t)VIRTURE_MOUSE_ID;
-				event[2].type = 0x00000000;
-				event[2].code = 0x00000000;
-				event[2].value = 0x00000000;
-				
-				pre_mouse_x = mouse_x;
-				pre_mouse_y = mouse_y;
-				mouse_x = value_1;
-				mouse_y = value_2;
-				device->process(event, 3);	
-				current_state = MOUSE_IDLE;
-			}		
-			else if(event_code == MOUSE_MOVE)	//when mouse move event
-			{
-				// mouse 이동 이벤트 생성, 발생 
-				event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
-				event[0].deviceId = (int32_t)VIRTURE_MOUSE_ID;
-				event[0].type = 0x00000002;
-				event[0].code = 0x00000000;
-				event[0].value = 0x00000004;
-
-				event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
-				event[1].deviceId = (int32_t)VIRTURE_MOUSE_ID;
-				event[1].type = 0x00000002;
-				event[1].code = 0x00000001;
-				event[1].value = 0x00000004;
-
-				event[2].when = systemTime(SYSTEM_TIME_MONOTONIC);
-				event[2].deviceId = (int32_t)VIRTURE_MOUSE_ID;
-				event[2].type = 0x00000000;
-				event[2].code = 0x00000000;
-				event[2].value = 0x00000000;
-				
-				pre_mouse_x = mouse_x;
-				pre_mouse_y = mouse_y;
-				mouse_x = value_1;
-				mouse_y = value_2;
-				device->process(event, 3);	
-				
-			}
-			if(event_code == MOUSE_WHELL_UP)	
-			{
-				// mouse 휠 업 이벤트 생성, 발생 
-				event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
-				event[0].deviceId = (int32_t)VIRTURE_MOUSE_ID;
-				event[0].type = 0x00000002;
-				event[0].code = 0x00000008;
-				event[0].value = 0xffffffff;
-
-				event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
-				event[1].deviceId = (int32_t)VIRTURE_MOUSE_ID;
-				event[1].type = 0x00000000;
-				event[1].code = 0x00000000;
-				event[1].value = 0x00000000;
-				
-				mouse_x = value_1;
-				mouse_y = value_2;
-				device->process(event, 2);	
-			}		
-			if(event_code == MOUSE_WHELL_DOWN)	
-			{
-				// mouse 휠 업 이벤트 생성, 발생 
-				event[0].when = systemTime(SYSTEM_TIME_MONOTONIC);
-				event[0].deviceId = (int32_t)VIRTURE_MOUSE_ID;
-				event[0].type = 0x00000002;
-				event[0].code = 0x00000008;
-				event[0].value = 0x00000001;
-
-				event[1].when = systemTime(SYSTEM_TIME_MONOTONIC);
-				event[1].deviceId = (int32_t)VIRTURE_MOUSE_ID;
-				event[1].type = 0x00000000;
-				event[1].code = 0x00000000;
-				event[1].value = 0x00000000;
-				
-				mouse_x = value_1;
-				mouse_y = value_2;
-				device->process(event, 2);	
-			}				
-		
-		break;		
-		
-		default:
-		
-		break;
-	}	
+			default:
+			
+			break;
+		}	
+	}//release lock
 	
-	// Flush queued events out to the listener.
-    // This must happen outside of the lock because the listener could potentially call
-    // back into the InputReader's methods, such as getScanCodeState, or become blocked
-    // on another thread similarly waiting to acquire the InputReader lock thereby
-    // resulting in a deadlock.  This situation is actually quite plausible because the
-    // listener is actually the input dispatcher, which calls into the window manager,
-    // which occasionally calls into the input reader.
-	mQueuedListener->flush();
 }
 
 void InputReader::processEventsLocked( RawEvent* rawEvents, size_t count) {
