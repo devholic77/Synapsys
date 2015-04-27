@@ -79,14 +79,14 @@ namespace Synapsys
 
 		private void HookManager_KeyDown(object sender, KeyEventArgs e)
 		{
-			if (CaptureScreen.getCurrentMonitor() == "2")
+			if (CaptureScreen.getCurrentMonitor() == 2)
 			{
 				if (MainWindow.socketData1 != null)
 				{
 					MainWindow.socketData1.SendString("0:0:" + MapVirtualKey(e.KeyValue, 0) + ":0:0:\n");
 				}
 			}
-			else if (CaptureScreen.getCurrentMonitor() == "3")
+			else if (CaptureScreen.getCurrentMonitor() == 3)
 			{
 				if (MainWindow.socketData2 != null)
 				{
@@ -97,14 +97,14 @@ namespace Synapsys
 
 		private void HookManager_KeyUp(object sender, KeyEventArgs e)
 		{
-			if (CaptureScreen.getCurrentMonitor() == "2")
+			if (CaptureScreen.getCurrentMonitor() == 2)
 			{
 				if (MainWindow.socketData1 != null)
 				{
 					MainWindow.socketData1.SendString("0:1:" + MapVirtualKey(e.KeyValue, 0) + ":0:0:\n");
 				}
 			}
-			else if (CaptureScreen.getCurrentMonitor() == "3")
+			else if (CaptureScreen.getCurrentMonitor() == 3)
 			{
 				if (MainWindow.socketData2 != null)
 				{
@@ -126,7 +126,7 @@ namespace Synapsys
 			//Console.WriteLine(string.Format("x={0:0000}; y={1:0000}", e.X, e.Y));
 			MOUSE_X = e.X;
 			MOUSE_Y = e.Y;
-			if(CaptureScreen.getCurrentMonitor() == "2")
+			if(CaptureScreen.getCurrentMonitor() == 2)
 			{
 
 				MOUSE_X -= MainWindow.MONITOR_FIRST_WIDTH;
@@ -141,9 +141,9 @@ namespace Synapsys
 					MainWindow.socketData1.SendString("1:0:" + MOUSE_X + ":" + MOUSE_Y + ":0:\n");
 				}
 			}
-			else if (CaptureScreen.getCurrentMonitor() == "3")
+			else if (CaptureScreen.getCurrentMonitor() == 3)
 			{
-				MOUSE_X -= MainWindow.MONITOR_FIRST_WIDTH;
+				MOUSE_X -= (MainWindow.MONITOR_FIRST_WIDTH + MainWindow.WIDTH);
 
 				if (MOUSE_X < 0)
 					MOUSE_X = 0;
@@ -173,7 +173,7 @@ namespace Synapsys
 		{
 			//Console.WriteLine(string.Format("MouseUp - {0}\n", e.Button));
 
-			if (CaptureScreen.getCurrentMonitor() == "2")
+			if (CaptureScreen.getCurrentMonitor() == 2)
 			{
 				if (MainWindow.socketData1 != null)
 				{
@@ -187,7 +187,7 @@ namespace Synapsys
 					}
 				}
 			}
-			else if (CaptureScreen.getCurrentMonitor() == "3")
+			else if (CaptureScreen.getCurrentMonitor() == 3)
 			{
 				if (MainWindow.socketData2 != null)
 				{
@@ -207,7 +207,7 @@ namespace Synapsys
 
 		private void HookManager_MouseDown(object sender, MouseEventExtArgs e)
 		{
-			if (CaptureScreen.getCurrentMonitor() == "2")
+			if (CaptureScreen.getCurrentMonitor() == 2)
 			{
 				//e.Handled = true;
 				if (MainWindow.socketData1 != null)
@@ -223,7 +223,7 @@ namespace Synapsys
 				}
 				e.Handled = false;
 			}
-			else if (CaptureScreen.getCurrentMonitor() == "3")
+			else if (CaptureScreen.getCurrentMonitor() == 3)
 			{
 				//e.Handled = true;
 				if (MainWindow.socketData2 != null)
@@ -252,7 +252,7 @@ namespace Synapsys
 		private void HookManager_MouseWheel(object sender, MouseEventArgs e)
 		{
 
-			if (CaptureScreen.getCurrentMonitor() == "2")
+			if (CaptureScreen.getCurrentMonitor() == 2)
 			{
 				if (MainWindow.socketData1 != null)
 				{
@@ -267,7 +267,7 @@ namespace Synapsys
 					}
 				}
 			}
-			else if (CaptureScreen.getCurrentMonitor() == "3")
+			else if (CaptureScreen.getCurrentMonitor() == 3)
 			{
 				if (MainWindow.socketData2 != null)
 				{

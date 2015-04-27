@@ -50,10 +50,10 @@ namespace Synapsys
 				} else if(beforeTotalMonitor >= 2)
 				{
 					MainWindow.DEVICE1_MARGIN = Screen.AllScreens[1].Bounds.Top;
-					MainWindow.MONITOR_FIRST_WIDTH = Screen.AllScreens[0].Bounds.Width;
 					MONITOR_LR = (Screen.AllScreens[1].Bounds.X > 0 ? 1 : -1);
-					Console.WriteLine(MainWindow.MONITOR_FIRST_WIDTH);
 				}
+				MainWindow.MONITOR_FIRST_WIDTH = Screen.AllScreens[0].Bounds.Width;
+				Console.WriteLine(MainWindow.MONITOR_FIRST_WIDTH);
 			}
 		}
 
@@ -61,7 +61,7 @@ namespace Synapsys
 		public void Start()
 		{
 			Stop();
-			setFPS(25);
+			setFPS(30);
 
 			thread = new Thread(new ThreadStart(captureMachine));
 			thread.Start();
@@ -97,11 +97,22 @@ namespace Synapsys
 		}
 
 		// 마우스 포인터가 위치한 모니터 번호를 리턴
-		public static string getCurrentMonitor()
+		public static int getCurrentMonitor()
 		{
-			return Regex.Replace(Screen.FromPoint(new System.Drawing.Point(System.Windows.Forms.Cursor.Position.X,
-					System.Windows.Forms.Cursor.Position.Y)).DeviceName,
-					@"[^\d]", string.Empty);
+			int MONITOR = 1;
+			int X = System.Windows.Forms.Cursor.Position.X;
+			if(X > MainWindow.MONITOR_FIRST_WIDTH)
+			{
+				if (X < MainWindow.WIDTH + MainWindow.MONITOR_FIRST_WIDTH)
+					MONITOR = 2;
+				else
+					MONITOR = 3;
+			}
+			return MONITOR;
+
+			//return Regex.Replace(Screen.FromPoint(new System.Drawing.Point(System.Windows.Forms.Cursor.Position.X,
+			//		System.Windows.Forms.Cursor.Position.Y)).,
+			//		@"[^\d]", string.Empty);
 		}
 		private static void gcMachine()
 		{
@@ -160,8 +171,7 @@ namespace Synapsys
 				{
 					using (Graphics g = Graphics.FromImage(bitmap))
 					{
-						g.CopyFromScreen(new Point(MainWindow.MONITOR_FIRST_WIDTH, 0), Point.Empty, new Size(MONITOR_WIDTH * SUBSCREEN, MONITOR_HEIGHT));
-						
+						g.CopyFromScreen(new Point(MainWindow.MONITOR_FIRST_WIDTH, 0), Point.Empty, bitmap.Size);
 
 						CURSORINFO pci;
 						pci.cbSize = System.Runtime.InteropServices.Marshal.SizeOf(typeof(CURSORINFO));
@@ -193,7 +203,7 @@ namespace Synapsys
 					// #2
 					if(SUBSCREEN >= 2)
 					{
-						rect = new Rectangle(MainWindow.MONITOR_FIRST_WIDTH + MONITOR_WIDTH, 0, MONITOR_WIDTH, MONITOR_HEIGHT);
+						rect = new Rectangle(MONITOR_WIDTH, 0, MONITOR_WIDTH, MONITOR_HEIGHT);
 						using (Bitmap secondHalf = bitmap.Clone(rect, bitmap.PixelFormat))
 						{
 							using (MemoryStream stream = new MemoryStream())
