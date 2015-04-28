@@ -137,7 +137,7 @@ namespace Synapsys
 				if (flag && clientSock != null && clientSock.Connected)
 				{
 					flag = false;
-					//Console.WriteLine(array.Length);
+					//Console.WriteLine(array.Length); 15/30
 					imgArray = array;
 
 					if(array.Length > 0)

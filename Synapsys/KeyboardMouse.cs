@@ -296,26 +296,28 @@ namespace Synapsys
 		private const int MOUSEEVENTF_LEFTUP = 0x0004;
 		private const int MOUSEEVENTF_RIGHTDOWN = 0x0008;
 		private const int MOUSEEVENTF_RIGHTUP = 0x0010;
-		private const int MOUSEEVENTF_MIDDLEUP = 0x0040;
-		private const int MOUSEEVENTF_MIDDLEDOWN = 0x0020;
+		private const int MOUSEEVENTF_WHEEL = 0x0800;
+		private const int MOUSEEVENTF_HWHEEL = 0x01000;
 
 		public static void MOVE_MOUSE(int x, int y, int e, int device)
 		{
 			Console.WriteLine("MOVE_MOUSE" + x + " # " + y + " # " + e + " # " + device);
 			x += MainWindow.MONITOR_FIRST_WIDTH + (device - 1) * MainWindow.WIDTH;
-
 			switch (e)
 			{
 				case 0:		// MOVE
-					Cursor.Position = new Point(x, y);
+					Cursor.Position = new Point(x, y);					
 					break;
 				case 1:		// CLICK_LEFT
+					Cursor.Position = new Point(x, y);
 					mouse_event(MOUSEEVENTF_LEFTDOWN, x, y, 0, 0);
 					break;
 				case 2:		// CLICK_RIGHT
+					Cursor.Position = new Point(x, y);
 					mouse_event(MOUSEEVENTF_RIGHTDOWN, x, y, 0, 0);
 					break;
 				case 3:		// DOUBLE_CLICK_LEFT
+					Cursor.Position = new Point(x, y);
 					mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_LEFTUP, x, y, 0, 0);
 					Thread.Sleep(150);
 					mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_LEFTUP, x, y, 0, 0);
@@ -327,10 +329,16 @@ namespace Synapsys
 					mouse_event(MOUSEEVENTF_RIGHTUP, x, y, 0, 0);
 					break;
 				case 6:		// WHEEL_UP
-					mouse_event(MOUSEEVENTF_MIDDLEUP, x, y, 0, 0);
+					mouse_event(MOUSEEVENTF_WHEEL, x, y, 120, 0);
 					break;
 				case 7:		// WHEEL_DOWN
-					mouse_event(MOUSEEVENTF_MIDDLEDOWN, x, y, 0, 0);
+					mouse_event(MOUSEEVENTF_WHEEL, x, y, -120, 0);
+					break;
+				case 8:		// WHEEL_LEFT
+					mouse_event(MOUSEEVENTF_HWHEEL, x, y, -120, 0);
+					break;
+				case 9:		// WHEEL_RIGHT
+					mouse_event(MOUSEEVENTF_HWHEEL, x, y, 120, 0);
 					break;
 				default:	// DEFAULT
 					break;
