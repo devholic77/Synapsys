@@ -21,7 +21,7 @@ Synapsys is under [GPLv2 License](https://www.gnu.org/licenses/gpl-2.0.html)
 
 ##Demonstration
 [![Avengers2](http://share.gifyoutube.com/y0eJLB.gif)](https://www.youtube.com/watch?v=y-BJwDvjiBY "Avengers2")
-[Youtube](https://www.youtube.com/watch?v=y-BJwDvjiBY) 
+-[https://www.youtube.com/watch?v=y-BJwDvjiBY](https://www.youtube.com/watch?v=y-BJwDvjiBY) 
 
 ##Synapsys Members
 - [Minhwan Jo](https://github.com/jominhwan) (조민환 [PL])
