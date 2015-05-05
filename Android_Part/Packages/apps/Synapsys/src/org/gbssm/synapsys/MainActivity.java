@@ -53,7 +53,8 @@ public class MainActivity extends Activity {
 	protected void onResume() {
 		super.onResume();
 		
-		mApplication.getSynapsysManager().requestSynapsysForeground(true);
+		// Synapsys Application의 상태를 SynapsysManager로 알린다. > 마우스 제어.. 취소
+		//mApplication.getSynapsysManager().requestSynapsysForeground(true);
 		
 		// Synapsys Streaming 준비
 		mApplication.notifyStreamingActivity(this);
@@ -73,7 +74,9 @@ public class MainActivity extends Activity {
 	protected void onPause() {
 		mApplication.notifyStreamingView(null);
 		mApplication.notifyStreamingActivity(null);
-		mApplication.getSynapsysManager().requestSynapsysForeground(false);
+
+		// Synapsys Application의 상태를 SynapsysManager로 알린다. > 마우스 제어.. 취소
+		//mApplication.getSynapsysManager().requestSynapsysForeground(false);
 		
 		super.onPause();
 	}
