@@ -20,7 +20,7 @@ Synapsys is under [GPLv2 License](https://www.gnu.org/licenses/gpl-2.0.html)
   - You can get futher details in [here](https://github.com/TeamSynapsys/Synapsys/wiki/Windows-Program-Install). 
 
 ##Demonstration
-[![Avengers2](http://www.gifyoutube.com/gif/Kz03bQ)](https://www.youtube.com/watch?v=y-BJwDvjiBY)
+[![IMAGE ALT TEXT HERE](http://img.youtube.com/vi/y-BJwDvjiBY/0.jpg)](https://www.youtube.com/watch?v=y-BJwDvjiBY)
 
 ##Synapsys Members
 - [Minhwan Jo](https://github.com/jominhwan) (조민환 [PL])
