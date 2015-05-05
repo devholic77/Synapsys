@@ -26,18 +26,28 @@ namespace Synapsys_Sub_Program
     public partial class Form1 : Form
     {
         int launcher_id = 0;
+        TabbedThumbnail thumb;
         public Form1()
         {
+            Console.WriteLine("form start");
             InitializeComponent();
             pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
 
+
+            /*
             TabbedThumbnail thumb = new TabbedThumbnail(this.Handle, this.Handle);
             TaskbarManager.Instance.TabbedThumbnail.AddThumbnailPreview(thumb);
             thumb.TabbedThumbnailClosed += new EventHandler<TabbedThumbnailClosedEventArgs>(Synapsys_AppDeleteEvent); // 앱 삭제 이벤트
             thumb.TabbedThumbnailActivated += new EventHandler<TabbedThumbnailEventArgs>(Synapsys_AppContextChangeEvent);
             thumb.Title = "Home"; // app title 
             thumb.SetWindowIcon(Synapsys_Sub_Program.Properties.Resources.image_main_icon);
-            Synapsys_FileRead();
+             * */
+            //Synapsys_FileRead();
+   //         TabbedThumbnail thumb = new TabbedThumbnail(this.Handle, this.Handle);
+
+      
+            Application.Idle += Form1_Load;
+
         }
         public byte[] Synapsys_intToByte(int id)
         {
@@ -80,6 +90,11 @@ namespace Synapsys_Sub_Program
                     }
                     break;
                 case 2: // 직전
+                    if (App_id == launcher_id)
+                    {
+                        this.pictureBox1.Image = App_thumbnail;
+                        pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
+                    }
                     for (int i = 0; i < Synapsys_Global_Value.Thumbnail_index; i++)
                     {
                         if (Synapsys_Global_Value.Android_Thumbnail[i].Synapsys_GetId() == App_id)
@@ -95,7 +110,7 @@ namespace Synapsys_Sub_Program
                         if (Synapsys_Global_Value.Android_Thumbnail[i].Synapsys_GetId() == App_id)
                         {
                             Synapsys_Global_Value.Android_Thumbnail[i].Synapsys_App_Delete();
-                            for (int j = i; j <= Synapsys_Global_Value.Thumbnail_index; j++ )
+                            for (int j = i; j < Synapsys_Global_Value.Thumbnail_index; j++ )
                                 Synapsys_Global_Value.Android_Thumbnail[j] = Synapsys_Global_Value.Android_Thumbnail[j + 1];
 
                             Synapsys_Global_Value.Android_Thumbnail[Synapsys_Global_Value.Thumbnail_index] = null;
@@ -115,28 +130,36 @@ namespace Synapsys_Sub_Program
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            string[] strArg = Environment.GetCommandLineArgs();
+            Application.Idle -= Form1_Load;
+            Console.WriteLine("form load1");
 
+            string[] strArg = Environment.GetCommandLineArgs();
+            
             Synapsys_Global_Value.Thumbnail_Socket = new Synapsys_Thumbnail_Socket();
             Synapsys_Global_Value.Thumbnail_Socket.Execute += new Synapsys_Thumbnail_Socket.execute(Clap);
-            Synapsys_Global_Value.Thumbnail_Socket.Synapsys_Socket_Init(strArg[1], "123");
 
-            TabbedThumbnail thumb = new TabbedThumbnail(this.Handle, this.Handle);
+           // Synapsys_Global_Value.Thumbnail_Socket.Synapsys_Socket_Init("1236", "123");
+        
+
+                Synapsys_Global_Value.Thumbnail_Socket.Synapsys_Socket_Init(strArg[1], "123");
+            
+     
+            thumb = new TabbedThumbnail(this.Handle, this.Handle);
             TaskbarManager.Instance.TabbedThumbnail.AddThumbnailPreview(thumb);
             thumb.TabbedThumbnailClosed += new EventHandler<TabbedThumbnailClosedEventArgs>(Synapsys_AppDeleteEvent); // 앱 삭제 이벤트
             thumb.TabbedThumbnailActivated += new EventHandler<TabbedThumbnailEventArgs>(Synapsys_AppContextChangeEvent);
-
-            Console.WriteLine(strArg[1]);
-
+            thumb.Title = "Home"; // app title 
+            thumb.SetWindowIcon(Synapsys_Sub_Program.Properties.Resources.image_main_icon);
+            
+            //Console.WriteLine(strArg[1]);
             var enums = Enum.GetNames(typeof(TaskbarProgressBarState));
-            Console.WriteLine("form load");
+            Console.WriteLine("form load2");
 
 
         }
         void Synapsys_AppContextChangeEvent(object sender, TabbedThumbnailEventArgs e) // 런처 처리하기 
         {
 
-            
             Console.WriteLine("main click");
 
          

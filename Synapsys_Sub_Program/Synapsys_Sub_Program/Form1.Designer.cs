@@ -50,6 +50,7 @@
             this.Icon = global::Synapsys_Sub_Program.Properties.Resources.image_main_icon;
             this.Name = "Form1";
             this.Text = "Home";
+            
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(Form1_Closed);
             
             

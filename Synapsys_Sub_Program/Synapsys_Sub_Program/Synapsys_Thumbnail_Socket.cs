@@ -176,6 +176,7 @@ namespace Synapsys_Sub_Program
 
                 e.App_Thumbnail = App_thumbnail;
                 e.App_Id = App_ID;
+                e.App_Name = App_name;
 
                 Execute(this, e);  // 이벤트 실행. this는 이 객체를 말하는것.
             }
@@ -350,7 +351,7 @@ namespace Synapsys_Sub_Program
                             Synapsys_4_State();
                             break;
                         default:
-                            Console.WriteLine("이상한 데이터가 넘어옴");
+                            //Console.WriteLine("이상한 데이터가 넘어옴");
                             break;
                     }
                     //getstring = Encoding.UTF8.GetString(getbyte, 0, getValueLength + 1);
