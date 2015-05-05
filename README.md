@@ -20,8 +20,7 @@ Synapsys is under [GPLv2 License](https://www.gnu.org/licenses/gpl-2.0.html)
   - You can get futher details in [here](https://github.com/TeamSynapsys/Synapsys/wiki/Windows-Program-Install). 
 
 ##Demonstration
-- [Youtube](https://www.youtube.com/)
-- <iframe width="560" height="315" src="https://www.youtube.com/embed/gBdNUUpVBtc" frameborder="0" allowfullscreen></iframe>
+[![ScreenShot](https://raw.github.com/GabLeRoux/WebMole/master/ressources/WebMole_Youtube_Video.png)](https://www.youtube.com/watch?v=gBdNUUpVBtc)
 
 ##Synapsys Members
 - [Minhwan Jo](https://github.com/jominhwan) (조민환 [PL])
