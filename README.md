@@ -14,7 +14,7 @@ Synapsys is under [GPLv2 License](https://www.gnu.org/licenses/gpl-2.0.html)
 
 ##How to Build
 - Android Part : Copy files into proper locations. We locate these files as it should be based on AOSP pure codes with Nexus7 (FLO).
-  - You can get futher details in [here](https://github.com/TeamSynapsys/Synapsys/wiki/Framework-Build).
+  - You can get futher details in [here](https://github.com/TeamSynapsys/Synapsys/wiki/Android-Framework-Build).
 
 - Windows Part : For making your Android device into an extended display, you should install a display driver to create virutual extended screens. 
   - You can get futher details in [here](https://github.com/TeamSynapsys/Synapsys/wiki/Windows-Program-Install). 
